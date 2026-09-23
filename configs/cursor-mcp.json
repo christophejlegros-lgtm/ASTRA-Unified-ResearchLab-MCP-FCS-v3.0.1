@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "astra": {
+      "command": "node",
+      "args": ["<ABSOLUTE_PATH_TO>/astra-mcp-server/dist/index.js"],
+      "env": {
+        "ASTRA_LOG_LEVEL": "info"
+      }
+    }
+  }
+}

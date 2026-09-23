@@ -1,0 +1,164 @@
+{
+  "config": {
+    "numObs": 5,
+    "numStates": 5,
+    "numControls": 2,
+    "gamma": 4.0,
+    "lr": 1.0
+  },
+  "C": [
+    0.0,
+    0.5,
+    1.0,
+    1.5,
+    2.0
+  ],
+  "sequence": [
+    4,
+    4,
+    2,
+    0,
+    3,
+    3,
+    1,
+    4,
+    2,
+    4,
+    4,
+    0
+  ],
+  "steps": [
+    {
+      "obs": 4,
+      "freeEnergy": 1.6094379124,
+      "expectedFreeEnergy": [
+        -1.0,
+        -1.0
+      ],
+      "pragmatic": 1.0,
+      "epistemic": 0.0,
+      "action": 0
+    },
+    {
+      "obs": 4,
+      "freeEnergy": 1.4663370688,
+      "expectedFreeEnergy": [
+        -1.0384615385,
+        -1.0384615385
+      ],
+      "pragmatic": 1.0384615385,
+      "epistemic": 0.0,
+      "action": 0
+    },
+    {
+      "obs": 2,
+      "freeEnergy": 1.6863989536,
+      "expectedFreeEnergy": [
+        -1.0740740741,
+        -1.0740740741
+      ],
+      "pragmatic": 1.0740740741,
+      "epistemic": 0.0,
+      "action": 0
+    },
+    {
+      "obs": 0,
+      "freeEnergy": 1.7227665977,
+      "expectedFreeEnergy": [
+        -1.0714285714,
+        -1.0714285714
+      ],
+      "pragmatic": 1.0714285714,
+      "epistemic": 0.0,
+      "action": 0
+    },
+    {
+      "obs": 3,
+      "freeEnergy": 1.7578579175,
+      "expectedFreeEnergy": [
+        -1.0344827586,
+        -1.0344827586
+      ],
+      "pragmatic": 1.0344827586,
+      "epistemic": 0.0,
+      "action": 0
+    },
+    {
+      "obs": 3,
+      "freeEnergy": 1.6094379124,
+      "expectedFreeEnergy": [
+        -1.05,
+        -1.05
+      ],
+      "pragmatic": 1.05,
+      "epistemic": 0.0,
+      "action": 0
+    },
+    {
+      "obs": 1,
+      "freeEnergy": 1.824549292,
+      "expectedFreeEnergy": [
+        -1.064516129,
+        -1.064516129
+      ],
+      "pragmatic": 1.064516129,
+      "epistemic": 0.0,
+      "action": 0
+    },
+    {
+      "obs": 4,
+      "freeEnergy": 1.5198257537,
+      "expectedFreeEnergy": [
+        -1.046875,
+        -1.046875
+      ],
+      "pragmatic": 1.046875,
+      "epistemic": 0.0,
+      "action": 0
+    },
+    {
+      "obs": 2,
+      "freeEnergy": 1.7047480922,
+      "expectedFreeEnergy": [
+        -1.0757575758,
+        -1.0757575758
+      ],
+      "pragmatic": 1.0757575758,
+      "epistemic": 0.0,
+      "action": 0
+    },
+    {
+      "obs": 4,
+      "freeEnergy": 1.4469189829,
+      "expectedFreeEnergy": [
+        -1.0735294118,
+        -1.0735294118
+      ],
+      "pragmatic": 1.0735294118,
+      "epistemic": 0.0,
+      "action": 0
+    },
+    {
+      "obs": 4,
+      "freeEnergy": 1.3581234841,
+      "expectedFreeEnergy": [
+        -1.1,
+        -1.1
+      ],
+      "pragmatic": 1.1,
+      "epistemic": 0.0,
+      "action": 0
+    },
+    {
+      "obs": 0,
+      "freeEnergy": 1.7917594692,
+      "expectedFreeEnergy": [
+        -1.125,
+        -1.125
+      ],
+      "pragmatic": 1.125,
+      "epistemic": 0.0,
+      "action": 0
+    }
+  ]
+}

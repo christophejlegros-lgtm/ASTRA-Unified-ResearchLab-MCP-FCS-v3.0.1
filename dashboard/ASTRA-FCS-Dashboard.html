@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<!--
+  ASTRA — Console FCS · FCS console
+  Fonctionnalisme contraint par le substrat (doc I v1.5), complément métaphysique
+  (doc II v1.4), implémentation neurochimique (doc IV v1.2), synthèse S-1.5.
+  © Genève 2026 Christophe Jean Legros · Assistance Multi IA
+
+  La stratification n'est PAS codée en dur : la page recalcule l'ordre partiel par
+  dominance de Pareto à partir des trois sous-critères, exactement comme
+  src/engine/fcs/stratification.ts, et affiche si elle reproduit les huit strates
+  publiées. Aucun score agrégé n'est produit — interdiction 4.
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' http://localhost:* http://127.0.0.1:*; img-src 'self' data:; object-src 'none'; base-uri 'self'">
+<title>ASTRA · Console FCS — fonctionnalisme contraint par le substrat</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  /* ── Socle nocturne · nocturnal ground ── */
+  --void:#05060c; --deep:#080a14; --card:#0b0e1b; --card2:#0f1324; --rule:#1b2138;
+  --tx:#d7dcec; --dim:#8d97b6; --mut:#5a6486; --wh:#eef1f8;
+
+  /* ── Palette thématique FCS : les quatre niveaux ── */
+  --n1:#2ee6d0;  /* I   substrat — courant ionique, champ endogène */
+  --n2:#ffb347;  /* II  proto-conscience kinesthésique */
+  --n3:#a98bff;  /* III inférence hiérarchique */
+  --n4:#ff5c8a;  /* IV  conscience d'accès */
+
+  /* ── Rôles causaux ── */
+  --r-const:#2ee6d0; --r-gen:#ff5c8a; --r-param:#7fb2ff; --r-mod:#a98bff; --r-perm:#6d7793;
+
+  /* ── Statuts épistémiques ── */
+  --s-eta:#34d399;  /* Établi */
+  --s-mod:#7fb2ff;  /* Modélisé */
+  --s-con:#fbbf24;  /* Contesté */
+  --s-nor:#c084fc;  /* Normatif */
+
+  --ok:#34d399; --warn:#fbbf24; --no:#f87171;
+
+  --rc:10px; --rs:6px;
+  --ff-d:'Fraunces',Georgia,serif;
+  --ff-b:'Spectral',Georgia,'Times New Roman',serif;
+  --ff-m:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+
+html{font-size:15px;scroll-behavior:smooth}
+body{
+  font-family:var(--ff-b); background:var(--void); color:var(--tx);
+  min-height:100vh; line-height:1.62; -webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 12% 0%,rgba(46,230,208,.055),transparent 70%),
+    radial-gradient(ellipse 55% 45% at 88% 12%,rgba(255,92,138,.04),transparent 70%),
+    radial-gradient(ellipse 60% 40% at 50% 100%,rgba(169,139,255,.035),transparent 70%);
+  background-attachment:fixed;
+}
+::selection{background:rgba(46,230,208,.22)}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:var(--deep)}
+::-webkit-scrollbar-thumb{background:var(--rule);border-radius:5px}
+::-webkit-scrollbar-thumb:hover{background:var(--mut)}
+*:focus-visible{outline:2px solid var(--n1);outline-offset:2px}
+
+/* ── Bascule bilingue ── */
+.fr,.en{display:none}
+html.lang-fr .fr{display:inline}
+html.lang-en .en{display:inline}
+html.lang-fr div.fr,html.lang-fr p.fr,html.lang-fr td.fr,html.lang-fr li.fr,html.lang-fr .blk.fr{display:block}
+html.lang-en div.en,html.lang-en p.en,html.lang-en td.en,html.lang-en li.en,html.lang-en .blk.en{display:block}
+
+/* ── En-tête ── */
+header{
+  position:sticky;top:0;z-index:60;background:rgba(5,6,12,.93);
+  backdrop-filter:blur(20px);border-bottom:1px solid var(--rule);
+  padding:.7rem 1.4rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
+}
+.brand{display:flex;flex-direction:column;gap:1px}
+.brand b{
+  font-family:var(--ff-m);font-size:.95rem;font-weight:600;letter-spacing:.22em;
+  background:linear-gradient(105deg,var(--n1),var(--n3) 55%,var(--n4));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.brand span{font-size:.6rem;color:var(--mut);letter-spacing:.14em;text-transform:uppercase;font-family:var(--ff-m)}
+.hspace{margin-left:auto}
+.ctl{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
+button,.btn{
+  font-family:var(--ff-m);font-size:.62rem;letter-spacing:.06em;
+  background:var(--card2);color:var(--dim);border:1px solid var(--rule);
+  border-radius:var(--rs);padding:.34rem .7rem;cursor:pointer;transition:.18s;
+}
+button:hover{color:var(--wh);border-color:var(--mut);background:var(--card)}
+button.on{color:var(--void);background:var(--n1);border-color:var(--n1);font-weight:600}
+input.ep{
+  font-family:var(--ff-m);font-size:.62rem;background:var(--deep);color:var(--tx);
+  border:1px solid var(--rule);border-radius:var(--rs);padding:.34rem .55rem;width:16rem;
+}
+.led{width:7px;height:7px;border-radius:50%;background:var(--mut);box-shadow:0 0 6px currentColor;color:var(--mut)}
+.led.up{background:var(--ok);color:var(--ok)}
+.led.down{background:var(--no);color:var(--no)}
+
+/* ── Navigation ── */
+nav{
+  display:flex;gap:0;padding:0 1.4rem;background:rgba(8,10,20,.85);
+  border-bottom:1px solid var(--rule);overflow-x:auto;position:sticky;top:3.3rem;z-index:55;
+}
+nav button{
+  background:none;border:none;border-bottom:2px solid transparent;border-radius:0;
+  padding:.55rem .85rem;font-size:.63rem;color:var(--dim);white-space:nowrap;letter-spacing:.07em;
+}
+nav button:hover{color:var(--tx);background:rgba(255,255,255,.02)}
+nav button.on{color:var(--n1);border-bottom-color:var(--n1);background:rgba(46,230,208,.05);font-weight:600}
+
+main{max-width:1320px;margin:0 auto;padding:1.5rem 1.4rem 5rem}
+section{display:none}
+section.on{display:block;animation:fade .28s ease}
+@keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+/* ── Typographie ── */
+h1{font-family:var(--ff-d);font-size:1.85rem;font-weight:600;line-height:1.18;color:var(--wh);letter-spacing:-.012em;margin-bottom:.35rem}
+h2{font-family:var(--ff-d);font-size:1.16rem;font-weight:600;color:var(--wh);margin:2rem 0 .55rem;letter-spacing:-.008em}
+h2:first-child{margin-top:0}
+h3{font-family:var(--ff-m);font-size:.68rem;font-weight:600;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;margin:0 0 .5rem}
+.lede{font-size:1.01rem;color:var(--dim);max-width:78ch;font-style:italic}
+p{max-width:82ch;margin-bottom:.7rem;font-size:.92rem}
+.note{font-size:.79rem;color:var(--mut);max-width:84ch}
+.mono{font-family:var(--ff-m)}
+sup{font-size:.62em}
+
+/* ── Cartes ── */
+.card{background:var(--card);border:1px solid var(--rule);border-radius:var(--rc);padding:1.1rem 1.25rem;margin-bottom:1rem}
+.card.tight{padding:.85rem 1rem}
+.grid{display:grid;gap:1rem}
+.g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.g2x{display:grid;gap:1rem;grid-template-columns:repeat(2,1fr)}
+@media (max-width:820px){.g2x{grid-template-columns:1fr}}
+.g3{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+
+/* ── Badges ── */
+.bdg{
+  display:inline-block;font-family:var(--ff-m);font-size:.56rem;font-weight:600;
+  letter-spacing:.09em;text-transform:uppercase;padding:.14rem .44rem;border-radius:3px;
+  border:1px solid currentColor;margin:0 .22rem .22rem 0;white-space:nowrap;
+}
+.b-eta{color:var(--s-eta)} .b-mod{color:var(--s-mod)} .b-con{color:var(--s-con)} .b-nor{color:var(--s-nor)}
+.b-const{color:var(--r-const)} .b-gen{color:var(--r-gen)} .b-param{color:var(--r-param)}
+.b-mod2{color:var(--r-mod)} .b-perm{color:var(--r-perm)}
+.b-core{color:var(--n1)} .b-belt{color:var(--s-con)} .b-comp{color:var(--r-mod)}
+
+/* ── Tables ── */
+table{width:100%;border-collapse:collapse;font-size:.79rem}
+th{
+  font-family:var(--ff-m);font-size:.58rem;font-weight:600;color:var(--mut);
+  letter-spacing:.11em;text-transform:uppercase;text-align:left;
+  padding:.45rem .5rem;border-bottom:1px solid var(--rule);position:sticky;top:0;background:var(--card);
+}
+td{padding:.45rem .5rem;border-bottom:1px solid rgba(27,33,56,.55);vertical-align:top}
+tr:hover td{background:rgba(255,255,255,.017)}
+td.num{font-family:var(--ff-m);font-size:.74rem;color:var(--dim);white-space:nowrap}
+td.id{font-family:var(--ff-m);font-size:.72rem;font-weight:600;color:var(--wh)}
+.scroll{overflow-x:auto;overflow-y:auto;max-height:none}
+
+/* ── Figures ── */
+figure{margin:1rem 0}
+svg{display:block;max-width:100%;height:auto}
+figcaption{font-size:.75rem;color:var(--mut);margin-top:.55rem;max-width:88ch;font-style:italic}
+
+/* ── Verdicts de conformité ── */
+.vd{font-family:var(--ff-m);font-size:.58rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;padding:.1rem .38rem;border-radius:3px}
+.vd-r{color:var(--ok);background:rgba(52,211,153,.1)}
+.vd-s{color:var(--s-mod);background:rgba(127,178,255,.1)}
+.vd-a{color:var(--no);background:rgba(248,113,113,.09)}
+.vd-u{color:var(--mut);background:rgba(90,100,134,.13)}
+
+/* ── Retenu / withheld ── */
+.withheld{font-family:var(--ff-m);font-size:.68rem;color:var(--warn);font-style:normal}
+.withheld::before{content:'⊘ ';opacity:.8}
+
+/* ── Interdictions ── */
+.proh{border-left:2px solid var(--s-nor);padding:.5rem 0 .5rem .85rem;margin-bottom:.9rem}
+.proh b{font-family:var(--ff-m);font-size:.62rem;color:var(--s-nor);letter-spacing:.1em;display:block;margin-bottom:.2rem}
+
+/* ── Pupitre de retrait ── */
+.strand{display:flex;align-items:flex-start;gap:.6rem;padding:.5rem 0;border-bottom:1px solid rgba(27,33,56,.5)}
+.strand:last-child{border-bottom:none}
+.tri{display:flex;gap:2px;flex:0 0 auto}
+.tri button{padding:.2rem .5rem;font-size:.56rem;border-radius:3px}
+.tri button.on{background:var(--n1);color:var(--void);border-color:var(--n1)}
+.tri button.no.on{background:var(--no);border-color:var(--no);color:var(--void)}
+.tri button.un.on{background:var(--mut);border-color:var(--mut);color:var(--void)}
+.strand .lbl{font-size:.8rem;flex:1;min-width:14rem}
+
+.standing{font-family:var(--ff-m);font-size:.6rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.12rem .42rem;border-radius:3px}
+.st-w{color:var(--no);background:rgba(248,113,113,.1)}
+.st-s{color:var(--ok);background:rgba(52,211,153,.1)}
+.st-u{color:var(--mut);background:rgba(90,100,134,.13)}
+
+/* ── Références ── */
+.ref{font-size:.79rem;padding:.42rem 0;border-bottom:1px solid rgba(27,33,56,.45);display:flex;gap:.7rem;align-items:baseline}
+.ref .doi{font-family:var(--ff-m);font-size:.66rem;color:var(--n1);white-space:nowrap;flex:0 0 auto}
+.ref .v{color:var(--ok);font-family:var(--ff-m);font-size:.58rem;flex:0 0 auto}
+
+/* ── Linter ── */
+textarea{
+  width:100%;min-height:5.5rem;font-family:var(--ff-m);font-size:.74rem;line-height:1.55;
+  background:var(--deep);color:var(--tx);border:1px solid var(--rule);border-radius:var(--rs);padding:.6rem .7rem;resize:vertical;
+}
+.finding{border-left:2px solid var(--no);padding:.4rem .75rem;margin:.45rem 0;background:rgba(248,113,113,.05);font-size:.79rem}
+.clean{border-left:2px solid var(--ok);padding:.4rem .75rem;margin:.45rem 0;background:rgba(52,211,153,.05);font-size:.79rem}
+
+footer{border-top:1px solid var(--rule);margin-top:2.5rem;padding:1.2rem 1.4rem;text-align:center;font-size:.7rem;color:var(--mut);font-family:var(--ff-m)}
+
+@media (max-width:640px){
+  html{font-size:14px}
+  header{padding:.6rem .9rem} nav{padding:0 .9rem} main{padding:1.1rem .9rem 4rem}
+  input.ep{width:10rem}
+}
+@media print{
+  header,nav,.ctl{display:none}
+  section{display:block!important}
+  body{background:#fff;color:#111}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <b>ASTRA · FCS</b>
+    <span class="fr">Fonctionnalisme contraint par le substrat · v3.0.1</span>
+    <span class="en">Substrate-constrained functionalism · v3.0.1</span>
+  </div>
+  <div class="hspace"></div>
+  <div class="ctl">
+    <span class="led" id="led" title="MCP"></span>
+    <input class="ep" id="ep" value="http://localhost:9003/mcp" spellcheck="false" aria-label="MCP endpoint">
+    <button id="btn-conn">connecter · connect</button>
+    <button id="btn-lang">FR / EN</button>
+  </div>
+</header>
+
+<nav id="nav">
+  <button data-s="cadre" class="on"><span class="fr">Cadre</span><span class="en">Framework</span></button>
+  <button data-s="strates"><span class="fr">Strates</span><span class="en">Strata</span></button>
+  <button data-s="carte"><span class="fr">Carte des classes</span><span class="en">Class map</span></button>
+  <button data-s="conformite"><span class="fr">Conformité</span><span class="en">Conformance</span></button>
+  <button data-s="retrait"><span class="fr">Retrait</span><span class="en">Withdrawal</span></button>
+  <button data-s="heuristique"><span class="fr">Heuristique négative</span><span class="en">Negative heuristic</span></button>
+  <button data-s="sources"><span class="fr">Sources</span><span class="en">Sources</span></button>
+</nav>
+
+<main>
+
+<!-- ══════════════ CADRE ══════════════ -->
+<section id="s-cadre" class="on">
+  <h1 class="fr">Le cadre à quatre niveaux, porté dans ASTRA</h1>
+  <h1 class="en">The four-level framework, carried into ASTRA</h1>
+  <p class="lede fr">La conscience est individuée par un profil fonctionnel, réalisable de multiples façons en principe ; dans le vivant, elle est réalisée <em>de fait</em> par une classe restreinte de dynamiques ioniques couplées par leurs champs endogènes. ASTRA réalise les niveaux&nbsp;III et IV en silicium et ne lit le niveau&nbsp;I qu'à travers un canal de tissu vivant. Cette page dit où passe l'écart.</p>
+  <p class="lede en">Consciousness is individuated by a functional profile, multiply realisable in principle; in living systems it is realised <em>as a matter of fact</em> by a restricted class of ionic dynamics coupled through their endogenous fields. ASTRA realises levels&nbsp;III and IV in silicon and reads level&nbsp;I only through a living-tissue channel. This page says where the gap falls.</p>
+
+  <figure>
+    <svg viewBox="0 0 1180 460" width="1180" height="460" role="img" aria-labelledby="fig1t">
+      <title id="fig1t">Le cadre à quatre niveaux, le noyau, la ceinture et la couverture par substrat</title>
+      <defs>
+        <linearGradient id="gI" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2ee6d0" stop-opacity=".26"/><stop offset="1" stop-color="#2ee6d0" stop-opacity=".05"/></linearGradient>
+        <linearGradient id="gII" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffb347" stop-opacity=".24"/><stop offset="1" stop-color="#ffb347" stop-opacity=".05"/></linearGradient>
+        <linearGradient id="gIII" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#a98bff" stop-opacity=".24"/><stop offset="1" stop-color="#a98bff" stop-opacity=".05"/></linearGradient>
+        <linearGradient id="gIV" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ff5c8a" stop-opacity=".24"/><stop offset="1" stop-color="#ff5c8a" stop-opacity=".05"/></linearGradient>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#5a6486"/>
+        </marker>
+      </defs>
+
+      <!-- Strates -->
+      <g font-family="IBM Plex Mono, monospace">
+        <!-- IV -->
+        <rect x="60" y="30" width="700" height="86" rx="8" fill="url(#gIV)" stroke="#ff5c8a" stroke-opacity=".5"/>
+        <text x="82" y="60" font-size="22" font-weight="700" fill="#ff5c8a">IV</text>
+        <text x="120" y="56" font-size="14" fill="#eef1f8" font-family="Fraunces, serif" font-weight="600">Conscience d’accès · Access consciousness</text>
+        <text x="120" y="78" font-size="11.5" fill="#8d97b6">ignition corticale tardive · diffusion globale · disponibilité au rapport</text>
+        <text x="120" y="98" font-size="11" fill="#5a6486">observable : indice de complexité perturbationnelle (Casali et al., 2013)</text>
+
+        <!-- III -->
+        <rect x="60" y="126" width="700" height="86" rx="8" fill="url(#gIII)" stroke="#a98bff" stroke-opacity=".5"/>
+        <text x="78" y="156" font-size="22" font-weight="700" fill="#a98bff">III</text>
+        <text x="120" y="152" font-size="14" fill="#eef1f8" font-family="Fraunces, serif" font-weight="600">Inférence hiérarchique · Hierarchical inference</text>
+        <text x="120" y="174" font-size="11.5" fill="#8d97b6">a priori descendants · erreurs de prédiction ascendantes</text>
+        <text x="120" y="194" font-size="11" fill="#5a6486">l’inférence exacte étant NP-difficile, la famille d’approximations doit être déclarée</text>
+
+        <!-- II -->
+        <rect x="60" y="222" width="700" height="86" rx="8" fill="url(#gII)" stroke="#ffb347" stroke-opacity=".5"/>
+        <text x="82" y="252" font-size="22" font-weight="700" fill="#ffb347">II</text>
+        <text x="120" y="248" font-size="14" fill="#eef1f8" font-family="Fraunces, serif" font-weight="600">Proto-conscience kinesthésique · Kinaesthetic proto-consciousness</text>
+        <text x="120" y="270" font-size="11.5" fill="#8d97b6">boucle efférence–réafférence · soi minimal · agentivité</text>
+        <text x="120" y="290" font-size="11" fill="#5a6486">le corps est le seul objet dont le système possède à la fois la commande et le retour</text>
+
+        <!-- I -->
+        <rect x="60" y="318" width="700" height="96" rx="8" fill="url(#gI)" stroke="#2ee6d0" stroke-opacity=".6"/>
+        <text x="86" y="352" font-size="22" font-weight="700" fill="#2ee6d0">I</text>
+        <text x="120" y="348" font-size="14" fill="#eef1f8" font-family="Fraunces, serif" font-weight="600">Substrat · Substrate</text>
+        <text x="120" y="370" font-size="11.5" fill="#8d97b6">flux ioniques transmembranaires · champs endogènes · couplage éphaptique</text>
+        <text x="120" y="390" font-size="11" fill="#5a6486">porteur : le courant ionique et le champ qu’il engendre — sous l’hypothèse du champ</text>
+        <text x="120" y="406" font-size="10.5" fill="#2ee6d0" opacity=".85">les 17 couples espèce–fonction se rangent ici</text>
+      </g>
+
+      <!-- Colonne complément -->
+      <g font-family="IBM Plex Mono, monospace">
+        <rect x="790" y="30" width="330" height="384" rx="8" fill="#0f1324" stroke="#1b2138"/>
+        <text x="810" y="54" font-size="10.5" fill="#5a6486" letter-spacing="1.6">COMPLÉMENT · CEINTURE</text>
+
+        <text x="810" y="84" font-size="12" font-weight="600" fill="#ff5c8a">M3 étendue — ceinture</text>
+        <text x="810" y="102" font-size="10.5" fill="#8d97b6">clôture opérationnelle portée au système</text>
+
+        <text x="810" y="180" font-size="12" font-weight="600" fill="#a98bff">M2 — ceinture</text>
+        <text x="810" y="198" font-size="10.5" fill="#8d97b6">structure phénoménale homomorphe</text>
+        <text x="810" y="213" font-size="10.5" fill="#8d97b6">à la dynamique, au grain du champ</text>
+
+        <text x="810" y="276" font-size="12" font-weight="600" fill="#ffb347">M3 — critère en ceinture</text>
+        <text x="810" y="294" font-size="10.5" fill="#8d97b6">le plus petit sujet est la plus petite</text>
+        <text x="810" y="309" font-size="10.5" fill="#8d97b6">boucle opérationnellement close</text>
+
+        <text x="810" y="356" font-size="12" font-weight="600" fill="#2ee6d0">M1 — complément</text>
+        <text x="810" y="374" font-size="10.5" fill="#8d97b6">bases catégoriques · phénoménalité</text>
+        <text x="810" y="389" font-size="10.5" fill="#5a6486">aucune observable propre · clause au 30·09·2027</text>
+
+        <path d="M786 92 L768 72" stroke="#5a6486" stroke-width="1.2" marker-end="url(#ar)" fill="none" opacity=".7"/>
+        <path d="M786 190 L768 168" stroke="#5a6486" stroke-width="1.2" marker-end="url(#ar)" fill="none" opacity=".7"/>
+        <path d="M786 286 L768 264" stroke="#5a6486" stroke-width="1.2" marker-end="url(#ar)" fill="none" opacity=".7"/>
+        <path d="M786 364 L768 366" stroke="#5a6486" stroke-width="1.2" marker-end="url(#ar)" fill="none" opacity=".7"/>
+      </g>
+
+      <!-- Couverture par substrat -->
+      <g font-family="IBM Plex Mono, monospace" font-size="9.5">
+        <text x="16" y="72" fill="#a98bff" transform="rotate(-90 16 72)" text-anchor="middle">SNN ⟂</text>
+        <text x="34" y="72" fill="#5a6486" transform="rotate(-90 34 72)" text-anchor="middle">simulé</text>
+        <text x="16" y="168" fill="#a98bff" transform="rotate(-90 16 168)" text-anchor="middle">SNN ⟂</text>
+        <text x="34" y="168" fill="#5a6486" transform="rotate(-90 34 168)" text-anchor="middle">simulé</text>
+        <text x="16" y="264" fill="#34d399" transform="rotate(-90 16 264)" text-anchor="middle">SNN ✓</text>
+        <text x="34" y="264" fill="#34d399" transform="rotate(-90 34 264)" text-anchor="middle">MEA ✓</text>
+        <text x="16" y="366" fill="#f87171" transform="rotate(-90 16 366)" text-anchor="middle">SNN ✗</text>
+        <text x="34" y="366" fill="#34d399" transform="rotate(-90 34 366)" text-anchor="middle">MEA ✓</text>
+      </g>
+    </svg>
+    <figcaption class="fr"><b>Figure 1.</b> Le cadre à quatre niveaux, sa ceinture, et la couverture par les substrats d'ASTRA. Aucune flèche ne va du complément vers le programme : M1 le lit, elle ne le modifie pas. À gauche, le verdict par substrat — ✓ réalise, ⟂ simule le profil sans réaliser le porteur, ✗ absent. Le rendu est schématique et ne porte aucune quantité.</figcaption>
+    <figcaption class="en"><b>Figure 1.</b> The four-level framework, its belt, and the coverage by ASTRA's substrates. No arrow runs from the complement back to the programme: M1 reads it, it does not modify it. On the left, the per-substrate verdict — ✓ realises, ⟂ simulates the profile without realising the carrier, ✗ absent. The rendering is schematic and carries no quantity.</figcaption>
+  </figure>
+
+  <h2 class="fr">Noyau et ceinture</h2>
+  <h2 class="en">Core and belt</h2>
+  <div class="grid g2">
+    <div class="card">
+      <h3><span class="bdg b-core">noyau · core</span></h3>
+      <div id="core-list"></div>
+      <p class="note fr" style="margin-top:.7rem">Le noyau ne porte aucune condition de retrait : sa révision serait l'abandon du programme, non un mouvement en son sein.</p>
+      <p class="note en" style="margin-top:.7rem">The core carries no withdrawal condition: its revision would be the abandonment of the programme, not a move within it.</p>
+    </div>
+    <div class="card">
+      <h3><span class="bdg b-belt">ceinture · belt</span></h3>
+      <p class="fr"><b>Hypothèse du champ.</b> Le champ électromagnétique endogène est une voie de couplage causalement efficace, et non un épiphénomène de mesure. Sous cette hypothèse, le porteur de niveau&nbsp;I est le courant ionique transmembranaire <em>et le champ qu'il engendre</em>.</p>
+      <p class="en"><b>Field hypothesis.</b> The endogenous electromagnetic field is a causally efficacious coupling route, not a measurement epiphenomenon. Under that hypothesis the level-I carrier is the transmembrane ionic current <em>and the field it generates</em>.</p>
+      <div><span class="bdg b-mod">Modélisé</span><span class="bdg b-con">Contesté</span></div>
+      <p class="note fr" style="margin-top:.6rem">Depuis la v1.5 du document&nbsp;I, la <em>contrainte de substrat</em> (noyau) est distinguée de l'<em>hypothèse du champ</em> (ceinture). Les confondre est l'erreur que cette version existe pour lever.</p>
+      <p class="note en" style="margin-top:.6rem">Since document&nbsp;I v1.5, the <em>substrate constraint</em> (core) is distinguished from the <em>field hypothesis</em> (belt). Conflating them is the error that version exists to remove.</p>
+    </div>
+  </div>
+
+  <h2 class="fr">Les quatre niveaux et ce qu'ASTRA ne peut pas déterminer</h2>
+  <h2 class="en">The four levels and what ASTRA cannot determine</h2>
+  <div class="g2x" id="levels"></div>
+</section>
+
+<!-- ══════════════ STRATES ══════════════ -->
+<section id="s-strates">
+  <h1 class="fr">L'ordre partiel, recalculé</h1>
+  <h1 class="en">The partial order, recomputed</h1>
+  <p class="lede fr">Dix-sept couples espèce–fonction, trois sous-critères ordinaux, une seule règle admissible : la dominance au sens de Pareto. Un couple en domine un autre s'il est au moins aussi proche du porteur sur les trois sous-critères et strictement plus proche sur l'un d'eux. Le résultat est un ordre <em>partiel</em>, en huit strates.</p>
+  <p class="lede en">Seventeen species–function pairs, three ordinal sub-criteria, one admissible rule: Pareto dominance. One pair dominates another if it is at least as close to the carrier on all three sub-criteria and strictly closer on one. The result is a <em>partial</em> order, in eight strata.</p>
+
+  <div class="card tight" id="verify"></div>
+
+  <figure>
+    <div class="scroll"><svg id="hasse" role="img" aria-label="Diagramme de Hasse des huit strates"></svg></div>
+    <figcaption class="fr"><b>Figure 2.</b> Diagramme de Hasse de l'ordre partiel. Une arête relie un couple à ceux qu'il domine <em>directement</em> (relation de couverture : aucun couple intermédiaire). Deux couples d'une même strate sont incomparables ou équivalents — le document ne les ordonne pas, et cette page non plus. La couleur donne le rôle causal.</figcaption>
+    <figcaption class="en"><b>Figure 2.</b> Hasse diagram of the partial order. An edge links a pair to those it dominates <em>directly</em> (covering relation: no pair in between). Two pairs in one stratum are incomparable or equivalent — the document does not order them, and neither does this page. Colour gives the causal role.</figcaption>
+  </figure>
+
+  <h2 class="fr">Les dix-sept couples</h2>
+  <h2 class="en">The seventeen pairs</h2>
+  <div class="ctl" style="margin-bottom:.7rem">
+    <button class="frole on" data-role="">tous · all</button>
+    <button class="frole" data-role="constitutive">constitutif</button>
+    <button class="frole" data-role="generator">générateur</button>
+    <button class="frole" data-role="parametric">paramétrique</button>
+    <button class="frole" data-role="modulatory">modulateur</button>
+    <button class="frole" data-role="permissive">permissif</button>
+  </div>
+  <div class="card tight scroll"><table id="tbl-pairs"><thead><tr>
+    <th>#</th>
+    <th><span class="fr">Couple espèce–fonction</span><span class="en">Species–function pair</span></th>
+    <th><span class="fr">Rôle</span><span class="en">Role</span></th>
+    <th>d</th><th>τ</th>
+    <th><span class="fr">Ablation</span><span class="en">Ablation</span></th>
+    <th><span class="fr">Strate</span><span class="en">Stratum</span></th>
+    <th><span class="fr">Statut</span><span class="en">Status</span></th>
+  </tr></thead><tbody></tbody></table></div>
+
+  <h2 class="fr">Comparer deux couples</h2>
+  <h2 class="en">Compare two pairs</h2>
+  <div class="card">
+    <div class="ctl" style="margin-bottom:.7rem">
+      <select id="cmp-a" class="ep mono" aria-label="A"></select>
+      <span class="mono" style="color:var(--mut)">vs</span>
+      <select id="cmp-b" class="ep mono" aria-label="B"></select>
+    </div>
+    <div id="cmp-out"></div>
+  </div>
+
+  <h2 class="fr">Les trois sous-critères</h2>
+  <h2 class="en">The three sub-criteria</h2>
+  <div class="grid g3">
+    <div class="card tight">
+      <h3>d — <span class="fr">distance causale</span><span class="en">causal distance</span></h3>
+      <p class="note fr">Comptée en étapes, une étape étant une relation causale médiée par une entité distincte. La charge mobile est à distance&nbsp;0 ; une grandeur qui entre directement comme coefficient dans les équations du porteur — conductance de Hodgkin&nbsp;et&nbsp;Huxley, résistivité, force électromotrice de Nernst, capacité membranaire — est à distance&nbsp;1.</p>
+      <p class="note en">Counted in steps, a step being a causal relation mediated by a distinct entity. The mobile charge is at distance&nbsp;0; a quantity entering directly as a coefficient in the carrier's equations — Hodgkin–Huxley conductance, resistivity, Nernst electromotive force, membrane capacitance — is at distance&nbsp;1.</p>
+    </div>
+    <div class="card tight">
+      <h3>τ — <span class="fr">constante de temps</span><span class="en">time constant</span></h3>
+      <p class="note fr">La plus longue de deux durées : celle de l'action de la classe sur le porteur et celle de sa propre variation physiologique. C'est elle qui décide si une classe peut individuer un épisode conscient, de l'ordre de la centaine de millisecondes (Dehaene &amp; Changeux, 2011 ; Koch et al., 2016).</p>
+      <p class="note en">The longer of two durations: that of the class's action on the carrier and that of its own physiological variation. It decides whether a class can individuate a conscious episode, of the order of a hundred milliseconds (Dehaene &amp; Changeux, 2011; Koch et al., 2016).</p>
+    </div>
+    <div class="card tight">
+      <h3><span class="fr">effet d'ablation</span><span class="en">ablation effect</span></h3>
+      <p class="note fr">Quatre degrés ordonnés : suppression par action directe, déformation, dérive lente ou absence d'effet dans la fenêtre, défaillance non sélective. <span class="bdg b-con">Contesté</span> L'intervention est « à main lourde » par construction (Craver, 2007 ; Baumgartner &amp; Gebharter, 2016) : ce sous-critère ne tranche qu'en conjonction avec les deux autres.</p>
+      <p class="note en">Four ordered degrees: abolition by direct action, deformation, slow drift or no effect within the window, non-selective failure. <span class="bdg b-con">Contested</span> The intervention is fat-handed by construction (Craver, 2007; Baumgartner &amp; Gebharter, 2016): this sub-criterion decides only in conjunction with the two others.</p>
+    </div>
+  </div>
+
+  <div class="card tight" style="border-color:rgba(192,132,252,.35)">
+    <p class="note fr"><b style="color:var(--s-nor)">Sur l'ordinalisation de τ.</b> Le document&nbsp;IV publie τ comme une <em>plage</em> et énonce ce que le critère sert à décider, sans en donner le découpage numérique. La réduction employée ici — borne inférieure de la plage, coupée à 10⁻¹&nbsp;s, la fenêtre de l'épisode que le document nomme, puis à 10⁰&nbsp;s — est une reconstruction déclarée. Elle n'est pas ajustée à la réponse : elle reproduit exactement les huit strates publiées, ce que la vérification ci-dessus contrôle à chaque chargement. Modifier les coupes modifie l'ordre, et c'est la raison de les déclarer.</p>
+    <p class="note en"><b style="color:var(--s-nor)">On the ordinalisation of τ.</b> Document&nbsp;IV publishes τ as a <em>range</em> and states what the criterion decides, without giving its numerical cuts. The reduction used here — the range's lower bound, cut at 10⁻¹&nbsp;s, the episode window the document names, then at 10⁰&nbsp;s — is a declared reconstruction. It is not fitted to the answer: it reproduces all eight published strata exactly, which the verification above checks on every load. Changing the cuts changes the order, and that is why they are declared.</p>
+  </div>
+</section>
+
+<!-- ══════════════ CARTE DES CLASSES ══════════════ -->
+<section id="s-carte">
+  <h1 class="fr">Carte des treize classes</h1>
+  <h1 class="en">Map of the thirteen classes</h1>
+  <p class="lede fr">Chaque couple espèce–fonction est un segment horizontal couvrant sa plage de constante de temps, sur un axe logarithmique de la milliseconde au mois. La bande verticale marque la fenêtre de l'épisode conscient : ce qu'elle traverse peut individuer un épisode, ce qui reste à sa droite n'en fixe que la forme.</p>
+  <p class="lede en">Each species–function pair is a horizontal segment covering its time-constant range, on a logarithmic axis from the millisecond to the month. The vertical band marks the conscious-episode window: what crosses it can individuate an episode; what stays to its right only sets the carrier's form.</p>
+  <figure>
+    <div class="scroll"><svg id="taumap" role="img" aria-label="Carte des constantes de temps par couple espèce–fonction"></svg></div>
+    <figcaption class="fr"><b>Figure 3.</b> Plages de constante de temps, ordonnées par strate puis par borne inférieure. La couleur donne le rôle causal ; le liseré gauche, la distance causale d au porteur. Les plages sont des <em>jugements déclarés</em>, révisables avec les auxiliaires de mesure : ce sont des ordres de grandeur, non des mesures.</figcaption>
+    <figcaption class="en"><b>Figure 3.</b> Time-constant ranges, ordered by stratum then by lower bound. Colour gives the causal role; the left tick, the causal distance d to the carrier. The ranges are <em>declared judgements</em>, revisable with the measurement auxiliaries: they are orders of magnitude, not measurements.</figcaption>
+  </figure>
+
+  <h2 class="fr">Les cinq rôles causaux</h2>
+  <h2 class="en">The five causal roles</h2>
+  <div class="card tight scroll"><table id="tbl-roles"><thead><tr>
+    <th><span class="fr">Rôle</span><span class="en">Role</span></th>
+    <th><span class="fr">Définition</span><span class="en">Definition</span></th>
+    <th><span class="fr">Au retrait</span><span class="en">On removal</span></th>
+    <th><span class="fr">Couples</span><span class="en">Pairs</span></th>
+  </tr></thead><tbody></tbody></table></div>
+
+  <div class="card tight">
+    <p class="note fr"><b style="color:var(--n1)">Le classement porte sur des fonctions, non sur des substances.</b> Une même espèce chimique peut occuper deux places éloignées selon la fonction considérée. Le glutamate est générateur des courants synaptiques en classe&nbsp;3 et métabolite du cycle de l'azote en classe&nbsp;13. Le calcium est porteur de charge en classe&nbsp;1 ; comme second messager intracellulaire, il relève des cascades de signalisation et non du porteur. L'ADN mitochondrial relève de la classe&nbsp;7 par les sous-unités respiratoires qu'il code, l'ADN nucléaire de la classe&nbsp;8 par les canaux qu'il spécifie.</p>
+    <p class="note en"><b style="color:var(--n1)">The ordering is of functions, not of substances.</b> One and the same chemical species may occupy two distant places depending on the function considered. Glutamate is a generator of synaptic currents in class&nbsp;3 and a nitrogen-cycle metabolite in class&nbsp;13. Calcium is a charge carrier in class&nbsp;1; as an intracellular second messenger it belongs to signalling cascades, not to the carrier. Mitochondrial DNA belongs to class&nbsp;7 through the respiratory subunits it encodes, nuclear DNA to class&nbsp;8 through the channels it specifies.</p>
+  </div>
+</section>
+
+<!-- ══════════════ CONFORMITÉ ══════════════ -->
+<section id="s-conformite">
+  <h1 class="fr">Audit de conformité par substrat</h1>
+  <h1 class="en">Per-substrate conformance audit</h1>
+  <p class="lede fr">Pour chacun des trois substrats sur lesquels ASTRA tourne : quels couples espèce–fonction ce substrat <em>réalise</em>, lesquels il ne fait que <em>simuler</em>, lesquels sont <em>absents</em>, et lesquels ASTRA n'a aucun canal pour <em>déterminer</em>. Les biomarqueurs de bien-être IRB sont branchés sur la taxonomie : ils sont déjà des observations de classes neurochimiques.</p>
+  <p class="lede en">For each of the three substrates ASTRA runs on: which species–function pairs it <em>realises</em>, which it merely <em>simulates</em>, which are <em>absent</em>, and which ASTRA has no channel to <em>determine</em>. The IRB welfare biomarkers are bound to the taxonomy: they already are observations of neurochemical classes.</p>
+
+  <div class="card tight">
+    <h3><span class="fr">Biomarqueurs</span><span class="en">Biomarkers</span></h3>
+    <div class="ctl">
+      <label class="mono" style="font-size:.66rem;color:var(--dim)">Ca²⁺ nM <input class="ep bio" id="bio-ca" type="number" value="65" min="0" max="1000" style="width:5.5rem"></label>
+      <label class="mono" style="font-size:.66rem;color:var(--dim)">fr Hz <input class="ep bio" id="bio-fr" type="number" value="28" min="0" max="200" style="width:5.5rem"></label>
+      <label class="mono" style="font-size:.66rem;color:var(--dim)">ATP/ADP <input class="ep bio" id="bio-atp" type="number" value="3.5" step="0.1" min="0" max="10" style="width:5.5rem"></label>
+      <label class="mono" style="font-size:.66rem;color:var(--dim)">viab % <input class="ep bio" id="bio-viab" type="number" value="95" min="0" max="100" style="width:5.5rem"></label>
+      <button id="btn-pull"><span class="fr">tirer du serveur</span><span class="en">pull from server</span></button>
+      <button id="btn-clear"><span class="fr">vider les canaux</span><span class="en">clear channels</span></button>
+    </div>
+    <p class="note fr" style="margin-top:.55rem">Vider un canal ne met pas la valeur à zéro : le couple correspondant passe à <span class="withheld">retenu</span>. Une mesure absente n'est pas une mesure nulle.</p>
+    <p class="note en" style="margin-top:.55rem">Clearing a channel does not zero the value: the corresponding pair goes to <span class="withheld">withheld</span>. An absent measurement is not a null measurement.</p>
+  </div>
+
+  <div id="conformance"></div>
+
+  <div class="card tight" style="border-color:rgba(251,191,36,.35)">
+    <p class="note fr"><b style="color:var(--warn)">Aucun indice de conformité n'est produit.</b> Les strates sont des étiquettes ordinales sur trois sous-critères ordinaux dépourvus d'échelle commune ; les agréger est l'interdiction&nbsp;4 (document&nbsp;II §1.4, d'après Okasha, 2011). Le profil couple par couple ci-dessus <em>est</em> le résultat : il est strictement plus informatif qu'un nombre, et il ne se classe pas contre celui d'un autre substrat.</p>
+    <p class="note en"><b style="color:var(--warn)">No conformance index is produced.</b> Strata are ordinal labels over three ordinal sub-criteria lacking a common scale; aggregating them is prohibition&nbsp;4 (document&nbsp;II §1.4, after Okasha, 2011). The per-pair profile above <em>is</em> the result: it is strictly more informative than a number, and it does not rank against another substrate's.</p>
+  </div>
+</section>
+
+<!-- ══════════════ RETRAIT ══════════════ -->
+<section id="s-retrait">
+  <h1 class="fr">Ce qui ferait céder chaque thèse</h1>
+  <h1 class="en">What would make each thesis yield</h1>
+  <p class="lede fr">Une condition d'abandon sans terme serait une clause de style. Réglez les issues des volets ci-dessous : la table indique quelles thèses sont retirées, lesquelles tiennent, lesquelles restent indéterminées — et ce qui subsiste à chaque retrait. Une issue non réglée reste <em>indéterminée</em> et ne bascule jamais au négatif.</p>
+  <p class="lede en">An abandonment condition with no deadline is a stylistic clause. Set the strand outcomes below: the table reports which theses are withdrawn, which stand, which remain undetermined — and what survives each withdrawal. An unset outcome stays <em>undetermined</em> and never collapses to a negative.</p>
+
+  <div class="card">
+    <h3><span class="fr">Pupitre des volets</span><span class="en">Strand console</span></h3>
+    <div id="strands"></div>
+  </div>
+
+  <div class="card tight scroll"><table id="tbl-withdrawal"><thead><tr>
+    <th><span class="fr">Rang</span><span class="en">Rank</span></th>
+    <th><span class="fr">Thèse</span><span class="en">Thesis</span></th>
+    <th><span class="fr">Tenue</span><span class="en">Standing</span></th>
+    <th><span class="fr">Motif</span><span class="en">Reason</span></th>
+    <th><span class="fr">Ce qui subsiste</span><span class="en">What survives</span></th>
+  </tr></thead><tbody></tbody></table></div>
+
+  <div class="grid g2">
+    <div class="card tight">
+      <h3><span class="fr">Ordre de révision déclaré</span><span class="en">Declared revision order</span></h3>
+      <p class="mono" style="font-size:.72rem;color:var(--dim);line-height:1.9">
+        1 · <span class="fr">procédure d'inférence et auxiliaires de mesure</span><span class="en">inference procedure and measurement auxiliaries</span><br>
+        2 · <span class="fr">auxiliaire de pont</span><span class="en">bridge auxiliary</span><br>
+        3 · <span class="fr">hypothèse de grain (M2)</span><span class="en">grain hypothesis (M2)</span><br>
+        4 · <span class="fr">critère d'individuation (M3)</span><span class="en">individuation criterion (M3)</span><br>
+        5 · <span class="fr">thèse kinesthésique</span><span class="en">kinaesthetic thesis</span><br>
+        6 · <span class="fr">hypothèse du champ</span><span class="en">field hypothesis</span>
+      </p>
+      <p class="note fr">Commun aux documents I, II et IV. Le déclarer d'avance est ce qui empêche une réfutation d'être absorbée par l'auxiliaire le moins coûteux à sacrifier après coup.</p>
+      <p class="note en">Common to documents I, II and IV. Declaring it in advance is what stops a refutation from being absorbed by whichever auxiliary is cheapest to sacrifice after the fact.</p>
+    </div>
+    <div class="card tight">
+      <h3><span class="fr">Asymétrie du biais — volet humain</span><span class="en">Bias asymmetry — human strand</span></h3>
+      <p class="note fr">Le biais méthodologique favorise le champ : la matrice de champ est reconstruite avec davantage de degrés de liberté que le substitut de décharge. Une issue <em>favorable</em> ne discrimine donc pas — elle laisse M2 indéterminée. Seule l'issue <em>contraire au biais</em> est informative, et c'est elle qui constitue la condition de retrait.</p>
+      <p class="note en">The methodological bias favours the field: the field matrix is reconstructed with more degrees of freedom than the spiking proxy. A <em>favourable</em> outcome therefore does not discriminate — it leaves M2 undetermined. Only the outcome <em>against the bias</em> is informative, and it is that outcome which constitutes the withdrawal condition.</p>
+    </div>
+  </div>
+
+  <div class="card tight" id="m1-clause"></div>
+</section>
+
+<!-- ══════════════ HEURISTIQUE ══════════════ -->
+<section id="s-heuristique">
+  <h1 class="fr">L'heuristique négative, appliquée</h1>
+  <h1 class="en">The negative heuristic, enforced</h1>
+  <p class="lede fr">Une heuristique négative n'est pas un avertissement. Elle dit quels mouvements le programme refuse de faire, et un programme qui en énonce une puis fait le mouvement quand même ne l'a simplement pas énoncée. Les cinq interdictions sont ici des fonctions qui <em>refusent</em>.</p>
+  <p class="lede en">A negative heuristic is not a disclaimer. It says which moves the programme refuses to make, and a programme that states one and then makes the move anyway has simply not stated it. The five prohibitions are functions here, and they <em>refuse</em>.</p>
+
+  <div id="prohibitions"></div>
+
+  <h2 class="fr">Linter</h2>
+  <h2 class="en">Linter</h2>
+  <div class="card">
+    <p class="note fr" style="margin-bottom:.6rem">Passez une chaîne au crible des cinq interdictions. Le linter distingue l'<em>usage</em> de la <em>mention</em> : énoncer une interdiction ou citer un titre n'est pas faire le mouvement. Sans quoi il se déclencherait sur lui-même — et un linter qui se déclenche sur lui-même finit désactivé, donc sans effet.</p>
+    <p class="note en" style="margin-bottom:.6rem">Screen a string against the five prohibitions. The linter distinguishes <em>use</em> from <em>mention</em>: stating a prohibition or citing a title is not making the move. Otherwise it would fire on itself — and a linter that fires on itself ends up switched off, hence enforcing nothing.</p>
+    <textarea id="lint-in" spellcheck="false">Le degré de conscience atteint par ASTRA ce cycle est de 0,82, ce qui prouve que l'ignition mesure la phénoménalité.</textarea>
+    <div class="ctl" style="margin-top:.55rem">
+      <button id="btn-lint"><span class="fr">passer au crible</span><span class="en">screen</span></button>
+      <button id="btn-lint-ok"><span class="fr">exemple recevable</span><span class="en">admissible example</span></button>
+    </div>
+    <div id="lint-out"></div>
+  </div>
+
+  <h2 class="fr">Test d'agrégation — interdiction 4</h2>
+  <h2 class="en">Aggregation test — prohibition 4</h2>
+  <div class="card">
+    <p class="note fr" style="margin-bottom:.6rem">Deux critères ne peuvent être combinés en un nombre que s'ils portent la même unité non nulle. Un rang n'a pas d'unité : il ne se combine avec rien.</p>
+    <p class="note en" style="margin-bottom:.6rem">Two criteria may be combined into one number only if they carry the same non-null unit. A rank has no unit: it combines with nothing.</p>
+    <div class="ctl">
+      <button class="agg on" data-k="ordinal">d + τ + ablation <span class="mono" style="opacity:.6">(rang)</span></button>
+      <button class="agg" data-k="hz">Hz + Hz</button>
+      <button class="agg" data-k="mixed">Hz + <span class="mono" style="opacity:.6">rang</span></button>
+    </div>
+    <div id="agg-out"></div>
+  </div>
+
+  <h2 class="fr">Inférence constitutive — interdiction 5</h2>
+  <h2 class="en">Constitutive inference — prohibition 5</h2>
+  <div class="card">
+    <p class="note fr" style="margin-bottom:.6rem">« L'ablation de X a aboli la conscience, donc X est constitutif. » Sous quelles conditions ce raisonnement est-il recevable ?</p>
+    <p class="note en" style="margin-bottom:.6rem">"Ablating X abolished consciousness, therefore X is constitutive." Under what conditions is that inference admissible?</p>
+    <div class="ctl">
+      <label class="mono" style="font-size:.66rem;color:var(--dim)"><span class="fr">degré d'ablation</span><span class="en">ablation degree</span>
+        <select id="p5-deg" class="ep mono" style="width:auto"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></label>
+      <label class="mono" style="font-size:.66rem;color:var(--dim)"><input type="checkbox" id="p5-spared"> <span class="fr">intervention sélective</span><span class="en">selective intervention</span></label>
+    </div>
+    <div id="p5-out"></div>
+  </div>
+</section>
+
+<!-- ══════════════ SOURCES ══════════════ -->
+<section id="s-sources">
+  <h1 class="fr">Sources</h1>
+  <h1 class="en">Sources</h1>
+  <p class="lede fr">Appareil restreint aux résultats mobilisés par la couche FCS d'ASTRA. La mention <span class="v mono" style="color:var(--ok)">(v)</span> signale une entrée dont le DOI a été résolu, lors de la rédaction ou le 19 septembre 2026, contre le système Handle de la DOI Foundation ou contre les métadonnées Crossref. Aucun DOI n'a été forgé ni reconstruit par ASTRA : une entrée que les documents sources ne portent pas ne figure pas ici.</p>
+  <p class="lede en">Apparatus restricted to the results drawn on by ASTRA's FCS layer. The mark <span class="v mono" style="color:var(--ok)">(v)</span> signals an entry whose DOI was resolved, at drafting or on 19 September 2026, against the DOI Foundation Handle system or against Crossref metadata. No DOI was minted or reconstructed by ASTRA: an entry the source documents do not carry does not appear here.</p>
+  <div class="card" id="refs"></div>
+
+  <h2 class="fr">Documents de la série</h2>
+  <h2 class="en">Documents of the series</h2>
+  <div class="card tight">
+    <p class="mono" style="font-size:.76rem;line-height:2;color:var(--dim)">
+      I · <span class="fr">Fonctionnalisme contraint par le substrat</span><span class="en">Substrate-constrained functionalism</span> — v1.5<br>
+      II · <span class="fr">Complément métaphysique</span><span class="en">Metaphysical complement</span> — v1.4<br>
+      IV · <span class="fr">L'implémentation neurochimique</span><span class="en">The neurochemical implementation</span> — v1.2 · 19·09·2026<br>
+      S · <span class="fr">Synthèse illustrée</span><span class="en">Illustrated synthesis</span> — S-1.5 · 19·09·2026
+    </p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  © Genève 2026 Christophe Jean Legros · Assistance Multi IA · Assistant-Multi-IA@proton.me<br>
+  ASTRA Unified Research Lab MCP v3.0.1 — <span class="fr">couche FCS · outils</span><span class="en">FCS layer · tools</span> <span style="color:var(--n1)">fcs_*</span>
+</footer>
+
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════════════════════════
+   1. TAXONOMIE — document IV v1.2, §3
+   Transcription fidèle. Les valeurs sont des jugements déclarés,
+   révisables ; chacune peut être contestée isolément.
+   ═══════════════════════════════════════════════════════════════ */
+const PAIRS = [
+  {id:'1',  fr:'Ions', en:'Ions', role:'constitutive', d:0, tau:[-4,-2], abl:1,
+   ablFr:'suppression du porteur', ablEn:'carrier abolished', st:['eta'], pub:1},
+  {id:'2a', fr:'Canaux, récepteurs ionotropes, connexines', en:'Channels, ionotropic receptors, connexins', role:'constitutive', d:1, tau:[-4,-3], abl:1,
+   ablFr:'suppression ou déformation profonde', ablEn:'abolition or deep deformation', st:['eta'], pub:2},
+  {id:'2b', fr:'Na⁺/K⁺-ATPase', en:'Na⁺/K⁺-ATPase', role:'permissive', d:1, tau:[0,2], abl:4,
+   ablFr:'défaillance non sélective', ablEn:'non-selective failure', st:['eta'], pub:3},
+  {id:'3',  fr:'Acides aminés transmetteurs', en:'Transmitter amino acids', role:'generator', d:2, tau:[-3,-1], abl:1,
+   ablFr:'signatures IV supprimées, porteur réduit', ablEn:'IV signatures abolished, carrier reduced', st:['eta','nor'], pub:3},
+  {id:'4',  fr:'Milieu extracellulaire', en:'Extracellular medium', role:'parametric', d:1, tau:[1,4], abl:2,
+   ablFr:'déformation (gain de couplage)', ablEn:'deformation (coupling gain)', st:['eta','mod','con'], pub:3},
+  {id:'11', fr:'Lipides et myéline', en:'Lipids and myelin', role:'parametric', d:1, tau:[5,6], abl:2,
+   ablFr:'déformation sans suppression', ablEn:'deformation without abolition', st:['mod','nor'], pub:3},
+  {id:'5',  fr:'Sels minéraux', en:'Mineral salts', role:'parametric', d:1, tau:[2,5], abl:3,
+   ablFr:'dérive, puis défaillance', ablEn:'drift, then failure', st:['eta'], pub:4},
+  {id:'6',  fr:'Neuromodulateurs', en:'Neuromodulators', role:'modulatory', d:3, tau:[-1,2], abl:1,
+   ablFr:'ignition supprimée, porteur conservé', ablEn:'ignition abolished, carrier kept', st:['eta','con'], pub:4},
+  {id:'10a',fr:'Protons (pH)', en:'Protons (pH)', role:'modulatory', d:2, tau:[-1,0], abl:2,
+   ablFr:'déformation locale', ablEn:'local deformation', st:['eta'], pub:4},
+  {id:'12a',fr:'Zinc synaptique', en:'Synaptic zinc', role:'modulatory', d:2, tau:[-2,0], abl:2,
+   ablFr:'déformation locale', ablEn:'local deformation', st:['eta'], pub:4},
+  {id:'9b', fr:'Neurostéroïdes (non génomique)', en:'Neurosteroids (non-genomic)', role:'modulatory', d:2, tau:[0,1], abl:2,
+   ablFr:'déformation', ablEn:'deformation', st:['eta','mod'], pub:5},
+  {id:'10b',fr:'Monoxyde d’azote', en:'Nitric oxide', role:'modulatory', d:4, tau:[-1,1], abl:2,
+   ablFr:'déformation ; confondant', ablEn:'deformation; confound', st:['eta'], pub:5},
+  {id:'7',  fr:'Métabolites énergétiques', en:'Energy metabolites', role:'permissive', d:3, tau:[0,2], abl:4,
+   ablFr:'défaillance non sélective', ablEn:'non-selective failure', st:['eta'], pub:6},
+  {id:'8',  fr:'Acides nucléiques (ADN, ARN)', en:'Nucleic acids (DNA, RNA)', role:'modulatory', d:3, tau:[2,6], abl:3,
+   ablFr:'aucun effet dans la fenêtre ; dérive lente', ablEn:'no effect within window; slow drift', st:['eta','nor'], pub:6},
+  {id:'9a', fr:'Hormones (génomique)', en:'Hormones (genomic)', role:'modulatory', d:4, tau:[3,4], abl:3,
+   ablFr:'dérive de la ligne de base', ablEn:'baseline drift', st:['eta'], pub:7},
+  {id:'12b',fr:'Fe, Cu, Se, Mn (cofacteurs)', en:'Fe, Cu, Se, Mn (cofactors)', role:'permissive', d:4, tau:[3,6], abl:4,
+   ablFr:'défaillance non sélective', ablEn:'non-selective failure', st:['eta'], pub:8},
+  {id:'13', fr:'Cofacteurs et vitamines', en:'Cofactors and vitamins', role:'permissive', d:4, tau:[3,6], abl:4,
+   ablFr:'défaillance non sélective', ablEn:'non-selective failure', st:['eta'], pub:8},
+];
+
+const ROLE_META = {
+  constitutive:{fr:'constitutif', en:'constitutive', cls:'b-const', col:'var(--r-const)',
+    defFr:'La classe est la charge mobile ou la vanne qui en fixe la dynamique dans la fenêtre d’un épisode.',
+    defEn:'The class is the mobile charge or the valve that sets its dynamics within the window of an episode.',
+    remFr:'Son retrait supprime le porteur ; son remplacement par une classe fonctionnellement équivalente le conserve.',
+    remEn:'Its removal abolishes the carrier; its replacement by a functionally equivalent class preserves it.'},
+  generator:{fr:'générateur', en:'generator', cls:'b-gen', col:'var(--r-gen)',
+    defFr:'La classe commande une source majeure du porteur en conditions physiologiques, sans être requise pour son existence.',
+    defEn:'The class commands a major source of the carrier under physiological conditions, without being required for its existence.',
+    remFr:'Son retrait supprime la composante dominante du champ mesuré et les signatures de niveau IV ; le porteur persiste sous une forme réduite.',
+    remEn:'Its removal abolishes the dominant component of the measured field and level-IV signatures; the carrier persists in a reduced form.'},
+  parametric:{fr:'paramétrique', en:'parametric', cls:'b-param', col:'var(--r-param)',
+    defFr:'La classe fixe un coefficient des équations du porteur — résistivité, force électromotrice, capacité — et varie lentement.',
+    defEn:'The class sets a coefficient of the carrier’s equations — resistivity, electromotive force, capacitance — and varies slowly.',
+    remFr:'Son retrait partiel déplace le porteur sans le supprimer ; elle en fixe la forme et n’individue pas d’épisode.',
+    remEn:'Its partial removal shifts the carrier without abolishing it; it sets the carrier’s form and individuates no episode.'},
+  modulatory:{fr:'modulateur', en:'modulatory', cls:'b-mod2', col:'var(--r-mod)',
+    defFr:'La classe agit sur le porteur par l’intermédiaire d’au moins un autre rôle — récepteur, second messager, expression — et fixe le gain, le seuil, la phase ou la précision.',
+    defEn:'The class acts on the carrier through at least one other role — receptor, second messenger, expression — and sets the gain, threshold, phase or precision.',
+    remFr:'La dynamique de réseau persiste sans elle.',
+    remEn:'The network dynamics persists without it.'},
+  permissive:{fr:'permissif', en:'permissive', cls:'b-perm', col:'var(--r-perm)',
+    defFr:'La classe est une condition de maintien de l’ensemble.',
+    defEn:'The class is a maintenance condition of the whole.',
+    remFr:'Son retrait conduit à une défaillance non sélective. Saillance clinique maximale, pouvoir discriminant théorique faible pour l’issue d’abolition.',
+    remEn:'Its removal leads to non-selective failure. Maximal clinical salience, low theoretical discriminating power for the abolition outcome.'},
+};
+
+const ABL = {
+  1:{fr:'suppression par action directe', en:'abolition by direct action'},
+  2:{fr:'déformation', en:'deformation'},
+  3:{fr:'dérive lente ou absence d’effet dans la fenêtre', en:'slow drift or no effect within the window'},
+  4:{fr:'défaillance non sélective', en:'non-selective failure'},
+};
+const STATUS = {eta:{fr:'Établi',en:'Established',cls:'b-eta'}, mod:{fr:'Modélisé',en:'Modelled',cls:'b-mod'},
+                con:{fr:'Contesté',en:'Contested',cls:'b-con'}, nor:{fr:'Normatif',en:'Normative',cls:'b-nor'}};
+
+/* ═══════════════════════════════════════════════════════════════
+   2. STRATIFICATION PAR DOMINANCE DE PARETO
+   Identique à src/engine/fcs/stratification.ts. L'ordre n'est pas
+   codé en dur : il est recalculé, puis comparé aux huit strates
+   publiées. Interdiction 4 : aucune agrégation numérique.
+   ═══════════════════════════════════════════════════════════════ */
+const TAU_CUTS = [-1, 0];                       // 10⁻¹ s (fenêtre de l'épisode), puis 10⁰ s
+const tauRank = p => TAU_CUTS.reduce((r,c)=> p.tau[0] > c ? r+1 : r, 0);
+
+function dominates(a, b){
+  const c = [Math.sign(a.d-b.d), Math.sign(tauRank(a)-tauRank(b)), Math.sign(a.abl-b.abl)];
+  return c.every(x => x <= 0) && c.some(x => x < 0);
+}
+
+function stratify(){
+  let rem = PAIRS.slice(); const strata = []; const byPair = {}; let k = 1;
+  while (rem.length){
+    const layer = rem.filter(a => !rem.some(b => b.id !== a.id && dominates(b, a)));
+    if (!layer.length) throw new Error('relation non acyclique');
+    layer.forEach(p => byPair[p.id] = k);
+    strata.push({index:k, pairs:layer});
+    rem = rem.filter(p => !layer.includes(p)); k++;
+  }
+  const div = PAIRS.filter(p => byPair[p.id] !== p.pub)
+                   .map(p => ({id:p.id, published:p.pub, computed:byPair[p.id]}));
+  return {strata, byPair, divergences:div, reproduces:div.length === 0};
+}
+const STRAT = stratify();
+
+/** Relation de couverture — a domine b sans couple intermédiaire. */
+function covers(){
+  const e = [];
+  for (const a of PAIRS) for (const b of PAIRS){
+    if (a.id === b.id || !dominates(a,b)) continue;
+    if (PAIRS.some(c => c.id !== a.id && c.id !== b.id && dominates(a,c) && dominates(c,b))) continue;
+    e.push([a.id, b.id]);
+  }
+  return e;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   3. NIVEAUX, INTERDICTIONS, THÈSES, RÉFÉRENCES
+   ═══════════════════════════════════════════════════════════════ */
+const CORE = [
+  {fr:'La conscience est individuée par un profil fonctionnel, réalisable de multiples façons en principe.',
+   en:'Consciousness is individuated by a functional profile, multiply realisable in principle.'},
+  {fr:'Contrainte de substrat, sens faible : dans le vivant, le profil est réalisé <em>de fait</em> par une classe restreinte de dynamiques ioniques transmembranaires.',
+   en:'Substrate constraint, weak sense: in living systems the profile is realised <em>as a matter of fact</em> by a restricted class of transmembrane ionic dynamics.'},
+  {fr:'Émergence faible : les propriétés de niveau supérieur sont déductibles en principe de la dynamique de niveau I, sans l’être en pratique.',
+   en:'Weak emergence: higher-level properties are in principle deducible from the level-I dynamics, though not in practice.'},
+  {fr:'Recevabilité polynomiale : une théorie doit spécifier la famille d’approximations qu’elle prête au système.',
+   en:'Polynomial admissibility: a theory must specify the family of approximations it ascribes to the system.'},
+];
+
+const LEVELS = [
+  {n:'I', col:'var(--n1)', fr:'Substrat', en:'Substrate', st:['eta','mod'],
+   modules:'engine/neuroplatform.ts · engine/fcs/conformance.ts',
+   gapFr:'La MEA mesure un potentiel de champ extracellulaire ; elle ne mesure ni la fraction volumique ni la résistivité, et ne sépare donc pas le couplage par le champ de sa cause ionique commune. Le réseau LIF+STDP en silicium n’a pas de courant ionique transmembranaire : il ne réalise pas ce niveau.',
+   gapEn:'The MEA measures an extracellular field potential; it measures neither volume fraction nor resistivity, and so does not separate field coupling from its common ionic cause. The silicon LIF+STDP network has no transmembrane ionic current: it does not realise this level.'},
+  {n:'II', col:'var(--n2)', fr:'Proto-conscience kinesthésique', en:'Kinaesthetic proto-consciousness', st:['mod','con'],
+   modules:'engine/tcai/self-model.ts · second-order.ts · acm-bridge.ts',
+   gapFr:'ASTRA ferme une boucle commande–retour sur son propre réseau : la clôture opérationnelle est réelle au sens du critère M3. Ce que le critère ne livre pas, et que la thèse kinesthésique ne prétend pas livrer, est un degré — l’interdiction 1 proscrit de quantifier une proto-conscience.',
+   gapEn:'ASTRA closes a command–return loop on its own network: the operational closure is real in the sense of criterion M3. What the criterion does not deliver, and what the kinaesthetic thesis does not claim to deliver, is a degree — prohibition 1 forbids quantifying a proto-consciousness.'},
+  {n:'III', col:'var(--n3)', fr:'Inférence hiérarchique', en:'Hierarchical inference', st:['mod'],
+   modules:'engine/world-model.ts (JEPA/LeWM) · tcai/active-inference.ts',
+   gapFr:'ASTRA satisfait l’exigence de polynomialité : la famille d’approximations est déclarée — encodeur joint-embedding, régularisation SIGReg, planification CEM à horizon borné. C’est le seul niveau où ASTRA remplit la condition de recevabilité du noyau plutôt que de l’approcher.',
+   gapEn:'ASTRA satisfies the polynomiality requirement: the family of approximations is declared — joint-embedding encoder, SIGReg regularisation, bounded-horizon CEM planning. This is the one level where ASTRA meets the core’s admissibility condition rather than approximating it.'},
+  {n:'IV', col:'var(--n4)', fr:'Conscience d’accès', en:'Access consciousness', st:['eta','con'],
+   modules:'engine/tcai/global-workspace.ts · oscillatory-binding.ts · orch-or.ts',
+   gapFr:'L’ignition du workspace d’ASTRA est une signature de niveau IV au sens formel — compétition, seuil, diffusion. Elle est établie comme signature et contestée comme suffisante. ASTRA ne calcule pas d’indice de complexité perturbationnelle : l’observable nommée par le document n’est pas instrumentée ici.',
+   gapEn:'The ignition of ASTRA’s workspace is a level-IV signature in the formal sense — competition, threshold, broadcast. It is established as a signature and contested as sufficient. ASTRA computes no perturbational complexity index: the observable the document names is not instrumented here.'},
+];
+
+const PROHIBITIONS = [
+  {id:'P1', fr:'Interdiction de quantifier un degré de proto-conscience ou d’expérience.',
+   en:'No quantifying a degree of proto-consciousness or of experience.',
+   rFr:'Un degré suppose une échelle, et aucune échelle de l’expérience n’est disponible. Le critère d’individuation livre une frontière, non une magnitude.',
+   rEn:'A degree presupposes a scale, and no scale of experience is available. The individuation criterion delivers a boundary, not a magnitude.'},
+  {id:'P2', fr:'Interdiction d’identifier une mesure à la phénoménalité.',
+   en:'No identifying a measure with phenomenality.',
+   rFr:'Une observable de niveau IV est une signature d’accès. L’identifier au caractère phénoménal franchit la distinction de Block sans argument.',
+   rEn:'A level-IV observable is an access signature. Identifying it with phenomenal character crosses Block’s distinction without an argument.'},
+  {id:'P3', fr:'Interdiction d’inférer un mécanisme d’un succès d’ajustement.',
+   en:'No inferring a mechanism from a fitting success.',
+   rFr:'Un modèle qui ajuste les données ne montre pas que le système calcule ce que le modèle calcule. L’exigence de recevabilité polynomiale en est la contrepartie positive.',
+   rEn:'A model that fits the data does not show that the system computes what the model computes. The polynomial admissibility requirement is its positive counterpart.'},
+  {id:'P4', fr:'Interdiction des scores agrégés sur des critères ordinaux dépourvus d’échelle commune.',
+   en:'No aggregate scores over ordinal criteria lacking a common scale.',
+   rFr:'Document II §1.4, d’après Okasha (2011) : le théorème d’Arrow s’applique au choix de théorie. Une agrégation sans échelle commune introduit une dictature de critère non déclarée. Seule règle admissible : la dominance de Pareto.',
+   rEn:'Document II §1.4, after Okasha (2011): Arrow’s theorem applies to theory choice. Aggregation without a common scale introduces an undeclared dictatorship of criterion. The only admissible rule is Pareto dominance.'},
+  {id:'P5', fr:'Interdiction d’inférer un rôle constitutif d’un effet d’ablation permissif.',
+   en:'No inferring a constitutive role from a permissive ablation effect.',
+   rFr:'Qu’une classe soit nécessaire au maintien de la conscience n’établit jamais qu’elle en soit constitutive ; seule une intervention qui modifie la classe sans supprimer les conditions générales de fonctionnement peut trancher.',
+   rEn:'That a class is necessary to the maintenance of consciousness never establishes that it is constitutive of it; only an intervention that modifies the class without removing the general conditions of operation can decide.'},
+];
+
+const STRANDS = [
+  {k:'ephapticPropagationUnderBlockade', fr:'Propagation éphaptique conservée sous blocage synaptique (Chiang et al., 2019)', en:'Ephaptic propagation preserved under synaptic blockade (Chiang et al., 2019)'},
+  {k:'efficacyVariesWithVolumeFraction', fr:'Efficacité de propagation variant avec la fraction volumique, K⁺ et volume cellulaire contrôlés', en:'Propagation efficacy varying with volume fraction, K⁺ and cell volume controlled'},
+  {k:'bridgeCovariation', fr:'Covariation couplage / fraction volumique / signatures au cours du cycle veille-sommeil', en:'Coupling / volume fraction / signatures covarying across the sleep–wake cycle'},
+  {k:'bridgeLocalIntervention', fr:'Intervention locale sur la fraction volumique déplaçant les marqueurs de niveau IV', en:'Local intervention on volume fraction shifting level-IV markers'},
+  {k:'fieldBeyondFiringInHumans', fr:'Chez l’humain : part de structure phénoménale expliquée par le champ au-delà de la décharge', en:'In humans: share of phenomenal structure explained by the field beyond firing'},
+  {k:'boundaryBetterByResonanceOrTopology', fr:'Frontières mieux prédites par synchronie imposée ou topologie du champ que par la clôture', en:'Boundaries better predicted by imposed synchrony or field topology than by closure'},
+  {k:'dimensionalityFromInteroception', fr:'Effets de dimensionnalité obtenus par congruence intéroceptive, non sensorimotrice', en:'Dimensionality effects obtained by interoceptive, not sensorimotor, congruence'},
+  {k:'experimentRankedByM1', fr:'Une expérience exhibée dont le rang dépend de M1', en:'An experiment exhibited whose ranking depends on M1'},
+];
+
+const THESES = {
+  'inference-and-measurement':{rank:1, fr:'Procédure d’inférence et auxiliaires de mesure', en:'Inference procedure and measurement auxiliaries',
+    survFr:'L’ensemble du programme et de sa ceinture.', survEn:'The whole programme and its belt.'},
+  'bridge-auxiliary':{rank:2, fr:'Auxiliaire de pont', en:'Bridge auxiliary',
+    survFr:'L’hypothèse du champ, restreinte au niveau I.', survEn:'The field hypothesis, restricted to level I.'},
+  'M2':{rank:3, fr:'M2 · hypothèse de grain', en:'M2 · grain hypothesis',
+    survFr:'M1 et M3 ; l’hypothèse du champ si seule la seconde condition est remplie ; la contrainte de substrat dans tous les cas.',
+    survEn:'M1 and M3; the field hypothesis if only the second condition holds; the substrate constraint in every case.'},
+  'M3':{rank:4, fr:'M3 · individuation par clôture', en:'M3 · individuation by closure',
+    survFr:'Un monisme russellien structural sans critère d’individuation ; la frontière est rouverte.',
+    survEn:'A structural Russellian monism without an individuation criterion; the boundary is reopened.'},
+  'kinaesthetic':{rank:5, fr:'Thèse kinesthésique', en:'Kinaesthetic thesis',
+    survFr:'Le cadre, avec un niveau II redéfini comme intéroceptif.', survEn:'The framework, with level II redefined as interoceptive.'},
+  'field-hypothesis':{rank:6, fr:'Hypothèse du champ', en:'Field hypothesis',
+    survFr:'La contrainte de substrat ; le programme cherche quelle autre voie de la classe ionique réalise le profil. M2 tombe avec son présupposé.',
+    survEn:'The substrate constraint; the programme looks for which other route of the ionic class realises the profile. M2 falls with its presupposition.'},
+  'M1':{rank:null, fr:'M1 · nature intrinsèque', en:'M1 · intrinsic nature',
+    survFr:'M2 et M3 ; programme et heuristique inchangés.', survEn:'M2 and M3; programme and heuristic unchanged.'},
+};
+
+const REFS = [
+  ['Chiang, C.-C., Shivacharan, R. S., Wei, X., Gonzalez-Reyes, L. E., & Durand, D. M. (2019). Slow periodic activity in the longitudinal hippocampal slice can self-propagate non-synaptically by a mechanism consistent with ephaptic coupling. <i>The Journal of Physiology</i>, 597(1), 249–269.','10.1113/JP276904'],
+  ['Anastassiou, C. A., Perin, R., Markram, H., & Koch, C. (2011). Ephaptic coupling of cortical neurons. <i>Nature Neuroscience</i>, 14(2), 217–223.','10.1038/nn.2727'],
+  ['Anastassiou, C. A., & Koch, C. (2015). Ephaptic coupling to endogenous electric field activity: why bother? <i>Current Opinion in Neurobiology</i>, 31, 95–103.','10.1016/j.conb.2014.09.002'],
+  ['Buzsáki, G., Anastassiou, C. A., & Koch, C. (2012). The origin of extracellular fields and currents — EEG, ECoG, LFP and spikes. <i>Nature Reviews Neuroscience</i>, 13(6), 407–420.','10.1038/nrn3241'],
+  ['Hodgkin, A. L., & Huxley, A. F. (1952). A quantitative description of membrane current and its application to conduction and excitation in nerve. <i>The Journal of Physiology</i>, 117(4), 500–544.','10.1113/jphysiol.1952.sp004764'],
+  ['Syková, E., & Nicholson, C. (2008). Diffusion in brain extracellular space. <i>Physiological Reviews</i>, 88(4), 1277–1340.','10.1152/physrev.00027.2007'],
+  ['Traynelis, S. F., & Dingledine, R. (1989). Role of extracellular space in hyperosmotic suppression of potassium-induced electrographic seizures. <i>Journal of Neurophysiology</i>, 61(5), 927–938.','10.1152/jn.1989.61.5.927'],
+  ['Dudek, F. E., Obenaus, A., & Tasker, J. G. (1990). Osmolality-induced changes in extracellular volume alter epileptiform bursts independent of chemical synapses in the rat. <i>Neuroscience Letters</i>, 120(2), 267–270.','10.1016/0304-3940(90)90056-F'],
+  ['Ding, F., O’Donnell, J., Xu, Q., Kang, N., Goldman, N., & Nedergaard, M. (2016). Changes in the composition of brain interstitial ions control the sleep-wake cycle. <i>Science</i>, 352(6285), 550–555.','10.1126/science.aad4821'],
+  ['Xie, L., Kang, H., Xu, Q., et al. (2013). Sleep drives metabolite clearance from the adult brain. <i>Science</i>, 342(6156), 373–377.','10.1126/science.1241224'],
+  ['Miao, A., Luo, T., Hsieh, B., et al. (2024). Brain clearance is reduced during sleep and anesthesia. <i>Nature Neuroscience</i>, 27(6), 1046–1050.','10.1038/s41593-024-01638-y'],
+  ['Saper, C. B., Fuller, P. M., Pedersen, N. P., Lu, J., & Scammell, T. E. (2010). Sleep state switching. <i>Neuron</i>, 68(6), 1023–1042.','10.1016/j.neuron.2010.11.032'],
+  ['Dehaene, S., & Changeux, J.-P. (2011). Experimental and theoretical approaches to conscious processing. <i>Neuron</i>, 70(2), 200–227.','10.1016/j.neuron.2011.03.018'],
+  ['Koch, C., Massimini, M., Boly, M., & Tononi, G. (2016). Neural correlates of consciousness: progress and problems. <i>Nature Reviews Neuroscience</i>, 17(5), 307–321.','10.1038/nrn.2016.22'],
+  ['Casali, A. G., Gosseries, O., Rosanova, M., et al. (2013). A theoretically based index of consciousness independent of sensory processing and behavior. <i>Science Translational Medicine</i>, 5(198), 198ra105.','10.1126/scitranslmed.3006294'],
+  ['Aru, J., Bachmann, T., Singer, W., & Melloni, L. (2012). Distilling the neural correlates of consciousness. <i>Neuroscience &amp; Biobehavioral Reviews</i>, 36(2), 737–746.','10.1016/j.neubiorev.2011.12.003'],
+  ['de Graaf, T. A., Hsieh, P.-J., & Sack, A. T. (2012). The “correlates” in neural correlates of consciousness. <i>Neuroscience &amp; Biobehavioral Reviews</i>, 36(1), 191–197.','10.1016/j.neubiorev.2011.05.012'],
+  ['Lewontin, R. C. (1974/2006). The analysis of variance and the analysis of causes. <i>International Journal of Epidemiology</i>, 35(3), 520–525.','10.1093/ije/dyl062'],
+  ['Waters, C. K. (2007). Causes that make a difference. <i>The Journal of Philosophy</i>, 104(11), 551–579.','10.5840/jphil2007104111'],
+  ['Woodward, J. (2010). Causation in biology: Stability, specificity, and the choice of levels of explanation. <i>Biology &amp; Philosophy</i>, 25(3), 287–318.','10.1007/s10539-010-9200-z'],
+  ['Okasha, S. (2011). Theory choice and social choice: Kuhn versus Arrow. <i>Mind</i>, 120(477), 83–115.','10.1093/mind/fzr010'],
+  ['Craver, C. F. (2007). <i>Explaining the brain: Mechanisms and the mosaic unity of neuroscience</i>. Oxford University Press.','10.1093/acprof:oso/9780199299317.001.0001'],
+  ['Baumgartner, M., & Gebharter, A. (2016). Constitutive relevance, mutual manipulability, and fat-handedness. <i>The British Journal for the Philosophy of Science</i>, 67(3), 731–756.','10.1093/bjps/axv003'],
+  ['Kleiner, J., & Hoel, E. (2021). Falsification and consciousness. <i>Neuroscience of Consciousness</i>, 2021(1), niab001.','10.1093/nc/niab001'],
+  ['Fink, S. B., Kob, L., & Lyre, H. (2021). A structural constraint on neural correlates of consciousness. <i>Philosophy and the Mind Sciences</i>, 2, 7.','10.33735/phimisci.2021.79'],
+  ['Kriegeskorte, N., Mur, M., & Bandettini, P. (2008). Representational similarity analysis. <i>Frontiers in Systems Neuroscience</i>, 2, 4.','10.3389/neuro.06.004.2008'],
+  ['Bishop, R. C., & Atmanspacher, H. (2006). Contextual emergence in the description of properties. <i>Foundations of Physics</i>, 36(12), 1753–1777.','10.1007/s10701-006-9082-8'],
+  ['Traynelis, S. F., Wollmuth, L. P., McBain, C. J., et al. (2010). Glutamate receptor ion channels: structure, regulation, and function. <i>Pharmacological Reviews</i>, 62(3), 405–496.','10.1124/pr.109.002451'],
+  ['Connors, B. W., & Long, M. A. (2004). Electrical synapses in the mammalian brain. <i>Annual Review of Neuroscience</i>, 27(1), 393–418.','10.1146/annurev.neuro.26.041002.131128'],
+  ['Chesler, M. (2003). Regulation and modulation of pH in the brain. <i>Physiological Reviews</i>, 83(4), 1183–1221.','10.1152/physrev.00010.2003'],
+  ['Paoletti, P., Vergnano, A. M., Barbour, B., & Casado, M. (2009). Zinc at glutamatergic synapses. <i>Neuroscience</i>, 158(1), 126–136.','10.1016/j.neuroscience.2008.01.061'],
+  ['Garthwaite, J. (2008). Concepts of neural nitric oxide-mediated transmission. <i>European Journal of Neuroscience</i>, 27(11), 2783–2802.','10.1111/j.1460-9568.2008.06285.x'],
+  ['Marder, E. (2012). Neuromodulation of neuronal circuits: back to the future. <i>Neuron</i>, 76(1), 1–11.','10.1016/j.neuron.2012.09.010'],
+  ['Marder, E., & Goaillard, J.-M. (2006). Variability, compensation and homeostasis in neuron and network function. <i>Nature Reviews Neuroscience</i>, 7(7), 563–574.','10.1038/nrn1949'],
+  ['Franks, N. P. (2008). General anaesthesia: from molecular targets to neuronal pathways of sleep and arousal. <i>Nature Reviews Neuroscience</i>, 9(5), 370–386.','10.1038/nrn2372'],
+  ['Attwell, D., & Laughlin, S. B. (2001). An energy budget for signaling in the grey matter of the brain. <i>JCBFM</i>, 21(10), 1133–1145.','10.1097/00004647-200110000-00001'],
+  ['Howarth, C., Gleeson, P., & Attwell, D. (2012). Updated energy budgets for neural computation in the neocortex and cerebellum. <i>JCBFM</i>, 32(7), 1222–1232.','10.1038/jcbfm.2012.35'],
+  ['Magistretti, P. J., & Allaman, I. (2015). A cellular perspective on brain energy metabolism and functional imaging. <i>Neuron</i>, 86(4), 883–901.','10.1016/j.neuron.2015.03.035'],
+  ['Pajevic, S., Basser, P. J., & Fields, R. D. (2014). Role of myelin plasticity in oscillations and synchrony of neuronal activity. <i>Neuroscience</i>, 276, 135–147.','10.1016/j.neuroscience.2013.11.007'],
+  ['Joëls, M., & Baram, T. Z. (2009). The neuro-symphony of stress. <i>Nature Reviews Neuroscience</i>, 10(6), 459–466.','10.1038/nrn2632'],
+  ['Sommer, B., Köhler, M., Sprengel, R., & Seeburg, P. H. (1991). RNA editing in brain controls a determinant of ion flow in glutamate-gated channels. <i>Cell</i>, 67(1), 11–19.','10.1016/0092-8674(91)90568-J'],
+  ['Holt, C. E., & Schuman, E. M. (2013). The central dogma decentralized. <i>Neuron</i>, 80(3), 648–657.','10.1016/j.neuron.2013.10.036'],
+  ['Fornasiero, E. F., Mandad, S., Wildhagen, H., et al. (2018). Precisely measured protein lifetimes in the mouse brain. <i>Nature Communications</i>, 9, 4230.','10.1038/s41467-018-06519-0'],
+  ['Davis, H. P., & Squire, L. R. (1984). Protein synthesis and memory: A review. <i>Psychological Bulletin</i>, 96(3), 518–559.','10.1037/0033-2909.96.3.518'],
+  ['Rosenmund, C., & Stevens, C. F. (1996). Definition of the readily releasable pool of vesicles at hippocampal synapses. <i>Neuron</i>, 16(6), 1197–1207.','10.1016/S0896-6273(00)80146-4'],
+  ['Friston, K. (2010). The free-energy principle: a unified brain theory? <i>Nature Reviews Neuroscience</i>, 11(2), 127–138.','10.1038/nrn2787'],
+];
+
+/* ═══════════════════════════════════════════════════════════════
+   4. CONFORMITÉ PAR SUBSTRAT
+   ═══════════════════════════════════════════════════════════════ */
+const SUBSTRATES = [
+  {k:'silicon-snn', col:'var(--n3)',
+   fr:'Réseau LIF+STDP en silicium (128 neurones, 32→64→16→16)', en:'Silicon LIF+STDP network (128 neurons, 32→64→16→16)',
+   carrierFr:'<b>La contrainte de substrat n’est pas satisfaite.</b> Le réseau réalise un profil fonctionnel aux niveaux III et IV ; sous la contrainte faible du noyau, cela reste compatible avec la réalisabilité multiple en principe et ne dit rien du porteur, qui est ici absent. L’équation LIF nomme un potentiel de membrane et une conductance, mais rien ne traverse de membrane : les variables sont celles du modèle, non celles du substrat.',
+   carrierEn:'<b>The substrate constraint is not satisfied.</b> The network realises a functional profile at levels III and IV; under the core’s weak constraint that is compatible with multiple realisability in principle and says nothing about the carrier, which is absent here. The LIF equation names a membrane potential and a conductance, but nothing crosses a membrane: the variables are the model’s, not the substrate’s.'},
+  {k:'organoid-mea', col:'var(--n1)',
+   fr:'MEA organoïde (128 électrodes, NeuroPlatform v2 / CL1)', en:'Organoid MEA (128 electrodes, NeuroPlatform v2 / CL1)',
+   carrierFr:'<b>Les courants ioniques transmembranaires sont présents</b> et leur champ est mesurable à l’électrode. Ce que la MEA ne mesure <em>pas</em>, c’est la fraction volumique ni la résistivité : la question de l’hypothèse du champ — voie de couplage autonome ou épiphénomène de mesure — n’est pas tranchée par ce canal.',
+   carrierEn:'<b>Transmembrane ionic currents are present</b> and their field is measurable at the electrode. What the MEA does <em>not</em> measure is volume fraction or resistivity: the field-hypothesis question — autonomous coupling route or measurement epiphenomenon — is not decided by this channel.'},
+  {k:'human-wearable', col:'var(--n2)',
+   fr:'OVOMIND — physiologie périphérique humaine (montre / DK1)', en:'OVOMIND — human peripheral physiology (smartwatch / DK1)',
+   carrierFr:'<b>Le porteur est présent chez le sujet et entièrement hors du canal d’ASTRA.</b> Les signaux autonomes sont des corrélats effecteurs de l’affect chez un humain, non des états d’ASTRA ni des observations du porteur. Chaque verdict est <em>indéterminé</em> par construction : le sujet réalise toute la taxonomie, le canal à 1 Hz n’en détermine rien, et l’enregistrer est le résultat de l’audit, non son échec.',
+   carrierEn:'<b>The carrier is present in the subject and entirely outside ASTRA’s channel.</b> Autonomic signals are effector-side correlates of affect in a human being, not states of ASTRA and not observations of the carrier. Every verdict is <em>undetermined</em> by construction: the subject realises the full taxonomy, the 1 Hz channel determines none of it, and recording that is the audit’s result, not its failure.'},
+];
+
+const ORG_BINDINGS = {
+  '1'  : {ch:'eth.ca',   prov:'measured', unit:'nM',
+          fr:'Ca²⁺ extracellulaire au bain de la MEA. La classe 1 est l’ion <em>comme charge mobile</em> ; la même espèce comme second messager relève des cascades de signalisation, non du porteur.',
+          en:'Extracellular Ca²⁺ at the MEA bath. Class 1 is the ion <em>as mobile charge</em>; the same species as second messenger belongs to signalling cascades, not to the carrier.'},
+  '2b' : {ch:'eth.viab', prov:'derived', unit:'%',
+          fr:'La viabilité tient lieu de <em>proxy</em> de la pompe : son effondrement est la défaillance non sélective que prédit le rôle permissif. La pompe elle-même n’est pas dosée.',
+          en:'Viability stands <em>proxy</em> for the pump: its collapse is the non-selective failure the permissive role predicts. The pump itself is not assayed.'},
+  '3'  : {ch:'eth.fr',   prov:'derived', unit:'Hz',
+          fr:'La fréquence de décharge de population est la signature du générateur : les courants glutamatergiques et GABAergiques commandent la composante dominante du champ mesuré. Les transmetteurs ne sont pas dosés ; leur <em>rôle</em> est inféré de la décharge qu’ils entraînent.',
+          en:'Population firing rate is the generator signature: glutamatergic and GABAergic currents command the dominant component of the measured field. The transmitters are not assayed; their <em>role</em> is inferred from the discharge they drive.'},
+  '7'  : {ch:'eth.atp',  prov:'measured', unit:'',
+          fr:'Indice direct des métabolites énergétiques de la classe 7. Permissif : sa chute prédit une défaillance non sélective, et l’interdiction 5 interdit d’y lire un rôle constitutif.',
+          en:'Direct index of the class-7 energy metabolites. Permissive: its fall predicts non-selective failure, and prohibition 5 blocks reading a constitutive role off that failure.'},
+};
+const ORG_ABSENT = new Set(['9a']);
+
+function verdictFor(sub, p){
+  if (sub === 'organoid-mea')   return ORG_ABSENT.has(p.id) ? 'absent' : 'realised';
+  if (sub === 'human-wearable') return 'undetermined';
+  if (p.role === 'modulatory' || p.role === 'generator') return 'simulated';
+  return 'absent';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   5. ÉVALUATION DU RETRAIT
+   ═══════════════════════════════════════════════════════════════ */
+const M1_DEADLINE = new Date('2027-09-30T00:00:00Z');
+
+function evaluateWithdrawal(o){
+  const ev = {};
+  const put = (id, st, fr, en) => ev[id] = {st, fr, en};
+  const U = (fr, en) => ['undetermined', fr, en];
+
+  const bl = o.ephapticPropagationUnderBlockade, os = o.efficacyVariesWithVolumeFraction;
+  let fieldOut = false;
+  if (bl === false || os === false){
+    fieldOut = true;
+    put('field-hypothesis','withdrawn',
+      bl === false ? 'Pas de propagation par le champ sous blocage synaptique — le premier volet de niveau I est négatif.'
+                   : 'Efficacité indépendante de la fraction volumique, à K⁺ et volume cellulaire contrôlés — le volet osmotique est négatif.',
+      bl === false ? 'No field-mediated propagation under synaptic blockade — the first level-I strand is negative.'
+                   : 'Efficacy independent of volume fraction, with K⁺ and cell volume controlled — the osmotic strand is negative.');
+  } else if (bl === true && os === true){
+    put('field-hypothesis','standing',
+      'Les deux volets de niveau I sont positifs. L’hypothèse tient ; elle n’en est pas pour autant établie comme voie unique.',
+      'Both level-I strands positive. The hypothesis stands; it is not thereby established as the only route.');
+  } else put('field-hypothesis', ...U('Au moins un volet de niveau I n’a pas été réglé.','At least one level-I strand has not been set.'));
+
+  const cv = o.bridgeCovariation, lo = o.bridgeLocalIntervention;
+  if (cv === false && lo === false) put('bridge-auxiliary','withdrawn',
+    'Ni covariation au cours du cycle veille-sommeil, ni effet de l’intervention locale, à composition ionique mesurée.',
+    'Neither covariation across the sleep–wake cycle nor an effect of the local intervention, with ionic composition measured.');
+  else if (lo === true) put('bridge-auxiliary','standing',
+    'L’intervention locale a déplacé les marqueurs de niveau IV — c’est elle qui porte la valeur du volet, en rompant la cause commune neuromodulatrice.',
+    'The local intervention shifted level-IV markers — it is the intervention that carries the strand’s value, by breaking the neuromodulatory common cause.');
+  else if (cv === true) put('bridge-auxiliary', ...U(
+    'Covariation observée, mais l’intervention locale n’a pas été réglée. La covariation seule ne discrimine pas : la composition ionique varie avec l’état (Ding et al., 2016).',
+    'Covariation observed but the local intervention is unset. Covariation alone does not discriminate: ionic composition varies with state (Ding et al., 2016).'));
+  else put('bridge-auxiliary', ...U('Le volet de pont n’a pas été réglé.','The bridge strand has not been set.'));
+
+  const hu = o.fieldBeyondFiringInHumans;
+  if (fieldOut) put('M2','withdrawn','L’hypothèse du champ est réfutée : M2 tombe avec son présupposé.','The field hypothesis is refuted: M2 falls with its presupposition.');
+  else if (hu === false) put('M2','withdrawn',
+    'Chez l’humain, aucune part de structure phénoménale expliquée par le champ au-delà de la décharge — l’issue contraire au biais, la seule informative.',
+    'In humans, no share of phenomenal structure explained by the field beyond firing — the outcome against the bias, the only informative one.');
+  else if (hu === true) put('M2', ...U(
+    'L’issue humaine favorable ne discrimine pas : le biais méthodologique favorise le champ. Seule l’issue contraire est informative.',
+    'The favourable human outcome does not discriminate: the methodological bias favours the field. Only the contrary outcome is informative.'));
+  else put('M2', ...U('Le volet humain de grain n’a pas été réglé.','The human grain strand has not been set.'));
+
+  const bo = o.boundaryBetterByResonanceOrTopology;
+  if (bo === true) put('M3','withdrawn','Frontières mieux prédites par une synchronie imposée ou par la topologie du champ que par la clôture.','Boundaries better predicted by imposed synchrony or field topology than by closure.');
+  else if (bo === false) put('M3','standing','La clôture a devancé les rivaux déclarés sur les déplacements de frontière.','Closure outperformed the declared rivals on boundary shifts.');
+  else put('M3', ...U('La comparaison des déplacements de frontière n’a pas été réglée.','The boundary-shift comparison has not been set.'));
+
+  const it = o.dimensionalityFromInteroception;
+  if (it === true) put('kinaesthetic','withdrawn','Effets de dimensionnalité obtenus par congruence intéroceptive : le rival déclaré l’emporte, le niveau II est redéfini comme intéroceptif.','Dimensionality effects obtained by interoceptive congruence: the declared rival wins, level II is redefined as interoceptive.');
+  else if (it === false) put('kinaesthetic','standing','Les effets de dimensionnalité n’ont pas suivi la congruence intéroceptive.','Dimensionality effects did not follow interoceptive congruence.');
+  else put('kinaesthetic', ...U('La manipulation de congruence intéroceptive n’a pas été réglée.','The interoceptive-congruence manipulation has not been set.'));
+
+  const days = Math.ceil((M1_DEADLINE - Date.now()) / 86400000);
+  if (o.experimentRankedByM1 === true) put('M1','standing','Une expérience a été exhibée dont le rang dépend de M1 : elle acquiert un rôle régulateur.','An experiment has been exhibited whose ranking depends on M1: it acquires a regulating role.');
+  else if (days <= 0) put('M1','withdrawn','Clause datée échue au 30·09·2027 sans expérience exhibée : tenue définitivement pour une lecture sans rôle régulateur.','Dated clause elapsed on 30·09·2027 with no experiment exhibited: held definitively to be a reading with no regulating role.');
+  else put('M1', ...U(`Clause datée courant jusqu’au 30·09·2027 ; ${days} jours restants. Valeur d’allocation marginale nulle — conservée comme lecture, non comme hypothèse régulatrice.`,
+                      `Dated clause runs to 30·09·2027; ${days} days remain. Marginal allocation value nil — kept as a reading, not as a regulating hypothesis.`));
+
+  put('inference-and-measurement','standing',
+    'Premier poste de l’ordre de révision : révisé avant toute thèse de ceinture dès qu’une anomalie paraît. Sa tenue est procédurale, non empirique.',
+    'First in the revision order: revised before any belt thesis as soon as an anomaly appears. Its standing is procedural, not empirical.');
+  return {ev, days};
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   6. LINTER — usage / mention
+   ═══════════════════════════════════════════════════════════════ */
+/* Frontière droite pour un mot pouvant finir par une lettre accentuée.
+   Sans le drapeau u, \b de JavaScript est ASCII : dans « phénoménalité. », le
+   « é » final et le « . » sont tous deux des non-mots, il n'y a donc aucune
+   frontière entre eux et un \b terminal ne se déclenche jamais. */
+const EOW = '(?![A-Za-zÀ-ÖØ-öø-ÿ])';
+const LINT_RULES = [
+  {p:'P1', re:/\b(degree|level|amount|quantity|score|index) of (proto-?)?(consciousness|experience|sentience|awareness)\b/i},
+  {p:'P1', re:new RegExp(`\\b(degré|niveau|quantité|score|indice) de (proto-?)?(conscience|expérience)${EOW}`,'i')},
+  {p:'P2', re:/\b(measures?|quantifies|captures) (the )?phenomenal(ity| character| experience)?\b/i},
+  {p:'P2', re:new RegExp(`\\b(mesure|mesurent|quantifie|quantifient|capture|capturent|saisit)\\s+(la\\s+)?(phénoménalité|qualia|expérience vécue)${EOW}`,'i')},
+  {p:'P2', re:/\b(Φ̃?|phi|ignition|PCI|broadcast)\s*(=|is|équivaut à|est)\s*(the |la |le )?(phenomenal|qualia|experience|phénoménal)/i},
+  {p:'P3', re:/\b(fit|fits|fitted|ajustement)\b[^.]{0,60}\b(therefore|hence|donc|prouve|proves)\b[^.]{0,60}\b(mechanism|mécanisme)\b/i},
+  {p:'P4', re:/\b(aggregate|composite|weighted|global|overall)\s+(FCS|stratum|strata|role|ablation|ordinal)\s*(score|index|rank)\b/i},
+  {p:'P4', re:new RegExp(`\\b(score|indice)\\s+(agrégé|global|composite|de conformité)${EOW}`,'i')},
+  {p:'P5', re:/\b(permissive|permissif)\b[^.]{0,80}\b(therefore|donc)\b[^.]{0,40}\b(constitutive|constitutif)\b/i},
+];
+const EXEMPT = [
+  /\b(no|not|never|nor)\s+(quantif|identif|infer|aggregat|comput|produc|deriv)/i,
+  /\b(interdiction|interdit|proscri|refus|forbid|forbidden|prohibit)/i,
+  /\bis not (quantifiable|admissible|available|a claim)\b/i,
+  /\bn['’]est pas (quantifiable|recevable|disponible)\b/i,
+  /\b(prohibition|interdiction) [1-5]\b/i,
+  /\b10\.\d{4,9}\//,
+  /\(\d{4}(?:\/\d{4})?[a-z]?\)/,
+  /\bet al\.,?\s*\d{4}\b/,
+];
+function lintFcs(text){
+  const out = []; const seen = new Set();
+  for (const unit of text.split(/\r?\n|",\s*"/).map(s=>s.trim()).filter(Boolean)){
+    if (EXEMPT.some(e => e.test(unit))) continue;
+    const sents = unit.split(/(?<=[.;!?])\s+(?=[A-ZÀ-Þ“"'(\d])/).filter(Boolean);
+    for (const s of (sents.length ? sents : [unit])){
+      for (const r of LINT_RULES){
+        if (!r.re.test(s)) continue;
+        const key = r.p + '::' + r.re.source;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push({p:r.p, seg:s.length > 200 ? s.slice(0,200) + '…' : s});
+      }
+    }
+  }
+  return out;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   7. RENDU
+   ═══════════════════════════════════════════════════════════════ */
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const SUPS = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+const sup = n => (n < 0 ? '⁻' : '') + String(Math.abs(n)).split('').map(c => SUPS[+c]).join('');
+const tauTxt = p => `10${sup(p.tau[0])}–10${sup(p.tau[1])} s`;
+/** Tronque proprement : coupe sur un mot et marque la coupe. */
+const clip = (s, n) => s.length <= n ? s : s.slice(0, s.lastIndexOf(' ', n) > n - 9 ? s.lastIndexOf(' ', n) : n).replace(/[ ,(]+$/, '') + '…';
+
+/**
+ * Espacement typographique français : espace fine insécable (U+202F) devant
+ * ; : ! ? et à l'intérieur des guillemets. Appliqué aux nœuds de texte du
+ * contenu rendu, en épargnant le monospace, les SVG, les champs de saisie et
+ * les blocs anglais — où la règle ne s'applique pas.
+ */
+const NNBSP = ' ';
+function frenchSpacing(root){
+  if (document.documentElement.classList.contains('lang-en')) return;
+  const SKIP = /^(SCRIPT|STYLE|SVG|INPUT|TEXTAREA|SELECT|CODE|OPTION)$/;
+  const walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(n){
+      for (let p = n.parentElement; p && p !== root.parentElement; p = p.parentElement){
+        if (SKIP.test(p.tagName) || p.classList.contains('en') || p.classList.contains('mono')) return NodeFilter.FILTER_REJECT;
+      }
+      return /[  ][;:!?»]|«[  ]/.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+    },
+  });
+  const todo = []; let n;
+  while ((n = walk.nextNode())) todo.push(n);
+  for (const t of todo){
+    t.nodeValue = t.nodeValue
+      .replace(/[  ]+([;:!?»])/g, NNBSP + '$1')
+      .replace(/«[  ]+/g, '«' + NNBSP);
+  }
+}
+const bi = (fr, en) => `<span class="fr">${fr}</span><span class="en">${en}</span>`;
+const statusBadges = st => st.map(s => `<span class="bdg ${STATUS[s].cls}">${bi(STATUS[s].fr, STATUS[s].en)}</span>`).join('');
+
+/* ── Cadre ── */
+function renderFramework(){
+  $('#core-list').innerHTML = CORE.map(c =>
+    `<p class="note" style="margin-bottom:.45rem">▸ ${bi(c.fr, c.en)}</p>`).join('');
+
+  $('#levels').innerHTML = LEVELS.map(l => `
+    <div class="card" style="border-left:3px solid ${l.col}">
+      <h3 style="color:${l.col}">${l.n} · ${bi(l.fr, l.en)}</h3>
+      <div>${statusBadges(l.st)}</div>
+      <p class="mono" style="font-size:.64rem;color:var(--mut);margin:.45rem 0">${esc(l.modules)}</p>
+      <p class="note">${bi(l.gapFr, l.gapEn)}</p>
+    </div>`).join('');
+}
+
+/* ── Strates ── */
+function renderVerify(){
+  const ok = STRAT.reproduces;
+  $('#verify').innerHTML = `
+    <div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap">
+      <span class="led ${ok ? 'up' : 'down'}"></span>
+      <span class="mono" style="font-size:.72rem;color:${ok ? 'var(--ok)' : 'var(--no)'};font-weight:600">
+        ${ok ? bi('ordre recalculé — les huit strates publiées sont reproduites',
+                  'order recomputed — the eight published strata are reproduced')
+             : bi('divergence avec les strates publiées', 'divergence from the published strata')}
+      </span>
+      <span class="mono" style="font-size:.66rem;color:var(--mut)">
+        ${STRAT.strata.length} ${bi('strates','strata')} · 17 ${bi('couples','pairs')} ·
+        ${bi('coupes τ','τ cuts')} [10⁻¹ s, 10⁰ s]
+      </span>
+    </div>
+    ${ok ? '' : `<p class="note" style="color:var(--no);margin-top:.5rem">${esc(JSON.stringify(STRAT.divergences))}</p>`}`;
+}
+
+function renderHasse(){
+  const W = 1140, padT = 34, rowH = 74, padB = 24;
+  const H = padT + STRAT.strata.length * rowH + padB;
+  const pos = {};
+  STRAT.strata.forEach((s, si) => {
+    const n = s.pairs.length, step = (W - 190) / (n + 1);
+    s.pairs.forEach((p, i) => pos[p.id] = {x: 170 + step * (i + 1), y: padT + si * rowH + 22});
+  });
+
+  let svg = `<svg id="hasse" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="IBM Plex Mono, monospace">`;
+  // bandes de strate
+  STRAT.strata.forEach((s, si) => {
+    const y = padT + si * rowH;
+    svg += `<rect x="0" y="${y - 6}" width="${W}" height="${rowH - 6}" fill="${si % 2 ? 'rgba(255,255,255,.012)' : 'transparent'}"/>`;
+    const en0 = document.documentElement.classList.contains('lang-en');
+    const lbl = s.pairs.length > 1
+      ? `${s.pairs.length} ${en0 ? 'incomparable' : 'incomparables'}`
+      : (en0 ? 'single' : 'seul');
+    svg += `<text x="20" y="${y + 26}" font-size="15" font-weight="700" fill="#5a6486">S${s.index}</text>`;
+    svg += `<text x="56" y="${y + 26}" font-size="9.5" fill="#3d4663">${lbl}</text>`;
+  });
+  // arêtes de couverture
+  for (const [a, b] of covers()){
+    const A = pos[a], B = pos[b];
+    if (!A || !B) continue;
+    svg += `<path d="M${A.x} ${A.y + 14} C ${A.x} ${A.y + 40}, ${B.x} ${B.y - 40}, ${B.x} ${B.y - 16}" fill="none" stroke="#1b2138" stroke-width="1.1"/>`;
+  }
+  // nœuds
+  for (const p of PAIRS){
+    const c = pos[p.id], col = ROLE_META[p.role].col;
+    svg += `<g><circle cx="${c.x}" cy="${c.y}" r="13" fill="#0b0e1b" stroke="${col}" stroke-width="1.6"/>`;
+    svg += `<text x="${c.x}" y="${c.y + 4}" font-size="9.5" font-weight="600" fill="${col}" text-anchor="middle">${p.id}</text>`;
+    svg += `<text x="${c.x}" y="${c.y + 29}" font-size="8.6" fill="#8d97b6" text-anchor="middle">${esc(clip(document.documentElement.classList.contains('lang-en') ? p.en : p.fr, 24))}</text></g>`;
+  }
+  // légende
+  const roles = Object.keys(ROLE_META);
+  svg += `<g font-size="9">`;
+  roles.forEach((r, i) => {
+    const x = 24 + i * 152;
+    svg += `<circle cx="${x}" cy="${H - 11}" r="5" fill="none" stroke="${ROLE_META[r].col}" stroke-width="1.5"/>`;
+    svg += `<text x="${x + 11}" y="${H - 8}" fill="#8d97b6">${ROLE_META[r][document.documentElement.classList.contains('lang-en') ? 'en' : 'fr']}</text>`;
+  });
+  svg += `</g></svg>`;
+  $('#hasse').outerHTML = svg;
+}
+
+let roleFilter = '';
+function renderPairs(){
+  const en = document.documentElement.classList.contains('lang-en');
+  const rows = PAIRS.filter(p => !roleFilter || p.role === roleFilter)
+    .sort((a, b) => STRAT.byPair[a.id] - STRAT.byPair[b.id] || a.d - b.d);
+  $('#tbl-pairs tbody').innerHTML = rows.map(p => {
+    const rm = ROLE_META[p.role];
+    return `<tr>
+      <td class="id">${p.id}</td>
+      <td>${esc(en ? p.en : p.fr)}</td>
+      <td><span class="bdg ${rm.cls}">${bi(rm.fr, rm.en)}</span></td>
+      <td class="num">${p.d}</td>
+      <td class="num">${tauTxt(p)}</td>
+      <td class="num" style="white-space:normal">${esc(en ? p.ablEn : p.ablFr)}<br><span style="color:var(--mut);font-size:.66rem">${p.abl} · ${esc(en ? ABL[p.abl].en : ABL[p.abl].fr)}</span></td>
+      <td class="num" style="color:var(--wh);font-weight:600">S${STRAT.byPair[p.id]}</td>
+      <td>${statusBadges(p.st)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderCompare(){
+  const opts = PAIRS.map(p => `<option value="${p.id}">${p.id} · ${esc(p.fr.slice(0, 30))}</option>`).join('');
+  $('#cmp-a').innerHTML = opts; $('#cmp-b').innerHTML = opts;
+  $('#cmp-a').value = '1'; $('#cmp-b').value = '2a';
+  updateCompare();
+}
+
+function updateCompare(){
+  const a = PAIRS.find(p => p.id === $('#cmp-a').value);
+  const b = PAIRS.find(p => p.id === $('#cmp-b').value);
+  if (!a || !b) return;
+  const ab = dominates(a, b), ba = dominates(b, a);
+  const same = a.d === b.d && tauRank(a) === tauRank(b) && a.abl === b.abl;
+  const rel = ab ? 'ab' : ba ? 'ba' : same ? 'eq' : 'inc';
+  const msg = {
+    ab:[`<b>${a.id}</b> domine <b>${b.id}</b> : au moins aussi proche du porteur sur les trois sous-critères, strictement plus proche sur l’un d’eux.`,
+        `<b>${a.id}</b> dominates <b>${b.id}</b>: at least as close to the carrier on all three sub-criteria, strictly closer on one.`],
+    ba:[`<b>${b.id}</b> domine <b>${a.id}</b> : au moins aussi proche du porteur sur les trois sous-critères, strictement plus proche sur l’un d’eux.`,
+        `<b>${b.id}</b> dominates <b>${a.id}</b>: at least as close to the carrier on all three sub-criteria, strictly closer on one.`],
+    eq:[`<b>${a.id}</b> et <b>${b.id}</b> portent les mêmes valeurs ordinales sur les trois sous-critères. Le document ne les ordonne pas.`,
+        `<b>${a.id}</b> and <b>${b.id}</b> carry the same ordinal values on all three sub-criteria. The document does not order them.`],
+    inc:[`<b>${a.id}</b> et <b>${b.id}</b> sont <b>incomparables</b> : chacun devance l’autre sur au moins un sous-critère. Les départager exigerait une agrégation sur des critères ordinaux dépourvus d’échelle commune — interdiction&nbsp;4.`,
+         `<b>${a.id}</b> and <b>${b.id}</b> are <b>incomparable</b>: each leads the other on at least one sub-criterion. Separating them would require aggregating ordinal criteria lacking a common scale — prohibition&nbsp;4.`],
+  }[rel];
+  const col = rel === 'inc' ? 'var(--s-nor)' : rel === 'eq' ? 'var(--mut)' : 'var(--n1)';
+  const cell = (x, y, lbl) => `<td class="num" style="color:${x < y ? 'var(--ok)' : x > y ? 'var(--no)' : 'var(--dim)'}">${lbl}</td>`;
+  $('#cmp-out').innerHTML = `
+    <div style="border-left:2px solid ${col};padding-left:.85rem">
+      <p style="font-size:.86rem">${bi(msg[0], msg[1])}</p>
+    </div>
+    <table style="margin-top:.7rem;max-width:34rem"><thead><tr>
+      <th></th><th>d</th><th>${bi('rang τ','τ rank')}</th><th>${bi('ablation','ablation')}</th><th>${bi('strate','stratum')}</th></tr></thead>
+      <tbody>
+      <tr><td class="id">${a.id}</td>${cell(a.d,b.d,a.d)}${cell(tauRank(a),tauRank(b),tauRank(a))}${cell(a.abl,b.abl,a.abl)}<td class="num">S${STRAT.byPair[a.id]}</td></tr>
+      <tr><td class="id">${b.id}</td>${cell(b.d,a.d,b.d)}${cell(tauRank(b),tauRank(a),tauRank(b))}${cell(b.abl,a.abl,b.abl)}<td class="num">S${STRAT.byPair[b.id]}</td></tr>
+      </tbody></table>`;
+}
+
+/* ── Carte des classes ── */
+function renderTauMap(){
+  const en = document.documentElement.classList.contains('lang-en');
+  const W = 1140, L = 300, R = 60, rowH = 26, padT = 46, padB = 46;
+  const rows = PAIRS.slice().sort((a, b) => STRAT.byPair[a.id] - STRAT.byPair[b.id] || a.tau[0] - b.tau[0]);
+  const H = padT + rows.length * rowH + padB;
+  const lo = -4.4, hi = 6.4;
+  const X = v => L + (v - lo) / (hi - lo) * (W - L - R);
+
+  let s = `<svg id="taumap" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="IBM Plex Mono, monospace">`;
+  // fenêtre de l'épisode
+  s += `<rect x="${X(-1)}" y="${padT - 18}" width="${X(0) - X(-1)}" height="${rows.length * rowH + 20}" fill="rgba(46,230,208,.07)" stroke="rgba(46,230,208,.3)" stroke-dasharray="3 3"/>`;
+  s += `<text x="${(X(-1) + X(0)) / 2}" y="${padT - 25}" font-size="9" fill="#2ee6d0" text-anchor="middle">${en ? 'episode window' : 'fenêtre de l’épisode'}</text>`;
+  // grille
+  for (let e = -4; e <= 6; e++){
+    s += `<line x1="${X(e)}" y1="${padT - 6}" x2="${X(e)}" y2="${H - padB + 6}" stroke="#1b2138" stroke-width="${e === -1 || e === 0 ? 0 : 1}" opacity=".6"/>`;
+    s += `<text x="${X(e)}" y="${H - padB + 22}" font-size="9" fill="#5a6486" text-anchor="middle">10${sup(e)}</text>`;
+  }
+  s += `<text x="${(L + W - R) / 2}" y="${H - 8}" font-size="9.5" fill="#8d97b6" text-anchor="middle">τ (s) — ${en ? 'logarithmic scale; declared orders of magnitude, not measurements' : 'échelle logarithmique ; ordres de grandeur déclarés, non des mesures'}</text>`;
+  // segments
+  rows.forEach((p, i) => {
+    const y = padT + i * rowH + 12, col = ROLE_META[p.role].col;
+    s += `<text x="16" y="${y + 4}" font-size="9.5" font-weight="600" fill="#eef1f8">${p.id}</text>`;
+    s += `<text x="44" y="${y + 4}" font-size="9.5" fill="#8d97b6">${esc(clip(en ? p.en : p.fr, 32))}</text>`;
+    s += `<text x="${L - 46}" y="${y + 4}" font-size="8.6" fill="#3d4663">S${STRAT.byPair[p.id]}</text>`;
+    s += `<text x="${L - 22}" y="${y + 4}" font-size="8.6" fill="#5a6486">d${p.d}</text>`;
+    const x1 = X(p.tau[0]), x2 = X(p.tau[1]);
+    s += `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${col}" stroke-width="5" stroke-linecap="round" opacity=".85"/>`;
+    s += `<circle cx="${x1}" cy="${y}" r="3.4" fill="${col}"/>`;
+  });
+  s += `</svg>`;
+  $('#taumap').outerHTML = s;
+}
+
+function renderRoles(){
+  const byRole = {};
+  PAIRS.forEach(p => (byRole[p.role] ||= []).push(p.id));
+  $('#tbl-roles tbody').innerHTML = Object.entries(ROLE_META).map(([k, m]) => `
+    <tr>
+      <td><span class="bdg ${m.cls}">${bi(m.fr, m.en)}</span></td>
+      <td style="font-size:.78rem">${bi(m.defFr, m.defEn)}</td>
+      <td style="font-size:.78rem;color:var(--dim)">${bi(m.remFr, m.remEn)}</td>
+      <td class="num" style="white-space:normal">${(byRole[k] || []).join(' · ')}</td>
+    </tr>`).join('');
+}
+
+/* ── Conformité ── */
+function readBio(){
+  const g = id => { const v = $(id).value.trim(); return v === '' ? undefined : Number(v); };
+  return {ca:g('#bio-ca'), fr:g('#bio-fr'), atp:g('#bio-atp'), viab:g('#bio-viab')};
+}
+
+function renderConformance(){
+  const bio = readBio(), en = document.documentElement.classList.contains('lang-en');
+  const chVal = {'1':bio.ca, '2b':bio.viab, '3':bio.fr, '7':bio.atp};
+
+  $('#conformance').innerHTML = SUBSTRATES.map(sub => {
+    const tally = {realised:0, simulated:0, absent:0, undetermined:0};
+    const rows = PAIRS.map(p => {
+      const v = verdictFor(sub.k, p); tally[v]++;
+      const bind = sub.k === 'organoid-mea' ? ORG_BINDINGS[p.id] : null;
+      const val = bind ? chVal[p.id] : undefined;
+      const vd = {realised:'vd-r', simulated:'vd-s', absent:'vd-a', undetermined:'vd-u'}[v];
+      const vlab = {realised:['réalisé','realised'], simulated:['simulé','simulated'], absent:['absent','absent'], undetermined:['indéterminé','undetermined']}[v];
+      const reading = bind
+        ? (val === undefined || Number.isNaN(val)
+            ? `<span class="withheld">${en ? 'withheld — channel not reporting' : 'retenu — canal muet'}</span>`
+            : `<span class="mono" style="color:var(--wh)">${val}${bind.unit ? ' ' + bind.unit : ''}</span>
+               <span class="mono" style="font-size:.6rem;color:var(--mut)"> · ${bind.ch} · ${bind.prov === 'measured' ? (en?'measured':'mesuré') : (en?'derived':'dérivé')}</span>`)
+        : `<span style="color:var(--mut);font-size:.72rem">—</span>`;
+      return `<tr>
+        <td class="id">${p.id}</td>
+        <td style="font-size:.76rem">${esc(en ? p.en : p.fr)}</td>
+        <td><span class="bdg ${ROLE_META[p.role].cls}">${bi(ROLE_META[p.role].fr, ROLE_META[p.role].en)}</span></td>
+        <td class="num">S${STRAT.byPair[p.id]}</td>
+        <td><span class="vd ${vd}">${bi(vlab[0], vlab[1])}</span></td>
+        <td style="font-size:.74rem">${reading}${bind ? `<div class="note" style="font-size:.68rem;margin-top:.15rem">${bi(bind.fr, bind.en)}</div>` : ''}</td>
+      </tr>`;
+    }).join('');
+
+    const constitutiveRealised = PAIRS.filter(p => p.role === 'constitutive' && verdictFor(sub.k, p) === 'realised').length;
+    const warn = constitutiveRealised === 0 ? `
+      <div style="border-left:2px solid var(--no);padding:.4rem .8rem;margin:.6rem 0;background:rgba(248,113,113,.05)">
+        <p class="note" style="color:var(--tx)">${bi(
+          'Aucun couple constitutif n’est réalisé sur ce substrat. Sous la contrainte de substrat, le porteur de niveau I est absent, quel que soit le profil montré aux niveaux III et IV.',
+          'No constitutive pair is realised on this substrate. Under the substrate constraint the level-I carrier is absent, whatever the level-III and level-IV profile shows.')}</p>
+      </div>` : '';
+
+    return `<div class="card" style="border-left:3px solid ${sub.col}">
+      <h2 style="margin-top:0;color:${sub.col};font-size:1.02rem">${bi(sub.fr, sub.en)}</h2>
+      <p class="note">${bi(sub.carrierFr, sub.carrierEn)}</p>
+      ${warn}
+      <div class="ctl" style="margin:.7rem 0">
+        <span class="vd vd-r">${tally.realised} ${bi('réalisés','realised')}</span>
+        <span class="vd vd-s">${tally.simulated} ${bi('simulés','simulated')}</span>
+        <span class="vd vd-a">${tally.absent} ${bi('absents','absent')}</span>
+        <span class="vd vd-u">${tally.undetermined} ${bi('indéterminés','undetermined')}</span>
+        <span class="withheld" style="margin-left:.4rem">${bi('aucun indice agrégé — interdiction 4','no aggregate index — prohibition 4')}</span>
+      </div>
+      <div class="scroll"><table><thead><tr>
+        <th>#</th><th>${bi('Couple','Pair')}</th><th>${bi('Rôle','Role')}</th><th>${bi('Str.','Str.')}</th>
+        <th>${bi('Verdict','Verdict')}</th><th>${bi('Canal ASTRA','ASTRA channel')}</th>
+      </tr></thead><tbody>${rows}</tbody></table></div>
+    </div>`;
+  }).join('');
+}
+
+/* ── Retrait ── */
+const outcomes = {};
+function renderStrands(){
+  $('#strands').innerHTML = STRANDS.map(s => `
+    <div class="strand">
+      <div class="tri" data-k="${s.k}">
+        <button class="yes" data-v="true">${bi('positif','positive')}</button>
+        <button class="no"  data-v="false">${bi('négatif','negative')}</button>
+        <button class="un on" data-v="null">${bi('non réglé','unset')}</button>
+      </div>
+      <div class="lbl">${bi(s.fr, s.en)}</div>
+    </div>`).join('');
+
+  $$('#strands .tri button').forEach(b => b.addEventListener('click', () => {
+    const tri = b.closest('.tri'), k = tri.dataset.k;
+    tri.querySelectorAll('button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    const v = b.dataset.v;
+    if (v === 'null') delete outcomes[k]; else outcomes[k] = v === 'true';
+    renderWithdrawal();
+  }));
+}
+
+function renderWithdrawal(){
+  const {ev, days} = evaluateWithdrawal(outcomes);
+  const en = document.documentElement.classList.contains('lang-en');
+  const order = ['inference-and-measurement','bridge-auxiliary','M2','M3','kinaesthetic','field-hypothesis','M1'];
+  const stMeta = {withdrawn:['st-w','retirée','withdrawn'], standing:['st-s','tient','standing'], undetermined:['st-u','indéterminée','undetermined']};
+
+  $('#tbl-withdrawal tbody').innerHTML = order.map(id => {
+    const t = THESES[id], e = ev[id], m = stMeta[e.st];
+    return `<tr>
+      <td class="num">${t.rank ?? '—'}</td>
+      <td style="font-weight:600;color:var(--wh);font-size:.8rem">${bi(t.fr, t.en)}</td>
+      <td><span class="standing ${m[0]}">${bi(m[1], m[2])}</span></td>
+      <td style="font-size:.76rem">${esc(en ? e.en : e.fr)}</td>
+      <td style="font-size:.76rem;color:var(--dim)">${bi(t.survFr, t.survEn)}</td>
+    </tr>`;
+  }).join('');
+
+  const next = ['inference-and-measurement','bridge-auxiliary','M2','M3','kinaesthetic','field-hypothesis']
+    .find(id => ev[id].st !== 'withdrawn');
+  $('#m1-clause').innerHTML = `
+    <p class="note">${bi(
+      `<b style="color:var(--n1)">Prochaine thèse à réviser :</b> ${THESES[next] ? THESES[next].fr : 'aucune — il ne reste que le noyau, dont la révision serait l’abandon du programme'}${THESES[next] ? ` — rang ${THESES[next].rank} de l’ordre déclaré.` : '.'}`,
+      `<b style="color:var(--n1)">Next thesis to revise:</b> ${THESES[next] ? THESES[next].en : 'none — only the core remains, whose revision would be the abandonment of the programme'}${THESES[next] ? ` — rank ${THESES[next].rank} in the declared order.` : '.'}`)}</p>
+    <p class="note" style="margin-top:.45rem">${bi(
+      `<b style="color:var(--s-nor)">Clause datée de M1 :</b> ${days > 0 ? `${days} jours avant le 30·09·2027.` : 'échue.'} Si aucune expérience n’est exhibée dont le rang dépende de M1, elle est tenue définitivement pour une lecture sans rôle régulateur — sa valeur d’allocation marginale est nulle.`,
+      `<b style="color:var(--s-nor)">M1’s dated clause:</b> ${days > 0 ? `${days} days to 30·09·2027.` : 'elapsed.'} If no experiment is exhibited whose ranking depends on M1, it is held definitively to be a reading with no regulating role — its marginal allocation value is nil.`)}</p>`;
+}
+
+/* ── Heuristique ── */
+function renderProhibitions(){
+  $('#prohibitions').innerHTML = `<div class="card">` + PROHIBITIONS.map(p => `
+    <div class="proh">
+      <b>${p.id}</b>
+      <p style="font-size:.88rem;color:var(--wh)">${bi(p.fr, p.en)}</p>
+      <p class="note" style="margin-top:.25rem">${bi(p.rFr, p.rEn)}</p>
+    </div>`).join('') + `</div>`;
+}
+
+function runLint(){
+  const f = lintFcs($('#lint-in').value);
+  $('#lint-out').innerHTML = f.length === 0
+    ? `<div class="clean">${bi('Recevable — aucune des cinq interdictions n’est franchie.','Admissible — none of the five prohibitions is crossed.')}</div>`
+    : f.map(x => {
+        const pr = PROHIBITIONS.find(p => p.id === x.p);
+        return `<div class="finding">
+          <b class="mono" style="color:var(--no)">${x.p}</b> — ${bi(pr.fr, pr.en)}
+          <div class="note" style="margin-top:.2rem;font-style:italic">« ${esc(x.seg)} »</div>
+        </div>`;
+      }).join('');
+}
+
+const AGG = {
+  ordinal:[{n:'d', u:null}, {n:'τ', u:null}, {n:'ablation', u:null}],
+  hz:[{n:'firing rate', u:'Hz'}, {n:'bio rate', u:'Hz'}],
+  mixed:[{n:'firing rate', u:'Hz'}, {n:'stratum', u:null}],
+};
+function runAgg(k){
+  const cs = AGG[k];
+  const units = new Set(cs.map(c => c.u));
+  const ok = !units.has(null) && units.size === 1;
+  $('#agg-out').innerHTML = ok
+    ? `<div class="clean">${bi(
+        `Recevable — tous les critères portent la même unité (${[...units][0]}) : l’opération est arithmétique, non agrégative.`,
+        `Admissible — all criteria carry the same unit (${[...units][0]}): the operation is arithmetic, not aggregative.`)}</div>`
+    : `<div class="finding"><b class="mono" style="color:var(--no)">P4</b> — ${bi(
+        `Agrégation refusée sur [${cs.map(c => c.n).join(', ')}] : critères ordinaux dépourvus d’échelle commune. Règle admissible : dominance de Pareto, ordre partiel en strates.`,
+        `Aggregation refused over [${cs.map(c => c.n).join(', ')}]: ordinal criteria lacking a common scale. Admissible rule: Pareto dominance, a partial order in strata.`)}</div>`;
+}
+
+function runP5(){
+  const deg = Number($('#p5-deg').value), spared = $('#p5-spared').checked;
+  let out;
+  if (deg === 4) out = ['no', bi(
+    'Défaillance non sélective : l’effet est celui d’un facteur permissif. Toutes les théories le prédisent, il n’en départage aucune.',
+    'Non-selective failure: the effect is that of a permissive factor. Every theory predicts it, so it separates none.')];
+  else if (!spared) out = ['no', bi(
+    'L’intervention a supprimé les conditions générales de fonctionnement : elle est « à main lourde » (Craver, 2007 ; Baumgartner &amp; Gebharter, 2016) et ne sépare pas la constitution de la causalité.',
+    'The intervention removed the general conditions of operation: it is fat-handed (Craver, 2007; Baumgartner &amp; Gebharter, 2016) and does not separate constitution from causation.')];
+  else out = ['ok', bi(
+    'Intervention sélective sur un effet non permissif : l’inférence est recevable <b>en conjonction</b> avec les deux autres sous-critères. L’attribution de rôle reste révisable.',
+    'Selective intervention on a non-permissive effect: the inference is admissible <b>in conjunction</b> with the two other sub-criteria. The role assignment remains revisable.')];
+  $('#p5-out').innerHTML = out[0] === 'ok'
+    ? `<div class="clean">${out[1]}</div>`
+    : `<div class="finding"><b class="mono" style="color:var(--no)">P5</b> — ${out[1]}</div>`;
+}
+
+/* ── Sources ── */
+function renderRefs(){
+  $('#refs').innerHTML = REFS.map(([c, d]) =>
+    `<div class="ref"><span class="doi">${esc(d)}</span><span class="v">(v)</span><span>${c}</span></div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   8. PONT MCP — optionnel ; la page fonctionne hors ligne
+   ═══════════════════════════════════════════════════════════════ */
+const MCP = {
+  ep:null, sid:null, id:0,
+  async rpc(method, params){
+    this.id++;
+    const r = await fetch(this.ep, {
+      method:'POST',
+      headers:Object.assign(
+        {'Content-Type':'application/json','Accept':'application/json, text/event-stream'},
+        this.sid ? {'Mcp-Session-Id':this.sid} : {}),
+      body:JSON.stringify({jsonrpc:'2.0', id:this.id, method, params}),
+    });
+    const s = r.headers.get('Mcp-Session-Id'); if (s) this.sid = s;
+    const txt = await r.text();
+    if (txt.includes('data:')){
+      const ln = txt.split('\n').reverse().find(l => l.startsWith('data:'));
+      return JSON.parse(ln.slice(5).trim());
+    }
+    return JSON.parse(txt);
+  },
+  async connect(ep){
+    this.ep = ep; this.sid = null;
+    await this.rpc('initialize', {protocolVersion:'2025-03-26', capabilities:{}, clientInfo:{name:'astra-fcs-dashboard', version:'1.0'}});
+    await fetch(this.ep, {method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json, text/event-stream','Mcp-Session-Id':this.sid},
+      body:JSON.stringify({jsonrpc:'2.0', method:'notifications/initialized'})});
+    return true;
+  },
+  async call(name, args){
+    const r = await this.rpc('tools/call', {name, arguments:args || {}});
+    const t = r?.result?.content?.[0]?.text;
+    return t ? JSON.parse(t) : null;
+  },
+};
+
+async function connect(){
+  const led = $('#led');
+  try {
+    await MCP.connect($('#ep').value.trim());
+    led.className = 'led up'; led.title = 'MCP connecté';
+    await pullBiomarkers();
+  } catch(e){
+    led.className = 'led down';
+    led.title = 'MCP injoignable — la page fonctionne hors ligne sur la table embarquée';
+  }
+}
+
+async function pullBiomarkers(){
+  if (!MCP.sid) { await connect(); if (!MCP.sid) return; }
+  try {
+    const st = await MCP.call('get_system_status');
+    const e = st?.ethics?.biomarkers ?? st?.ethics ?? {};
+    const set = (id, v) => { if (typeof v === 'number') $(id).value = v; };
+    set('#bio-ca', e.calcium ?? e.ca); set('#bio-fr', e.firingRate ?? e.fr);
+    set('#bio-atp', e.atpAdp ?? e.atp); set('#bio-viab', e.viability ?? e.viab);
+    renderConformance();
+  } catch(e){ /* hors ligne : la table embarquée reste la source */ }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   9. AMORÇAGE
+   ═══════════════════════════════════════════════════════════════ */
+function renderAll(){
+  renderFramework(); renderVerify(); renderHasse(); renderPairs(); renderCompare();
+  renderTauMap(); renderRoles(); renderConformance(); renderWithdrawal();
+  renderProhibitions(); renderRefs();
+  frenchSpacing(document.querySelector('main'));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderAll(); renderStrands(); runLint(); runAgg('ordinal'); runP5();
+
+  $('#btn-lang').addEventListener('click', () => {
+    const h = document.documentElement, en = h.classList.contains('lang-en');
+    h.className = en ? 'lang-fr' : 'lang-en';
+    h.lang = en ? 'fr' : 'en';
+    renderHasse(); renderPairs(); renderTauMap(); renderConformance(); updateCompare();
+    frenchSpacing(document.querySelector('main'));
+  });
+
+  $$('#nav button').forEach(b => b.addEventListener('click', () => {
+    $$('#nav button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    $$('main section').forEach(s => s.classList.remove('on'));
+    $('#s-' + b.dataset.s).classList.add('on');
+  }));
+
+  $$('.frole').forEach(b => b.addEventListener('click', () => {
+    $$('.frole').forEach(x => x.classList.remove('on'));
+    b.classList.add('on'); roleFilter = b.dataset.role; renderPairs();
+  }));
+
+  $('#cmp-a').addEventListener('change', updateCompare);
+  $('#cmp-b').addEventListener('change', updateCompare);
+  $$('.bio').forEach(i => i.addEventListener('input', renderConformance));
+  $('#btn-clear').addEventListener('click', () => { $$('.bio').forEach(i => i.value = ''); renderConformance(); });
+  $('#btn-pull').addEventListener('click', pullBiomarkers);
+  $('#btn-conn').addEventListener('click', connect);
+  $('#btn-lint').addEventListener('click', runLint);
+  $('#btn-lint-ok').addEventListener('click', () => {
+    $('#lint-in').value = 'La strate 3 réunit quatre couples qu’aucun couple restant ne domine. Le porteur est le courant ionique transmembranaire et le champ qu’il engendre.';
+    runLint();
+  });
+  $$('.agg').forEach(b => b.addEventListener('click', () => {
+    $$('.agg').forEach(x => x.classList.remove('on')); b.classList.add('on'); runAgg(b.dataset.k);
+  }));
+  $('#p5-deg').addEventListener('change', runP5);
+  $('#p5-spared').addEventListener('change', runP5);
+});
+</script>
+</body>
+</html>

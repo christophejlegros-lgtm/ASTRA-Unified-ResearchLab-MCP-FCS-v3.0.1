@@ -1,0 +1,14 @@
+{
+  "mcp": {
+    "servers": {
+      "astra": {
+        "type": "stdio",
+        "command": "node",
+        "args": ["${workspaceFolder}/dist/index.js"],
+        "env": {
+          "ASTRA_LOG_LEVEL": "info"
+        }
+      }
+    }
+  }
+}

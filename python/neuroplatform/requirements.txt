@@ -1,0 +1,4 @@
+# ASTRA × NeuroPlatform v2 — Python live bridge
+neuroplatformv2     # FinalSpark NeuroPlatform v2 SDK (dedicated-client access required)
+numpy>=1.24
+requests>=2.31

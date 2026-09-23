@@ -1,0 +1,39 @@
+# ASTRA MCP Server — Docker Compose
+# © 2026 Christophe Jean Legros — Geneva
+
+services:
+  astra-http:
+    build: .
+    container_name: astra-mcp-http
+    ports:
+      - "9003:9003"
+    environment:
+      - ASTRA_HTTP_PORT=9003
+      - ASTRA_HTTP_HOST=0.0.0.0
+      - ASTRA_LOG_LEVEL=info
+      - ASTRA_CORS_ORIGIN=*
+    command: ["node", "dist/http-server.js"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9003/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+
+  astra-sse:
+    build: .
+    container_name: astra-mcp-sse
+    ports:
+      - "9002:9002"
+    environment:
+      - ASTRA_SSE_PORT=9002
+      - ASTRA_SSE_HOST=0.0.0.0
+      - ASTRA_LOG_LEVEL=info
+      - ASTRA_CORS_ORIGIN=*
+    command: ["node", "dist/sse-server.js"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9002/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s

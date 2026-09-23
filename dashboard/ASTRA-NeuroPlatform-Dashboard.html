@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ASTRA · NeuroPlatform v2 — Wetware Closed-Loop Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#03050a;--deep:#070b14;--card:#0a0f1e;--card2:#0e1426;
+  --cy:#00e5ff;--mg:#ff2df1;--am:#ffa726;--gn:#00e676;--rd:#ff1744;--vl:#b388ff;--bl:#448aff;--wh:#e8ecf4;
+  --tx:#d0d6e8;--dim:#8a96b8;--mut:#293456;
+  --gb:rgba(0,229,255,.08);--rc:8px;--rs:5px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Syne',sans-serif;background:var(--void);color:var(--tx);min-height:100vh;
+  background-image:radial-gradient(ellipse 80% 60% at 12% 4%,rgba(0,229,255,.04),transparent),
+    radial-gradient(ellipse 70% 50% at 88% 100%,rgba(255,45,241,.035),transparent);
+  font-size:14px;line-height:1.5}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--void)}
+::-webkit-scrollbar-thumb{background:var(--mut);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--cy)}
+.mono{font-family:'IBM Plex Mono',monospace}
+
+/* Header */
+.hdr{position:sticky;top:0;z-index:100;background:rgba(3,5,10,.95);backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--gb);padding:10px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.logo{font-family:'IBM Plex Mono',monospace;font-size:1.05rem;font-weight:600;letter-spacing:3px;
+  background:linear-gradient(135deg,var(--cy),var(--mg),var(--am));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.logo small{display:block;font-size:.5rem;color:var(--dim);letter-spacing:2px;letter-spacing:1.6px;margin-top:1px;-webkit-text-fill-color:var(--dim)}
+.hdr-spacer{flex:1}
+.pill{font-family:'IBM Plex Mono',monospace;font-size:.6rem;padding:4px 10px;border-radius:20px;letter-spacing:1px;
+  display:inline-flex;align-items:center;gap:6px}
+.pill .dot{width:6px;height:6px;border-radius:50%}
+.pill-gn{background:rgba(0,230,118,.07);border:1px solid rgba(0,230,118,.2);color:var(--gn)}.pill-gn .dot{background:var(--gn)}
+.pill-am{background:rgba(255,167,38,.07);border:1px solid rgba(255,167,38,.2);color:var(--am)}.pill-am .dot{background:var(--am)}
+.pill-cy{background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.2);color:var(--cy)}.pill-cy .dot{background:var(--cy)}
+.clk{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--dim)}
+
+/* Connection bar */
+.connbar{display:flex;gap:8px;align-items:center;padding:8px 20px;background:rgba(7,11,20,.7);
+  border-bottom:1px solid var(--gb);flex-wrap:wrap;font-size:.7rem}
+.connbar input{font-family:'IBM Plex Mono',monospace;background:var(--card);border:1px solid var(--mut);color:var(--tx);
+  padding:5px 9px;border-radius:var(--rs);font-size:.7rem;width:230px}
+.connbar input:focus{outline:none;border-color:var(--cy)}
+button{font-family:'Syne',sans-serif;cursor:pointer;border:none;border-radius:var(--rs);font-weight:600;
+  transition:.15s;font-size:.72rem;padding:6px 13px}
+.btn{background:var(--card2);border:1px solid var(--mut);color:var(--tx)}
+.btn:hover{border-color:var(--cy);color:var(--cy)}
+.btn-cy{background:rgba(0,229,255,.1);border:1px solid var(--cy);color:var(--cy)}
+.btn-cy:hover{background:rgba(0,229,255,.2)}
+.btn-mg{background:rgba(255,45,241,.1);border:1px solid var(--mg);color:var(--mg)}
+.btn-mg:hover{background:rgba(255,45,241,.2)}
+.btn-rd{background:rgba(255,23,68,.1);border:1px solid var(--rd);color:var(--rd)}
+.btn-rd:hover{background:rgba(255,23,68,.2)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Layout */
+.wrap{max-width:1480px;margin:0 auto;padding:16px 20px 60px;
+  display:grid;grid-template-columns:1.55fr 1fr;gap:14px;align-items:start}
+@media(max-width:1100px){.wrap{grid-template-columns:1fr}}
+.col{display:flex;flex-direction:column;gap:14px}
+.card{background:linear-gradient(170deg,var(--card),var(--card2));border:1px solid var(--gb);
+  border-radius:var(--rc);padding:14px 16px;position:relative;overflow:hidden}
+.card-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.card-t{font-family:'IBM Plex Mono',monospace;font-size:.68rem;font-weight:600;letter-spacing:1.5px;color:var(--cy);text-transform:uppercase}
+.card-t .idx{color:var(--mut);margin-right:7px}
+.card-meta{font-family:'IBM Plex Mono',monospace;font-size:.58rem;color:var(--dim)}
+
+/* MEA grid (signature) */
+.mea-wrap{display:flex;flex-direction:column;gap:8px}
+.mea-grid{display:grid;grid-template-columns:repeat(16,1fr);gap:3px;aspect-ratio:16/8}
+.el{border-radius:2px;background:#0a1020;position:relative;cursor:pointer;transition:transform .08s;
+  border:1px solid transparent}
+.el:hover{transform:scale(1.18);z-index:3;border-color:var(--wh)}
+.el.sel{border-color:var(--am);box-shadow:0 0 0 1px var(--am)}
+.el.stim{border-color:var(--mg)}
+.mea-legend{display:flex;align-items:center;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:.56rem;color:var(--dim)}
+.legbar{height:7px;flex:1;border-radius:4px;background:linear-gradient(90deg,#0a1020,#003a44,#00e5ff,#ff2df1)}
+
+/* Spike scope */
+.scope{width:100%;height:200px;background:radial-gradient(ellipse at center,#060a14,#03050a);border-radius:var(--rs);border:1px solid var(--mut)}
+.scope-row{display:flex;gap:14px;align-items:center;margin-top:8px;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--dim)}
+.scope-row input[type=range]{accent-color:var(--am);width:120px}
+
+/* Stat tiles */
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tile{background:rgba(255,255,255,.015);border:1px solid var(--mut);border-radius:var(--rs);padding:9px 10px}
+.tile .lab{font-family:'IBM Plex Mono',monospace;font-size:.52rem;color:var(--dim);letter-spacing:1px;text-transform:uppercase}
+.tile .val{font-family:'IBM Plex Mono',monospace;font-size:1.15rem;font-weight:600;margin-top:2px}
+.v-cy{color:var(--cy)}.v-mg{color:var(--mg)}.v-am{color:var(--am)}.v-gn{color:var(--gn)}.v-rd{color:var(--rd)}
+
+/* StimParam form */
+.frm{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px}
+.fld{display:flex;flex-direction:column;gap:3px}
+.fld label{font-family:'IBM Plex Mono',monospace;font-size:.56rem;color:var(--dim);letter-spacing:.5px}
+.fld input,.fld select{font-family:'IBM Plex Mono',monospace;background:var(--card);border:1px solid var(--mut);
+  color:var(--tx);padding:5px 8px;border-radius:var(--rs);font-size:.7rem}
+.fld input:focus,.fld select:focus{outline:none;border-color:var(--cy)}
+.balance{margin-top:10px;padding:9px 11px;border-radius:var(--rs);font-family:'IBM Plex Mono',monospace;font-size:.64rem;display:flex;justify-content:space-between;align-items:center}
+.bal-ok{background:rgba(0,230,118,.07);border:1px solid rgba(0,230,118,.25);color:var(--gn)}
+.bal-no{background:rgba(255,23,68,.07);border:1px solid rgba(255,23,68,.25);color:var(--rd)}
+
+/* Triggers */
+.trigs{display:grid;grid-template-columns:repeat(8,1fr);gap:5px}
+.trig{font-family:'IBM Plex Mono',monospace;font-size:.62rem;padding:7px 0;text-align:center;border-radius:var(--rs);
+  background:var(--card);border:1px solid var(--mut);color:var(--dim);cursor:pointer;transition:.12s}
+.trig:hover{border-color:var(--cy);color:var(--cy)}
+.trig.armed{background:rgba(255,45,241,.14);border-color:var(--mg);color:var(--mg)}
+.trig.bound::after{content:'•';color:var(--am);position:absolute;margin-left:2px}
+
+/* Coupling bars */
+.bar{height:9px;border-radius:5px;background:var(--card);border:1px solid var(--mut);overflow:hidden;margin-top:4px}
+.bar > i{display:block;height:100%;border-radius:5px;transition:width .3s}
+.bar-cy > i{background:linear-gradient(90deg,#003a44,var(--cy))}
+.bar-gn > i{background:linear-gradient(90deg,#0a3a22,var(--gn))}
+.coup-row{margin-bottom:9px}
+.coup-row .cl{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--dim)}
+
+/* Log / DB */
+.log{font-family:'IBM Plex Mono',monospace;font-size:.6rem;line-height:1.7;max-height:200px;overflow:auto;
+  background:var(--void);border:1px solid var(--mut);border-radius:var(--rs);padding:8px 10px;color:var(--dim)}
+.log .t{color:var(--mut)}.log .e{color:var(--cy)}.log .s{color:var(--mg)}.log .w{color:var(--am)}
+.tabs{display:flex;gap:6px;margin-bottom:8px}
+.tab{font-family:'IBM Plex Mono',monospace;font-size:.6rem;padding:5px 10px;border-radius:var(--rs);background:var(--card);
+  border:1px solid var(--mut);color:var(--dim);cursor:pointer}
+.tab.on{border-color:var(--cy);color:var(--cy);background:rgba(0,229,255,.05)}
+table{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:.6rem}
+th{text-align:left;color:var(--dim);font-weight:500;padding:4px 6px;border-bottom:1px solid var(--mut)}
+td{padding:3px 6px;color:var(--tx);border-bottom:1px solid rgba(41,52,86,.4)}
+.disc{font-size:.56rem;color:var(--mut);font-family:'IBM Plex Mono',monospace;margin-top:12px;line-height:1.6;padding:0 20px 30px;max-width:1480px;margin-left:auto;margin-right:auto}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.viab-gauge{display:flex;align-items:baseline;gap:6px}
+.viab-gauge .n{font-family:'IBM Plex Mono',monospace;font-size:1.5rem;font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">ASTRA<small>NEUROPLATFORM v2 · WETWARE CONSOLE</small></div>
+  <div class="hdr-spacer"></div>
+  <span class="pill pill-cy" id="srcPill"><span class="dot"></span><span id="srcTxt">SIMULATOR</span></span>
+  <span class="pill pill-gn" id="loopPill"><span class="dot"></span>CLOSED-LOOP IDLE</span>
+  <span class="clk mono" id="clk">--:--:--</span>
+</div>
+
+<div class="connbar">
+  <span class="mono" style="color:var(--dim)">ASTRA MCP</span>
+  <input id="ep" class="mono" value="http://localhost:9003/mcp" spellcheck="false">
+  <button class="btn btn-cy" id="connBtn">Connect</button>
+  <button class="btn" id="simBtn">Use Simulator</button>
+  <span class="hdr-spacer" style="flex:1"></span>
+  <span class="mono" style="color:var(--dim)">MEA</span>
+  <select id="meaSel" class="mono" style="background:var(--card);border:1px solid var(--mut);color:var(--tx);padding:5px 8px;border-radius:5px;font-size:.7rem">
+    <option value="5" selected>fs264 / MEA 5</option>
+    <option value="1">MEA 1</option><option value="2">MEA 2</option><option value="3">MEA 3</option><option value="4">MEA 4</option>
+  </select>
+</div>
+
+<div class="wrap">
+  <!-- LEFT COLUMN -->
+  <div class="col">
+    <!-- MEA — signature -->
+    <div class="card">
+      <div class="card-h">
+        <span class="card-t"><span class="idx">01</span>Intan Interface · 128-Electrode MEA</span>
+        <span class="card-meta" id="meaMeta">click an electrode to scope it</span>
+      </div>
+      <div class="mea-wrap">
+        <div class="mea-grid" id="meaGrid"></div>
+        <div class="mea-legend">
+          <span>0 Hz</span><span class="legbar"></span><span>≥40 Hz</span>
+          <span style="margin-left:auto;color:var(--am)">▢ selected</span><span style="color:var(--mg)">▢ stim</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Spike Scope -->
+    <div class="card">
+      <div class="card-h">
+        <span class="card-t"><span class="idx">02</span>Spike Scope · electrode <span id="scopeEl" class="v-am">23</span></span>
+        <span class="card-meta">3 ms window · 30 kHz</span>
+      </div>
+      <canvas class="scope" id="scope" width="900" height="200"></canvas>
+      <div class="scope-row">
+        <span>RMS noise <b class="v-cy mono" id="rms">6.4 µV</b></span>
+        <span>threshold</span>
+        <input type="range" id="thr" min="20" max="200" value="70">
+        <span class="v-am mono" id="thrV">70 µV</span>
+        <span style="margin-left:auto">overlays <b class="v-mg mono" id="ovl">0</b></span>
+      </div>
+    </div>
+
+    <!-- Closed-loop telemetry -->
+    <div class="card">
+      <div class="card-h">
+        <span class="card-t"><span class="idx">03</span>Closed-Loop Telemetry → ASTRA</span>
+        <span class="card-meta" id="loopMeta">window 100 ms</span>
+      </div>
+      <div class="tiles">
+        <div class="tile"><div class="lab">mean rate</div><div class="val v-cy mono" id="mRate">0.0 Hz</div></div>
+        <div class="tile"><div class="lab">active electrodes</div><div class="val v-mg mono" id="mAct">0/128</div></div>
+        <div class="tile"><div class="lab">total stims</div><div class="val v-am mono" id="mStim">0</div></div>
+      </div>
+      <div class="row">
+        <div style="flex:1;min-width:200px">
+          <div class="coup-row">
+            <div class="cl"><span>FinalSpark fusion coeff · fu.fs</span><span class="v-cy mono" id="fsV">0.000</span></div>
+            <div class="bar bar-cy"><i id="fsBar" style="width:0%"></i></div>
+          </div>
+          <div class="coup-row">
+            <div class="cl"><span>organoid viability · eth.viab</span><span class="v-gn mono" id="viabV">95.0%</span></div>
+            <div class="bar bar-gn"><i id="viabBar" style="width:95%"></i></div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn btn-cy" id="loopBtn">Start closed loop</button>
+        <button class="btn" id="driveBtn">Drive SNN: <b id="driveTxt">off</b></button>
+        <button class="btn btn-rd" id="resetBtn">Reset organoid</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div class="col">
+    <!-- StimParam editor -->
+    <div class="card">
+      <div class="card-h">
+        <span class="card-t"><span class="idx">04</span>StimParam Editor</span>
+        <span class="card-meta">biphasic · charge-balanced</span>
+      </div>
+      <div class="frm">
+        <div class="fld"><label>index [0-127]</label><input class="mono" type="number" id="spIndex" value="23" min="0" max="127"></div>
+        <div class="fld"><label>trigger_key [0-15]</label><input class="mono" type="number" id="spTrig" value="2" min="0" max="15"></div>
+        <div class="fld"><label>polarity</label><select class="mono" id="spPol"><option>NegativeFirst</option><option>PositiveFirst</option></select></div>
+        <div class="fld"><label>nb_pulse</label><input class="mono" type="number" id="spPulse" value="1" min="1" max="50"></div>
+        <div class="fld"><label>D1 — phase_duration1 [µs]</label><input class="mono" type="number" id="spD1" value="100"></div>
+        <div class="fld"><label>A1 — phase_amplitude1 [µA]</label><input class="mono" type="number" id="spA1" value="2" step="0.1"></div>
+        <div class="fld"><label>D2 — phase_duration2 [µs]</label><input class="mono" type="number" id="spD2" value="200"></div>
+        <div class="fld"><label>A2 — phase_amplitude2 [µA]</label><input class="mono" type="number" id="spA2" value="1" step="0.1"></div>
+      </div>
+      <div class="balance bal-ok" id="balBox">
+        <span id="balTxt">charge balanced · Q₁ = Q₂</span>
+        <span class="mono" id="balQ">200 = 200 pC</span>
+      </div>
+      <div class="row">
+        <button class="btn btn-cy" id="uploadBtn">Send + Upload StimParam</button>
+        <span class="mono" style="font-size:.6rem;color:var(--dim)">active params: <b class="v-am" id="activeParams">0</b></span>
+      </div>
+    </div>
+
+    <!-- Triggers -->
+    <div class="card">
+      <div class="card-h">
+        <span class="card-t"><span class="idx">05</span>Trigger Generator · 16-bit</span>
+        <span class="card-meta">click to arm · fire to stimulate</span>
+      </div>
+      <div class="trigs" id="trigs"></div>
+      <div class="row">
+        <button class="btn btn-mg" id="fireBtn">Fire armed triggers</button>
+        <span class="mono" style="font-size:.6rem;color:var(--dim)">repeats</span>
+        <input class="mono" type="number" id="repeats" value="10" min="1" max="100" style="width:60px;background:var(--card);border:1px solid var(--mut);color:var(--tx);padding:4px 7px;border-radius:5px;font-size:.7rem">
+      </div>
+    </div>
+
+    <!-- Database -->
+    <div class="card">
+      <div class="card-h">
+        <span class="card-t"><span class="idx">06</span>Database</span>
+        <span class="card-meta" id="dbMeta">last 5 s</span>
+      </div>
+      <div class="tabs">
+        <div class="tab on" data-db="count">Spike Count</div>
+        <div class="tab" data-db="events">Spike Events</div>
+        <div class="tab" data-db="trigs">Triggers</div>
+      </div>
+      <div id="dbView" style="max-height:200px;overflow:auto"></div>
+    </div>
+
+    <!-- Activity log -->
+    <div class="card">
+      <div class="card-h"><span class="card-t"><span class="idx">07</span>Activity Log</span></div>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+</div>
+
+<div class="disc">
+  ⚠ Disclaimer — In <b>SIMULATOR</b> mode all spike data are biophysically-plausible synthetic surrogates (homogeneous-Poisson background, stimulation-evoked responses, per-electrode viability), <b>not</b> recordings from living neural tissue. Connect to an ASTRA MCP server backed by the Python NeuroPlatform v2 bridge (<span class="mono">python/neuroplatform/astra_np_bridge.py</span>) for hardware acquisition on a FinalSpark dedicated-client host. · ASTRA × FinalSpark NeuroPlatform v2 · © 2026 Christophe Legros / Assistance Multi IA, Genève.
+</div>
+
+<script>
+"use strict";
+// ───────────────────────────────────────────────────────────────────────────
+// Embedded organoid simulator — mirrors src/engine/neuroplatform.ts so the
+// console is fully usable offline. When connected to ASTRA MCP, np_* tool calls
+// drive the real (server-side) bridge instead.
+// ───────────────────────────────────────────────────────────────────────────
+const N_EL = 128, N_TRIG = 16;
+function mulberry32(seed){let a=seed>>>0;return function(){a|=0;a=(a+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296;};}
+
+class Sim{
+  constructor(seed=0xA57A){this.rng=mulberry32(seed);this.seed=seed;this.t=0;this.init();this.stims=0;this.charge=0;this.uploaded=new Map();this.lastCounts=new Int32Array(N_EL);}
+  init(){this.el=[];for(let i=0;i<N_EL;i++){const j=0.4+1.2*this.rng();this.el.push({rate:2*j,rms:6.5*(0.8+0.5*this.rng()),viab:92+6*this.rng(),tot:0});}}
+  advance(ms){const dt=ms/1000,c=new Int32Array(N_EL),te=this.t+dt,ref=0.0015;
+    for(let i=0;i<N_EL;i++){const e=this.el[i];const rate=e.rate*(e.viab/100);let t=this.t;
+      while(true){const u=Math.max(1e-12,this.rng());const nx=t+Math.max(ref,-Math.log(u)/Math.max(1e-6,rate));if(nx>=te)break;c[i]++;e.tot++;t=nx;}}
+    this.t=te;this.lastCounts=c;return c;}
+  stimulate(sp){const e=this.el[sp.index];if(!e)return 0;const pulses=Math.max(1,sp.nb_pulse||1);
+    const q1=sp.D1*sp.A1,q2=sp.D2*sp.A2,qb=Math.min(q1,q2),qr=Math.abs(q1-q2);let ev=0;
+    for(let p=0;p<pulses;p++){const drive=0.018*qb;const pe=1-Math.exp(-drive)*(e.viab/100);
+      if(this.rng()<pe){ev++;e.tot++;for(const n of [sp.index-1,sp.index+1,sp.index-16,sp.index+16]){if(n>=0&&n<N_EL&&this.rng()<0.25*pe){this.el[n].tot++;ev++;}}}}
+    this.charge+=qb*pulses/1000;this.stims++;e.viab=Math.max(0,e.viab-(qr*pulses/5000+(qb>6000?0.02:0)));return ev;}
+  meanViab(){return this.el.reduce((a,e)=>a+e.viab,0)/N_EL;}
+  reset(){this.rng=mulberry32(this.seed);this.t=0;this.stims=0;this.charge=0;this.uploaded.clear();this.lastCounts=new Int32Array(N_EL);this.init();}
+}
+let sim=new Sim();
+
+// ── MCP client (optional live mode) ──
+const MCP={ep:null,sid:null,id:0,async rpc(m,p){this.id++;const r=await fetch(this.ep,{method:'POST',headers:Object.assign({'Content-Type':'application/json','Accept':'application/json, text/event-stream'},this.sid?{'Mcp-Session-Id':this.sid}:{}),body:JSON.stringify({jsonrpc:'2.0',id:this.id,method:m,params:p})});const s=r.headers.get('Mcp-Session-Id');if(s)this.sid=s;const txt=await r.text();let j;try{if(txt.includes('data:')){const ln=txt.split('\n').reverse().find(l=>l.startsWith('data:'));j=JSON.parse(ln.slice(5).trim());}else j=JSON.parse(txt);}catch(e){throw new Error('bad MCP response');}return j;},
+  async init(){await this.rpc('initialize',{protocolVersion:'2025-11-25',capabilities:{},clientInfo:{name:'np-dashboard',version:'1.0'}});},
+  async tool(name,args){const r=await this.rpc('tools/call',{name,arguments:args});const c=r&&r.result&&r.result.content;if(c&&c[0]&&c[0].text){try{return JSON.parse(c[0].text);}catch{ return {raw:c[0].text}; }}return r;}
+};
+let LIVE=false, driveSNN=false, looping=false, loopTimer=null, selectedEl=23, armed=new Set();
+
+// ── Helpers ──
+const $=id=>document.getElementById(id);
+function log(msg,cls=''){const l=$('log');const ts=new Date().toLocaleTimeString('en-GB');l.innerHTML=`<div><span class="t">${ts}</span> <span class="${cls}">${msg}</span></div>`+l.innerHTML;}
+function rateColor(hz){const x=Math.min(1,hz/40);
+  if(x<0.02)return '#0a1020';
+  const stops=[[0,10,16,32],[0,58,68,0.5],[0,229,255,0.85],[255,45,241,1]];
+  const seg=x<0.4?[stops[0],stops[1],x/0.4]:x<0.75?[stops[1],stops[2],(x-0.4)/0.35]:[stops[2],stops[3],(x-0.75)/0.25];
+  const[a,b,f]=seg;const r=Math.round(a[0]+(b[0]-a[0])*f),g=Math.round(a[1]+(b[1]-a[1])*f),bl=Math.round(a[2]+(b[2]-a[2])*f);
+  return `rgb(${r},${g},${bl})`;}
+
+// ── Build MEA grid ──
+const cells=[];
+(function(){const g=$('meaGrid');for(let i=0;i<N_EL;i++){const d=document.createElement('div');d.className='el';d.title='electrode '+i;
+  d.onclick=()=>{selectedEl=i;document.querySelectorAll('.el').forEach(e=>e.classList.remove('sel'));d.classList.add('sel');$('scopeEl').textContent=i;$('spIndex').value=i;$('meaMeta').textContent='electrode '+i+' selected';drawScope();updateBalance();};
+  g.appendChild(d);cells.push(d);}cells[selectedEl].classList.add('sel');})();
+
+// ── Build triggers ──
+(function(){const t=$('trigs');for(let k=0;k<N_TRIG;k++){const d=document.createElement('div');d.className='trig';d.textContent=k;d.style.position='relative';
+  d.onclick=()=>{if(armed.has(k)){armed.delete(k);d.classList.remove('armed');}else{armed.add(k);d.classList.add('armed');}};t.appendChild(d);}})();
+function refreshTrigBound(){document.querySelectorAll('.trig').forEach((d,k)=>{const bound=[...sim.uploaded.values()].some(s=>s.trigger_key===k);d.classList.toggle('bound',bound);});}
+
+// ── StimParam balance ──
+function curStim(){return{index:+$('spIndex').value,trigger_key:+$('spTrig').value,polarity:$('spPol').value,nb_pulse:+$('spPulse').value,D1:+$('spD1').value,A1:+$('spA1').value,D2:+$('spD2').value,A2:+$('spA2').value};}
+function updateBalance(){const s=curStim();const q1=s.D1*s.A1,q2=s.D2*s.A2;const bal=Math.abs(q1-q2)/Math.max(Math.abs(q1),Math.abs(q2),1e-9)<=1e-3;
+  $('balQ').textContent=`${q1.toFixed(0)} ${bal?'=':'≠'} ${q2.toFixed(0)} pC`;
+  $('balBox').className='balance '+(bal?'bal-ok':'bal-no');$('balTxt').textContent=bal?'charge balanced · Q₁ = Q₂':'⚠ unbalanced · shortens organoid life';}
+['spIndex','spTrig','spPol','spPulse','spD1','spA1','spD2','spA2'].forEach(id=>$(id).addEventListener('input',updateBalance));
+
+// ── Spike scope render ──
+const sc=$('scope'),scx=sc.getContext('2d');
+function drawScope(){const W=sc.width,H=sc.height;scx.clearRect(0,0,W,H);
+  const e=sim.el[selectedEl];const rms=e?e.rms:6.5;$('rms').textContent=rms.toFixed(1)+' µV';
+  // grid
+  scx.strokeStyle='rgba(41,52,86,.4)';scx.lineWidth=1;for(let x=0;x<W;x+=W/12){scx.beginPath();scx.moveTo(x,0);scx.lineTo(x,H);scx.stroke();}
+  scx.beginPath();scx.moveTo(0,H/2);scx.lineTo(W,H/2);scx.strokeStyle='rgba(138,150,184,.3)';scx.stroke();
+  // threshold line
+  const thr=+$('thr').value;const ty=H/2-(thr/250)*(H/2);
+  scx.strokeStyle='rgba(255,167,38,.7)';scx.setLineDash([4,4]);scx.beginPath();scx.moveTo(0,ty);scx.lineTo(W,ty);scx.stroke();scx.setLineDash([]);
+  const tyN=H/2+(thr/250)*(H/2);scx.strokeStyle='rgba(255,167,38,.25)';scx.setLineDash([4,4]);scx.beginPath();scx.moveTo(0,tyN);scx.lineTo(W,tyN);scx.stroke();scx.setLineDash([]);
+  // overlaid spike waveforms (biphasic)
+  const act=sim.lastCounts[selectedEl]||0;const nOv=Math.min(14,Math.max(act,act>0?act:0));
+  let shown=0;const rng=mulberry32(selectedEl*99+Math.floor(sim.t*5));
+  for(let o=0;o<Math.max(nOv,act>0?Math.min(act,14):0);o++){
+    const amp=60+140*rng();if(amp<thr)continue;shown++;
+    scx.strokeStyle=`rgba(0,229,255,${0.25+0.5*rng()})`;scx.lineWidth=1.2;scx.beginPath();
+    const cx=W*0.33;for(let x=0;x<W;x++){const ms=(x-cx)/(W/3);let v=(rng()*2-1)*rms*0.5;
+      v+=-amp*Math.exp(-(ms*ms)/0.06)+(amp*0.4)*Math.exp(-((ms-0.4)**2)/0.25);
+      const y=H/2-(v/250)*(H/2);if(x===0)scx.moveTo(x,y);else scx.lineTo(x,y);}scx.stroke();}
+  $('ovl').textContent=shown;
+}
+
+// ── DB view ──
+let dbTab='count';
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));t.classList.add('on');dbTab=t.dataset.db;renderDB();});
+function renderDB(){const v=$('dbView');
+  if(dbTab==='count'){const rows=[];sim.lastCounts.forEach((c,i)=>{if(c>0)rows.push({i,c,pm:(c/0.1*60).toFixed(0)});});rows.sort((a,b)=>b.c-a.c);
+    v.innerHTML=`<table><tr><th>electrode</th><th>spikes</th><th>spikes/min</th></tr>${rows.slice(0,40).map(r=>`<tr><td>${r.i}</td><td>${r.c}</td><td>${r.pm}</td></tr>`).join('')||'<tr><td colspan=3 style="color:var(--mut)">no spikes in window</td></tr>'}</table>`;}
+  else if(dbTab==='events'){const rng=mulberry32(Math.floor(sim.t*7));const rows=[];sim.lastCounts.forEach((c,i)=>{for(let k=0;k<Math.min(c,3);k++)rows.push({i,a:(30+90*rng()).toFixed(0)});});
+    v.innerHTML=`<table><tr><th>channel</th><th>amplitude µV</th><th>t (s)</th></tr>${rows.slice(0,40).map(r=>`<tr><td>${r.i}</td><td>${r.a}</td><td>${sim.t.toFixed(3)}</td></tr>`).join('')||'<tr><td colspan=3 style="color:var(--mut)">no events</td></tr>'}</table>`;}
+  else{const rows=[...sim.uploaded.values()];v.innerHTML=`<table><tr><th>trigger</th><th>electrode</th><th>Q₁/Q₂ pC</th></tr>${rows.map(s=>`<tr><td>${s.trigger_key}</td><td>${s.index}</td><td>${(s.D1*s.A1).toFixed(0)}/${(s.D2*s.A2).toFixed(0)}</td></tr>`).join('')||'<tr><td colspan=3 style="color:var(--mut)">no uploaded params</td></tr>'}</table>`;}}
+
+// ── Render loop ──
+function paint(){sim.lastCounts.forEach((c,i)=>{const hz=c/0.1;cells[i].style.background=rateColor(hz);});
+  const tot=sim.lastCounts.reduce((a,c)=>a+c,0);const mr=tot/0.1/N_EL;const act=sim.lastCounts.filter(c=>c>0).length;
+  const fs=Math.max(0,Math.min(1,mr/40));const viab=sim.meanViab();
+  $('mRate').textContent=mr.toFixed(1)+' Hz';$('mAct').textContent=act+'/128';$('mStim').textContent=sim.stims;
+  $('fsV').textContent=fs.toFixed(3);$('fsBar').style.width=(fs*100)+'%';
+  $('viabV').textContent=viab.toFixed(1)+'%';$('viabBar').style.width=viab+'%';$('viabBar').parentElement.querySelector('i').style.background=viab<80?'linear-gradient(90deg,#3a0a16,var(--rd))':'linear-gradient(90deg,#0a3a22,var(--gn))';
+  $('activeParams').textContent=sim.uploaded.size;
+  drawScope();renderDB();refreshTrigBound();}
+
+// ── Closed-loop tick ──
+async function tick(){
+  if(LIVE){try{const r=await MCP.tool('np_closed_loop',{window_ms:100,drive_snn:driveSNN,couple_ethics:true});
+    if(r&&r.coupling){ // reflect server state into local view
+      sim.lastCounts=Int32Array.from(r.coupling.spikeDrive||sim.lastCounts);
+      log(`np_closed_loop · rate ${r.coupling.meanRateHz} Hz · fu.fs ${r.coupling.fusionCoefficient}`,'e');}
+  }catch(e){log('MCP error: '+e.message+' — falling back to simulator','w');LIVE=false;setSource(false);}}
+  else{sim.advance(100);}
+  paint();}
+
+// ── Actions ──
+$('loopBtn').onclick=()=>{looping=!looping;
+  if(looping){$('loopBtn').textContent='Stop closed loop';$('loopPill').className='pill pill-am';$('loopPill').innerHTML='<span class="dot"></span>CLOSED-LOOP RUNNING';loopTimer=setInterval(tick,300);log('closed loop started','e');}
+  else{$('loopBtn').textContent='Start closed loop';$('loopPill').className='pill pill-gn';$('loopPill').innerHTML='<span class="dot"></span>CLOSED-LOOP IDLE';clearInterval(loopTimer);log('closed loop stopped','w');}};
+$('driveBtn').onclick=()=>{driveSNN=!driveSNN;$('driveTxt').textContent=driveSNN?'on':'off';log('SNN drive '+(driveSNN?'enabled — organoid spikes inject into ASTRA SNN':'disabled'),'e');};
+$('resetBtn').onclick=async()=>{sim.reset();if(LIVE){try{await MCP.tool('np_status',{});}catch{}}paint();log('organoid reset to deterministic baseline','w');};
+
+$('uploadBtn').onclick=async()=>{const s=curStim();const q1=s.D1*s.A1,q2=s.D2*s.A2;const bal=Math.abs(q1-q2)/Math.max(q1,q2,1e-9)<=1e-3;
+  if(!bal&&!confirm('Stimulation is NOT charge-balanced (Q₁≠Q₂). This shortens organoid/electrode life. Upload anyway?'))return;
+  if(LIVE){const r=await MCP.tool('np_configure_stim',{index:s.index,trigger_key:s.trigger_key,polarity:s.polarity,phase_duration1:s.D1,phase_amplitude1:s.A1,phase_duration2:s.D2,phase_amplitude2:s.A2,nb_pulse:s.nb_pulse,enforce_charge_balance:false});
+    log('np_configure_stim → '+(r.success?'uploaded':'error: '+(r.error||'')),'s');}
+  sim.uploaded.set(s.index,s);cells[s.index].classList.add('stim');setTimeout(()=>cells[s.index].classList.remove('stim'),600);
+  log(`StimParam uploaded · el ${s.index} · trig ${s.trigger_key} · Q ${q1.toFixed(0)}/${q2.toFixed(0)} pC`,'s');refreshTrigBound();renderDB();paint();};
+
+$('fireBtn').onclick=async()=>{if(armed.size===0){log('no triggers armed','w');return;}const reps=+$('repeats').value;const ks=[...armed];
+  if(LIVE){const r=await MCP.tool('np_send_trigger',{triggers:ks,repeats:reps});log(`np_send_trigger ${JSON.stringify(ks)} ×${reps} → evoked ${r.totalEvokedSpikes}`,'s');}
+  let ev=0;for(let i=0;i<reps;i++)for(const k of ks){for(const s of [...sim.uploaded.values()].filter(x=>x.trigger_key===k)){ev+=sim.stimulate(s);cells[s.index].classList.add('stim');}}
+  setTimeout(()=>document.querySelectorAll('.el.stim').forEach(e=>e.classList.remove('stim')),500);
+  sim.advance(50);log(`fired triggers ${JSON.stringify(ks)} ×${reps} → ${ev} evoked spikes`,'s');paint();};
+
+$('thr').oninput=()=>{$('thrV').textContent=$('thr').value+' µV';drawScope();};
+
+// ── Connection ──
+function setSource(live){LIVE=live;$('srcTxt').textContent=live?'ASTRA MCP · LIVE':'SIMULATOR';$('srcPill').className='pill '+(live?'pill-mg':'pill-cy');}
+$('connBtn').onclick=async()=>{MCP.ep=$('ep').value.trim();$('connBtn').disabled=true;$('connBtn').textContent='Connecting…';
+  try{await MCP.init();const st=await MCP.tool('np_status',{});setSource(true);log('connected to ASTRA MCP · session '+(MCP.sid||'?'),'e');if(st&&st.organoid)log('server organoid viability '+st.organoid.meanViability+'%','e');}
+  catch(e){log('connection failed: '+e.message+' — using simulator','w');setSource(false);}
+  $('connBtn').disabled=false;$('connBtn').textContent='Connect';};
+$('simBtn').onclick=()=>{setSource(false);MCP.sid=null;log('switched to embedded simulator','w');};
+
+// ── Clock + boot ──
+setInterval(()=>{$('clk').textContent=new Date().toLocaleTimeString('en-GB');},1000);
+sim.advance(100);updateBalance();paint();
+log('NeuroPlatform v2 console ready · embedded simulator active','e');
+log('128 electrodes · 16 triggers · charge-balance enforced','t');
+</script>
+</body>
+</html>

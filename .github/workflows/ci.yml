@@ -1,0 +1,112 @@
+name: CI
+
+# ASTRA Unified ResearchLab MCP — Continuous Integration
+# © 2026 Christophe Jean Legros — Geneva · Assistance Multi IA
+#
+# Aligned to v3.0 (unified): strict TypeScript build, the full test suite,
+# the TS↔NumPy golden check (needs Python + numpy), a stdio tool-count smoke
+# test (70 tools incl. ovo_*, orch_* and fcs_*), and a Docker build + /health smoke.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Build & Test (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']   # package.json engines: node >=20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node ${{ matrix.node }}
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Set up Python (for the TS↔NumPy golden check)
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install numpy
+        run: python3 -m pip install --upgrade pip numpy
+
+      - name: Install dependencies (clean)
+        run: npm ci
+
+      - name: Type-check / build (tsc strict, Node16 ESM)
+        run: npm run build
+
+      - name: Lint
+        # ESLint v9 flat config (eslint.config.js + typescript-eslint) is now
+        # wired in — lint is a blocking gate alongside tsc strict.
+        run: npm run lint
+
+      - name: TS↔NumPy active-inference golden is current
+        run: npm run golden:check
+
+      - name: Test suite (incl. closed-loop active inference & HTTP/SSE transports)
+        run: npm test
+
+      - name: Tool-count smoke test (stdio transport)
+        # The stdio entrypoint logs the capability summary at startup.
+        # Assert v3.0 exposes exactly 70 tools · 15 resources · 10 prompts
+        # (50 core + 6 ovo_* + 6 orch_*).
+        run: |
+          set -euo pipefail
+          LOG="$(timeout 8s node dist/index.js 2>&1 || true)"
+          echo "$LOG"
+          echo "$LOG" | grep -q "ASTRA MCP Server v3.0.0: 70 tools · 15 resources · 10 prompts" \
+            || { echo "::error::Capability summary mismatch (expected 70 tools · 15 resources · 10 prompts)"; exit 1; }
+
+  docker-smoke:
+    name: Docker build & /health smoke
+    runs-on: ubuntu-latest
+    needs: build-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Build image
+        run: docker build -t astra-mcp:ci .
+
+      - name: Run container
+        run: docker run -d --name astra -p 9003:9003 astra-mcp:ci
+
+      - name: Smoke-test /health endpoint
+        run: |
+          set -euo pipefail
+          ok=0
+          for i in $(seq 1 25); do
+            if curl -fsS http://localhost:9003/health | grep -q '"status":"ok"'; then
+              ok=1; break
+            fi
+            sleep 2
+          done
+          echo "----- /health -----"
+          curl -fsS http://localhost:9003/health || true
+          echo
+          echo "----- container logs -----"
+          docker logs astra || true
+          test "$ok" = "1" || { echo "::error::/health did not become healthy"; exit 1; }
+
+      - name: Tear down
+        if: always()
+        run: docker rm -f astra >/dev/null 2>&1 || true

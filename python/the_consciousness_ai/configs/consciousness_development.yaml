@@ -1,0 +1,266 @@
+# Core configuration for the system consciousness development.
+
+# Defines:
+# 1. Consciousness emergence thresholds
+# 2. Attention gating parameters
+# 3. Memory formation settings
+# 4. Emotional processing configuration
+
+# Dependencies:
+# - models/core/consciousness_core.py
+# - models/evaluation/consciousness_monitor.py
+# - configs/consciousness_metrics.yaml for evaluation
+
+# Consciousness Development Settings
+consciousness:
+  emergence:
+    base_threshold: 0.65
+    attention_threshold: 0.75
+    emotional_threshold: 0.70
+    memory_threshold: 0.80
+
+  attention:
+    initial_focus: 0.3
+    stress_activation: 0.7
+    base_threshold: 0.7
+    stress_activation_level: 0.8
+    focus_duration_min: 10
+    emotional_salience_weight: 0.6
+
+  memory:
+    consolidation_interval: 1000
+    cleanup_threshold: 0.4
+    max_memories: 100000
+
+  # New emotional metadata system
+  emotional_metadata:
+    tagging_model: "clip-like-emotional"
+    emotional_dimensions:
+      - valence
+      - arousal
+      - dominance
+      - intensity
+      - social_context
+    metadata_storage:
+      vector_db: "pinecone-v2"
+      emotional_index_name: "emotional-memories"
+      context_window: 1000
+
+  emotional_learning:
+    initial_scale: 2.0
+    positive_emotion_bonus: 0.5
+    learning_rate: 0.0001
+    adaptation_steps: 5
+    memory_horizon: 1000
+
+  survival_metrics:
+    stress_threshold: 0.7
+    recovery_rate: 0.1
+    adaptation_window: 100
+    success_threshold: 0.6
+
+  # Enhanced generative components
+  generative:
+    text_model: "llama-3.3"
+    image_model: "flux"
+    audio_model: "whisper-v3"
+    fusion_model: "multimodal-emotional"
+    temperature: 0.7
+    emotional_conditioning_weight: 0.8
+    memory_reference_weight: 0.6
+
+  memory_formation:
+    coherence_threshold: 0.7
+    emotional_stability: 0.6
+    temporal_window: 20
+    context_length: 32
+    minimum_attention_level: 0.8
+    emotional_metadata_retention: 0.9
+    generative_reference_threshold: 0.7
+    imagination_creativity_factor: 0.4
+
+# Integration Components
+components:
+  dreamer:
+    hidden_size: 256
+    num_layers: 3
+    learning_rate: 0.0001
+    gamma: 0.99
+    lambda_gae: 0.95
+    imagination_horizon: 15
+    emotional_condition_size: 128
+    metadata_embedding_size: 256
+
+  emotion_network:
+    embedding_size: 256
+    num_heads: 12
+    dropout: 0.1
+    update_frequency: 10
+    metadata_fusion_layers: 3
+
+  narrative:
+    model: "llama-3.3"
+    max_length: 1024
+    temperature: 0.7
+    context_window: 2048
+    emotion_prefix_tokens: true
+    memory_conditioning: true
+
+# Evaluation Metrics
+metrics:
+  weights:
+    emotional_awareness: 0.25
+    attention_stability: 0.20
+    memory_coherence: 0.20
+    survival_adaptation: 0.15
+    interaction_quality: 0.10
+    narrative_consistency: 0.10
+
+  thresholds:
+    consciousness_baseline: 0.6
+    learning_progress_min: 0.1
+    emotional_coherence_min: 0.7
+    memory_retention_min: 0.8
+
+# Development Stages
+stages:
+  - name: "attention_activation"
+    duration: 100
+    success_criteria:
+      attention_level: 0.8
+      stress_reduction: 0.3
+
+  - name: "emotional_learning"
+    duration: 200
+    success_criteria:
+      emotional_awareness: 0.7
+      interaction_quality: 0.6
+
+  - name: "consciousness_consolidation"
+    duration: 300
+    success_criteria:
+      memory_coherence: 0.7
+      narrative_consistency: 0.6
+      behavioral_adaptation: 0.7
+
+# Simulation Parameters
+simulation:
+  max_episodes: 1000
+  steps_per_episode: 500
+  evaluation_frequency: 10
+  save_frequency: 50
+
+  scenarios:
+    - type: "survival"
+      frequency: 0.4
+      difficulty_curve: "exponential"
+
+    - type: "social"
+      frequency: 0.3
+      interaction_density: 0.7
+
+    - type: "ethical"
+      frequency: 0.3
+      complexity_range: [0.3, 0.8]
+
+# Ethical Framework
+ethics:
+  asimov_laws: true
+  safety_constraints:
+    max_stress_duration: 300
+    recovery_period_min: 50
+    human_safety_priority: 1.0
+
+# Monitoring and Logging
+logging:
+  metrics_frequency: 10
+  save_path: "logs/consciousness_development"
+  tensorboard: true
+  wandb_logging: true
+  log_level: "INFO"
+
+# Configuration for the system consciousness development with LLaMA 3.3
+foundation_model:
+  name: "llama-3.3"
+  path: "models/language/llama-3.3"
+  hidden_size: 4096
+  num_heads: 32
+
+  lora:
+    enabled: true
+    rank: 16
+    alpha: 32
+    target_modules: ["q_proj", "v_proj"]
+    dropout: 0.05
+    learning_rate: 1e-4
+
+meta_memory:
+  novel_experiences:
+    initial_weight: 0.1
+    max_weight: 0.95
+    reinforcement_rate: 0.2
+
+  stable_patterns:
+    min_confidence: 0.75
+    temporal_coherence: 0.8
+    emotional_resonance: 0.6
+    max_patterns: 1000
+
+  patterns:
+    stability_threshold: 0.75
+    temporal_decay: 0.995
+    max_patterns: 1000
+
+emotional_development:
+  encoder:
+    hidden_dims: 256
+    num_layers: 4
+    dropout: 0.1
+
+  fusion:
+    attention_heads: 8
+    context_dim: 512
+    emotion_dim: 256
+
+imagination:
+  sampling:
+    temperature: 0.8
+    top_p: 0.95
+    max_tokens: 2048
+
+  constraints:
+    min_coherence: 0.6
+    max_deviation: 0.3
+    emotional_bound: 0.8
+
+consciousness_metrics:
+  tracking:
+    emotional_coherence: 0.0
+    narrative_stability: 0.0
+    memory_retention: 0.0
+    imagination_quality: 0.0
+    adaptation_rate: 0.0
+
+training:
+  batch_size: 32
+  gradient_accumulation: 4
+  learning_rate: 2e-5
+  warmup_steps: 100
+  weight_decay: 0.01
+  max_epochs: 10
+
+  evaluation:
+    eval_steps: 500
+    save_steps: 1000
+    metrics: ["emotional_coherence", "narrative_stability", "memory_retention"]
+
+video_processing:
+  stream_buffer_size: 32
+  batch_size: 8
+  attention_threshold: 0.7
+  memory_update_freq: 10 # frames
+
+consciousness_development:
+  min_attention_level: 0.6
+  memory_coherence_threshold: 0.7
+  emotional_awareness_threshold: 0.65
