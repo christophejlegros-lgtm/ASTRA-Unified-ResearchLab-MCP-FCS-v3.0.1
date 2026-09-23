@@ -39,7 +39,9 @@ synthesis S-1.5) inside ASTRA as `fcs_*` tools — **not** as a scoring module.
   distinction) and `lintFcs` (the five prohibitions), the latter distinguishing
   use from mention so that stating a prohibition or citing a title does not fire it.
 - MCP surface: 62 → **70 tools** (`fcs_*` ×8); resources 11 → 15, prompts 8 → 10.
-  Test suite 241 → **310 tests** (69 in `tests/fcs.test.ts`).
+  Test suite 241 → **317 tests** (69 in `tests/fcs.test.ts`, 7 in `tests/annotations.test.ts`).
+- **MCP tool annotations** on all 70 tools (title + read-only / destructive / idempotent /
+  open-world hints), classified from each handler's code — see [MCP Tools](#mcp-tools-70).
 - **New console:** `dashboard/ASTRA-FCS-Dashboard.html` — self-contained,
   bilingual FR/EN, recomputing the partial order in the browser and reporting
   whether it reproduces the published strata.
@@ -257,10 +259,15 @@ docker compose up -d
 ## MCP Tools (70)
 
 Counts below are asserted by the CI stdio smoke test, not maintained by hand.
-The access classes in the Core table (read-only / mutating / destructive) document each
-tool's behaviour; they are **not yet** emitted as MCP
+Every tool declares a title and the four MCP
 [tool annotations](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)
-(`readOnlyHint`, `destructiveHint`, …) — planned for a later release.
+(`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`), from a single table:
+[`src/tool-annotations.ts`](src/tool-annotations.ts). The classification follows each
+handler's code, not its name — e.g. `wm_encode` is **not** read-only (it feeds the history
+`wm_surprise` reads), `tcai_curiosity` trains its predictor, `np_count_spikes` advances the
+simulated MEA clock. Only `ovo_read`, `ovo_cycle` and `orch_cycle` are open-world (OVOMIND
+live API when configured). `tests/annotations.test.ts` asserts that the table and
+`tools/list` match exactly. Hints are advisory, not a security boundary.
 
 **Core (12)**
 
@@ -269,15 +276,15 @@ tool's behaviour; they are **not yet** emitted as MCP
 | `get_system_status` | ASTRA System Status | 📖 read-only |
 | `get_metrics` | Real-time Metrics | 📖 read-only |
 | `get_snn_state` | SNN Engine State | 📖 read-only |
-| `snn_step` | Advance SNN Simulation | ✏️ mutating |
-| `snn_reset` | Reset SNN Engine | ⚠️ destructive |
-| `inject_spikes` | Spike Injection | ✏️ mutating |
+| `snn_step` | Advance SNN Simulation | ✏️ additive |
+| `snn_reset` | Reset SNN Engine | ⚠️ destructive · idempotent |
+| `inject_spikes` | Spike Injection | ✏️ additive |
 | `get_acm_score` | Consciousness Assessment (Proxy) | 📖 read-only |
 | `check_ethics` | IRB Neural Welfare Check | 📖 read-only |
-| `set_parameter` | Modify State Parameter | ⚠️ destructive, bounds-checked |
-| `get_platform_status` | Bio-Computing Platforms | 📖 read-only · 🌐 open-world |
+| `set_parameter` | Modify State Parameter | ⚠️ destructive · idempotent · bounds-checked |
+| `get_platform_status` | Bio-Computing Platforms | 📖 read-only |
 | `export_snapshot` | Full State Snapshot | 📖 read-only |
-| `simulation_control` | Simulation Control | ✏️ mutating |
+| `simulation_control` | Simulation Control | ✏️ non-destructive · idempotent |
 
 **Domain families (58)**
 
@@ -341,6 +348,8 @@ src/
 ├── sse-server.ts         # SSE transport (Express) — exports createSseApp() for tests
 ├── http-server.ts        # Streamable HTTP transport (Express) — exports createHttpApp()
 ├── version.ts            # ASTRA_VERSION — single source of truth, consumed by all transports
+├── tool-annotations.ts   # MCP annotations for all 70 tools (single table, test-enforced)
+├── bridge-state.ts       # Typed state contract shared by the wm/sensor/tcai/np tool families
 ├── server.ts             # MCP server factory (70 tools + 10 prompts + 15 resources)
 │   ├── server-wm-tools.ts            # World Model JEPA (6 tools + 2 resources + 1 prompt)
 │   ├── server-sensor-tools.ts        # Multimodal sensors (6 tools + 1 resource + 1 prompt)
@@ -368,7 +377,7 @@ src/
 └── utils/
     └── logger.ts         # Structured logging (pino → stderr)
 
-tests/                    # 310 tests · 60 suites
+tests/                    # 317 tests · 61 suites
 ├── astra.test.ts             # Unit: state, bounds, SNN, ACM, ethics, security
 ├── world-model.test.ts       # World Model: encoder, predictor, SIGReg, CEM, surprise
 ├── wm-simulation.test.ts     # WM simulation: buffer, training, planning, lifecycle
@@ -379,7 +388,8 @@ tests/                    # 310 tests · 60 suites
 ├── aif-equivalence.test.ts   # TS↔NumPy active-inference golden equivalence
 ├── integration.test.ts       # Client SDK: tools, resources, prompts, workflow
 ├── transports.test.ts        # HTTP/SSE transport layer: session lifecycle, guards, regressions
-└── fcs.test.ts               # FCS: published strata reproduced, no-aggregation guard, linters
+├── fcs.test.ts               # FCS: published strata reproduced, no-aggregation guard, linters
+└── annotations.test.ts       # MCP annotations: table ≡ tools/list, classification invariants
 
 configs/                  # Ready-to-use client configurations
 ```
@@ -447,6 +457,7 @@ npm run test:wm            # World Model
 npm run test:sensors       # multimodal sensors
 npm run test:transports    # HTTP + SSE transport layer
 npm run test:fcs           # FCS layer
+npm run test:annotations   # MCP tool annotations
 
 # Static gates
 npm run build              # tsc strict (Node16 ESM)
@@ -457,7 +468,7 @@ npm run golden:check       # TS↔NumPy active-inference golden (requires python
 npm run inspect
 ```
 
-> **Full suite: 310/310 passing** (229 engine/integration + 12 transport-layer + 69 FCS), 0 TypeScript errors
+> **Full suite: 317/317 passing** (229 engine/integration + 12 transport-layer + 69 FCS + 7 annotations), 0 TypeScript errors
 > (strict, Node16 ESM), 0 ESLint errors. Verified on Node 20 and Node 22 in CI.
 
 ## Development

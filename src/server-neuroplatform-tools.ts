@@ -27,6 +27,7 @@ import {
   TriggersQuery, SpikeCountQuery, SpikeEventQuery,
   ELECTRODE_COUNT, TRIGGER_COUNT,
 } from './engine/neuroplatform.js';
+import { toolAnnotations } from './tool-annotations.js';
 
 const json = (o: unknown) => ({ content: [{ type: 'text' as const, text: JSON.stringify(o, null, 2) }] });
 
@@ -48,7 +49,7 @@ export function registerNeuroPlatformCapabilities(
   const bridge = new NeuroPlatformBridge({ mode: 'simulate' });
 
   // ── Tool 1: np_status ────────────────────────────────────────────
-  server.tool('np_status', 'NeuroPlatform v2 — Platform & Controller Status', {}, async () => {
+  server.tool('np_status', 'NeuroPlatform v2 — Platform & Controller Status', {}, toolAnnotations('np_status'), async () => {
     void getState();
     return json({ ...bridge.status(), disclaimer: NP_DISCLAIMER });
   });
@@ -70,7 +71,7 @@ export function registerNeuroPlatformCapabilities(
       enable: z.boolean().default(true),
       enforce_charge_balance: z.boolean().default(true).describe('Reject upload if phases are not charge-balanced'),
     },
-    async (a) => {
+    toolAnnotations('np_configure_stim'), async (a) => {
       const sp = new StimParam({
         index: a.index, trigger_key: a.trigger_key,
         polarity: a.polarity === 'PositiveFirst' ? StimPolarity.PositiveFirst : StimPolarity.NegativeFirst,
@@ -109,7 +110,7 @@ export function registerNeuroPlatformCapabilities(
         .describe('Trigger keys to fire, e.g. [2] sends trigger 2'),
       repeats: z.number().int().min(1).max(100).default(1).describe('How many times to send the trigger array'),
     },
-    async ({ triggers, repeats }: { triggers: number[]; repeats: number }) => {
+    toolAnnotations('np_send_trigger'), async ({ triggers, repeats }: { triggers: number[]; repeats: number }) => {
       const arr = new Uint8Array(TRIGGER_COUNT);
       for (const k of triggers) arr[k] = 1;
       let totalEvoked = 0; const firedSets: number[][] = [];
@@ -136,7 +137,7 @@ export function registerNeuroPlatformCapabilities(
       window_ms: z.number().min(1).max(60000).default(100).describe('Recording window in milliseconds'),
       top_k: z.number().int().min(1).max(ELECTRODE_COUNT).default(10).describe('Report the K most active electrodes'),
     },
-    async ({ window_ms, top_k }: { window_ms: number; top_k: number }) => {
+    toolAnnotations('np_count_spikes'), async ({ window_ms, top_k }: { window_ms: number; top_k: number }) => {
       const counts = await bridge.intan.countSpike(window_ms);
       const total = counts.reduce((a, c) => a + c, 0);
       const ranked = Array.from(counts, (c, i) => ({ electrode: i, spikes: c }))
@@ -157,7 +158,7 @@ export function registerNeuroPlatformCapabilities(
       fsname: z.string().default('fs264').describe('Experiment ID'),
       nonzero_only: z.boolean().default(true),
     },
-    async ({ window_sec, fsname, nonzero_only }: { window_sec: number; fsname: string; nonzero_only: boolean }) => {
+    toolAnnotations('np_query_spike_count'), async ({ window_sec, fsname, nonzero_only }: { window_sec: number; fsname: string; nonzero_only: boolean }) => {
       const stop = bridge.mea.simClockSec; const start = Math.max(0, stop - window_sec);
       const rows = await bridge.db.getSpikeCount(new SpikeCountQuery(start, stop, fsname));
       const filtered = nonzero_only ? rows.filter((r) => r.spikes > 0) : rows;
@@ -178,7 +179,7 @@ export function registerNeuroPlatformCapabilities(
       fsname: z.string().default('fs264'),
       limit: z.number().int().min(1).max(2000).default(50),
     },
-    async ({ window_sec, fsname, limit }: { window_sec: number; fsname: string; limit: number }) => {
+    toolAnnotations('np_query_spike_events'), async ({ window_sec, fsname, limit }: { window_sec: number; fsname: string; limit: number }) => {
       const stop = bridge.mea.simClockSec; const start = Math.max(0, stop - window_sec);
       const events = await bridge.db.getSpikeEvent(new SpikeEventQuery(start, stop, fsname));
       return json({
@@ -196,7 +197,7 @@ export function registerNeuroPlatformCapabilities(
       window_sec: z.number().min(0.01).default(60).describe('Look back this many seconds'),
       dedup: z.boolean().default(true).describe('Keep only up==1 transitions (drop duplicates)'),
     },
-    async ({ window_sec, dedup }: { window_sec: number; dedup: boolean }) => {
+    toolAnnotations('np_query_triggers'), async ({ window_sec, dedup }: { window_sec: number; dedup: boolean }) => {
       const stop = bridge.mea.simClockSec; const start = Math.max(0, stop - window_sec);
       let rows = await bridge.db.getAllTriggers(new TriggersQuery(start, stop));
       if (dedup) rows = rows.filter((r) => r.up === 1);
@@ -206,7 +207,7 @@ export function registerNeuroPlatformCapabilities(
   // ── Tool 8: np_camera_capture ────────────────────────────────────
   server.tool('np_camera_capture', 'NeuroPlatform v2 — Last MEA camera capture (descriptor + viability)', {
     mea: z.number().int().min(1).max(5).default(5).describe('MEA selector [1-5]'),
-  }, async ({ mea }: { mea: number }) => {
+  }, toolAnnotations('np_camera_capture'), async ({ mea }: { mea: number }) => {
     const last = await bridge.camera.lastCapture();
     const id = last[0]?.id ?? `cap_${mea}_0`;
     return json({ mea: mea as MEA, lastCapture: last[0], image: bridge.camera.imageFrom(id), disclaimer: NP_DISCLAIMER });
@@ -222,7 +223,7 @@ export function registerNeuroPlatformCapabilities(
       drive_strength: z.number().min(-100).max(100).default(15).describe('Spike injection strength (mV) when drive_snn=true'),
       couple_ethics: z.boolean().default(true).describe('Mirror organoid viability into the IRB ethics gateway (eth.viab)'),
     },
-    async (a) => {
+    toolAnnotations('np_closed_loop'), async (a) => {
       const coupling = await bridge.closedLoopRead(a.window_ms);
       state.set('fu.fs', coupling.fusionCoefficient);
       state.set('ros.fs', coupling.firingRateHz);

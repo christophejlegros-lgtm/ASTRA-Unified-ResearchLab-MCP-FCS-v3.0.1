@@ -33,6 +33,7 @@ import { z } from 'zod';
 import { tcaiSystem, type CycleInput } from './engine/tcai/acm-bridge.js';
 import { PROXY_DISCLAIMER } from './engine/tcai/types.js';
 import type { GetBridgeState } from './bridge-state.js';
+import { toolAnnotations } from './tool-annotations.js';
 
 const MODULES = ['vision', 'audio', 'memory', 'body', 'semantic'] as const;
 
@@ -86,7 +87,7 @@ export function registerTCAICapabilities(server: McpServer, getState: GetBridgeS
       setpoint: z.number().min(0).max(1).optional().describe('Continuous controller substrate setpoint to regulate toward (v2.9, default 0.3)'),
       productionLoop: z.boolean().optional().describe('Close the loop through the shared production SNN (read+write); default off (v2.9)'),
     },
-    async (args) => {
+    toolAnnotations('tcai_cycle'), async (args) => {
       if (args.closedLoop !== undefined) tcaiSystem.secondOrder.setActuation(args.closedLoop);
       if (args.setpoint !== undefined) tcaiSystem.secondOrder.actuationController.configure({ setpoint: args.setpoint });
       if (args.productionLoop !== undefined) tcaiSystem.setProductionLoop(args.productionLoop);
@@ -152,7 +153,7 @@ export function registerTCAICapabilities(server: McpServer, getState: GetBridgeS
   server.tool('tcai_workspace_state',
     'Global Neuronal Workspace state: ignition, focus, qualia, sync R, unity metrics, access history',
     {},
-    async () => json({
+    toolAnnotations('tcai_workspace_state'), async () => json({
       state: { ...tcaiSystem.workspace.state, broadcastPayload: undefined,
         activeContent: Object.keys(tcaiSystem.workspace.state.activeContent) },
       unity: tcaiSystem.workspace.getUnityMetrics(),
@@ -168,7 +169,7 @@ export function registerTCAICapabilities(server: McpServer, getState: GetBridgeS
       threat: z.number().min(0).max(1).optional(),
       controllability: z.number().min(0).max(1).optional(),
     },
-    async (args) => {
+    toolAnnotations('tcai_emotion_appraise'), async (args) => {
       const emotion = tcaiSystem.emotionProcessor.appraise(args);
       return json({ emotion, stability: tcaiSystem.emotionProcessor.stability() });
     });
@@ -182,7 +183,7 @@ export function registerTCAICapabilities(server: McpServer, getState: GetBridgeS
       attentionLevel: z.number().min(0).max(1).optional(),
       ...emotionSchema,
     },
-    async (args) => {
+    toolAnnotations('tcai_memory_store'), async (args) => {
       const embedding = args.embedding ??
         tcaiSystem.workspace.state.broadcastPayload ??
         new Array(tcaiSystem.workspace.config.workspaceDim).fill(0);
@@ -203,7 +204,7 @@ export function registerTCAICapabilities(server: McpServer, getState: GetBridgeS
       embedding: z.array(z.number()).min(2).max(256).optional().describe('Query vector (defaults to current broadcast)'),
       ...emotionSchema,
     },
-    async (args) => {
+    toolAnnotations('tcai_memory_retrieve'), async (args) => {
       const hits = tcaiSystem.memory.retrieve({
         embedding: args.embedding ?? tcaiSystem.workspace.state.broadcastPayload ?? undefined,
         emotion: (args.valence !== undefined || args.arousal !== undefined || args.dominance !== undefined)
@@ -224,7 +225,7 @@ export function registerTCAICapabilities(server: McpServer, getState: GetBridgeS
   server.tool('tcai_self_model',
     'Self-representation state: interoception, epistemic model, temporal continuity, attention schema',
     {},
-    async () => json({
+    toolAnnotations('tcai_self_model'), async () => json({
       self: tcaiSystem.selfModel.getCurrentState(),
       attention: tcaiSystem.selfModel.attentionSchema.getCurrentFocus(),
     }));
@@ -233,13 +234,13 @@ export function registerTCAICapabilities(server: McpServer, getState: GetBridgeS
   server.tool('tcai_metrics',
     'Consciousness proxy report: GNW metrics, Effective Information, Φ̃-RIIU, composite score',
     {},
-    async () => json(tcaiSystem.report()));
+    toolAnnotations('tcai_metrics'), async () => json(tcaiSystem.report()));
 
   // ── Tool 8: reset ────────────────────────────────────────────────
   server.tool('tcai_reset',
     'Reset the TCAI consciousness system (workspace, memory, emotion, metrics)',
     {},
-    async () => {
+    toolAnnotations('tcai_reset'), async () => {
       tcaiSystem.reset();
       return json({ reset: true, cycles: tcaiSystem.getCycles() });
     });
@@ -252,7 +253,7 @@ export function registerTCAICapabilities(server: McpServer, getState: GetBridgeS
   server.tool('tcai_second_order',
     'Second-order (self-evidencing) loop snapshot: meta-learning velocity, RND curiosity (epistemic value), capability model, meta-consciousness score, developmental stage. The system observing and correcting its own predictive capacity (Legros 2026 §3.2).',
     {},
-    async () => {
+    toolAnnotations('tcai_second_order'), async () => {
       const st = tcaiSystem.secondOrder.getState();
       if (!st) return json({ available: false, hint: 'Run tcai_cycle first to populate the second-order loop.', disclaimer: PROXY_DISCLAIMER });
       return json({ available: true, ...st });
@@ -264,7 +265,7 @@ export function registerTCAICapabilities(server: McpServer, getState: GetBridgeS
     {
       rpe: z.number().min(-1).max(1).optional().describe('Inject a reward-prediction-error sample ∈ [−1,1]'),
     },
-    async (args) => {
+    toolAnnotations('tcai_meta_learning'), async (args) => {
       if (args.rpe !== undefined) {
         const meta = tcaiSystem.secondOrder.metaLearning.update(args.rpe);
         return json({ injected: args.rpe, ...meta, disclaimer: PROXY_DISCLAIMER });
@@ -279,7 +280,7 @@ export function registerTCAICapabilities(server: McpServer, getState: GetBridgeS
     {
       action: z.string().max(64).optional().describe('Action label to query expected valence for'),
     },
-    async (args) => {
+    toolAnnotations('tcai_capability_model'), async (args) => {
       if (args.action) {
         return json({ action: args.action, expectedValence: tcaiSystem.secondOrder.capability.expect(args.action) });
       }
@@ -292,7 +293,7 @@ export function registerTCAICapabilities(server: McpServer, getState: GetBridgeS
     {
       embedding: z.array(z.number()).min(2).max(256).optional().describe('Representation vector (defaults to current broadcast)'),
     },
-    async (args) => {
+    toolAnnotations('tcai_curiosity'), async (args) => {
       const vec = args.embedding ?? tcaiSystem.workspace.state.broadcastPayload ??
         new Array(tcaiSystem.workspace.config.workspaceDim).fill(0);
       const c = tcaiSystem.secondOrder.curiosity.observe(vec);
@@ -303,7 +304,7 @@ export function registerTCAICapabilities(server: McpServer, getState: GetBridgeS
   server.tool('tcai_metaconsciousness',
     'Meta-consciousness composite (MetaconsciousnessEvaluator port): weighted score over confidence calibration, learning awareness, self-continuity and error monitoring. PROXY of meta-representation capacity, not a measurement.',
     {},
-    async () => {
+    toolAnnotations('tcai_metaconsciousness'), async () => {
       const st = tcaiSystem.secondOrder.getState();
       if (!st) return json({ available: false, hint: 'Run tcai_cycle first.', disclaimer: PROXY_DISCLAIMER });
       return json({ available: true, ...st.metacognition });
@@ -313,7 +314,7 @@ export function registerTCAICapabilities(server: McpServer, getState: GetBridgeS
   server.tool('tcai_development',
     'Longitudinal developmental tracking (DevelopmentTracker port): coarse stage (nascent→reactive→integrative→reflective) from the running composite-proxy level, stability and meta-representation score. Second-order self-monitoring over time.',
     {},
-    async () => {
+    toolAnnotations('tcai_development'), async () => {
       const st = tcaiSystem.secondOrder.getState();
       if (!st) return json({ available: false, hint: 'Run tcai_cycle first.', disclaimer: PROXY_DISCLAIMER });
       return json({ available: true, ...st.development, disclaimer: PROXY_DISCLAIMER });
@@ -329,7 +330,7 @@ export function registerTCAICapabilities(server: McpServer, getState: GetBridgeS
       maxEpistemic: z.number().min(0).max(5).optional().describe('Halt threshold: expected info gain ≤ (default 0.1)'),
       patience: z.number().int().min(1).max(20).optional().describe('Consecutive satisfied cycles required to halt (default 3)'),
     },
-    async (args) => {
+    toolAnnotations('tcai_convergence'), async (args) => {
       const overrides: Record<string, number> = {};
       if (args.epsFreeEnergy !== undefined) overrides.epsFreeEnergy = args.epsFreeEnergy;
       if (args.relFreeEnergy !== undefined) overrides.relFreeEnergy = args.relFreeEnergy;
@@ -354,7 +355,7 @@ export function registerTCAICapabilities(server: McpServer, getState: GetBridgeS
   server.tool('tcai_active_inference',
     'Active-inference core telemetry (v2.9): the REAL variational free energy F (surprise), expected free energy G(π) decomposed into pragmatic + epistemic value, the realized task quality, the model entropy, and the Dirichlet-learned action. This is the principled quantity the halting criterion thresholds on — not a heuristic correlate (Da Costa et al. 2020; Legros 2026 §4.3).',
     {},
-    async () => {
+    toolAnnotations('tcai_active_inference'), async () => {
       const st = tcaiSystem.secondOrder.getState();
       if (!st) return json({ available: false, hint: 'Run tcai_cycle first.', disclaimer: PROXY_DISCLAIMER });
       return json({ available: true, ...st.activeInference, disclaimer: PROXY_DISCLAIMER });
@@ -368,7 +369,7 @@ export function registerTCAICapabilities(server: McpServer, getState: GetBridgeS
       reward: z.number().min(-1).max(1).optional().describe('Reward signal during warm-up (default 0.8)'),
       factor: z.number().min(0.05).max(2).optional().describe('epsFreeEnergy = factor × median|ΔF| (default 0.5)'),
     },
-    async (args) => {
+    toolAnnotations('tcai_calibrate'), async (args) => {
       const cycles = args.cycles ?? 25;
       const reward = args.reward ?? 0.8;
       for (let i = 0; i < cycles; i++) {

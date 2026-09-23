@@ -31,7 +31,7 @@
     "dev": "tsx src/index.ts",
     "dev:sse": "tsx src/sse-server.ts",
     "dev:http": "tsx src/http-server.ts",
-    "test": "cross-env ASTRA_LOG_LEVEL=silent TSX_TSCONFIG_PATH=tsconfig.test.json npx tsx --test tests/fcs.test.ts tests/astra.test.ts tests/world-model.test.ts tests/wm-simulation.test.ts tests/multimodal-sensors.test.ts tests/tcai.test.ts tests/neuroplatform.test.ts tests/second-order.test.ts tests/aif-equivalence.test.ts tests/integration.test.ts tests/transports.test.ts",
+    "test": "cross-env ASTRA_LOG_LEVEL=silent TSX_TSCONFIG_PATH=tsconfig.test.json npx tsx --test tests/fcs.test.ts tests/astra.test.ts tests/world-model.test.ts tests/wm-simulation.test.ts tests/multimodal-sensors.test.ts tests/tcai.test.ts tests/neuroplatform.test.ts tests/second-order.test.ts tests/aif-equivalence.test.ts tests/integration.test.ts tests/transports.test.ts tests/annotations.test.ts",
     "test:core": "cross-env TSX_TSCONFIG_PATH=tsconfig.test.json npx tsx --test tests/astra.test.ts",
     "test:wm": "cross-env TSX_TSCONFIG_PATH=tsconfig.test.json npx tsx --test tests/world-model.test.ts tests/wm-simulation.test.ts",
     "test:integration": "cross-env TSX_TSCONFIG_PATH=tsconfig.test.json npx tsx --test tests/integration.test.ts",
@@ -45,7 +45,8 @@
     "golden": "python3 python/second_order/gen_golden.py",
     "golden:check": "python3 python/second_order/gen_golden.py --check",
     "test:transports": "cross-env ASTRA_LOG_LEVEL=silent TSX_TSCONFIG_PATH=tsconfig.test.json npx tsx --test tests/transports.test.ts",
-    "test:fcs": "cross-env TSX_TSCONFIG_PATH=tsconfig.test.json npx tsx --test tests/fcs.test.ts"
+    "test:fcs": "cross-env TSX_TSCONFIG_PATH=tsconfig.test.json npx tsx --test tests/fcs.test.ts",
+    "test:annotations": "cross-env TSX_TSCONFIG_PATH=tsconfig.test.json npx tsx --test tests/annotations.test.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",

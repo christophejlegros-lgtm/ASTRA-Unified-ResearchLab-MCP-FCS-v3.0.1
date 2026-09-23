@@ -26,6 +26,7 @@ import {
   type MultimodalObservation,
   type SensorConfig,
 } from './engine/multimodal-sensors.js';
+import { toolAnnotations } from './tool-annotations.js';
 
 // ─── Zod Schemas ────────────────────────────────────────────────────────────
 
@@ -143,7 +144,7 @@ export function registerSensorCapabilities(
       input: ImageFrameSchema.describe('Image parameters'),
       videoFrames: z.number().int().min(1).max(32).default(1).describe('Number of frames (>1 = video)'),
     },
-    async ({ input, videoFrames }) => {
+    toolAnnotations('sensor_visual'), async ({ input, videoFrames }) => {
       const frames: ImageFrame[] = [];
       for (let f = 0; f < videoFrames; f++) {
         const pixels = input.simulate
@@ -196,7 +197,7 @@ export function registerSensorCapabilities(
     {
       input: AudioSegmentSchema.describe('Audio parameters'),
     },
-    async ({ input }) => {
+    toolAnnotations('sensor_audio'), async ({ input }) => {
       const waveform = input.simulate
         ? simulateAudio(input.sampleRate, input.durationMs, input.frequency)
         : new Float64Array(Math.floor(input.sampleRate * input.durationMs / 1000));
@@ -247,7 +248,7 @@ export function registerSensorCapabilities(
     {
       input: OlfactorySchema.describe('Olfactory sensor parameters'),
     },
-    async ({ input }) => {
+    toolAnnotations('sensor_olfactory'), async ({ input }) => {
       const reading = input.simulate
         ? simulateOlfactory(input.numReceptors, input.compounds, input.concentrations)
         : {
@@ -301,7 +302,7 @@ export function registerSensorCapabilities(
       includeAudio: z.boolean().default(true),
       includeOlfactory: z.boolean().default(true),
     },
-    async ({ includeVisual, includeAudio, includeOlfactory }) => {
+    toolAnnotations('sensor_fuse'), async ({ includeVisual, includeAudio, includeOlfactory }) => {
       // Build multimodal observation
       const obs: MultimodalObservation = { timestamp: Date.now() };
       if (includeVisual) {
@@ -366,7 +367,7 @@ export function registerSensorCapabilities(
       audioFrequency: z.number().optional().describe('Audio tone frequency for simulation'),
       compounds: z.array(z.string()).optional().describe('Olfactory compounds to simulate'),
     },
-    async ({ visualSource, audioFrequency, compounds }) => {
+    toolAnnotations('sensor_process'), async ({ visualSource, audioFrequency, compounds }) => {
       const obs: MultimodalObservation = {
         timestamp: Date.now(),
         visual: {
@@ -421,7 +422,7 @@ export function registerSensorCapabilities(
     'sensor_status',
     'Multimodal Sensor Pipeline Status',
     {},
-    async () => {
+    toolAnnotations('sensor_status'), async () => {
       const stats = pipeline.getStats();
       return {
         content: [{

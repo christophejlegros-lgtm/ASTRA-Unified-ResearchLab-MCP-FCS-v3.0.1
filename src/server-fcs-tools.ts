@@ -31,6 +31,7 @@ import {
   lintFcs, PROHIBITIONS, PROHIBITION_ORDER, mayAggregate, mayInferConstitutive,
   REFERENCES, DOI_NOTE, fcsReport,
 } from './engine/fcs/index.js';
+import { toolAnnotations } from './tool-annotations.js';
 
 const SUBSTRATE_KINDS = ['silicon-snn', 'organoid-mea', 'human-wearable'] as const;
 const ROLES = ['constitutive', 'generator', 'parametric', 'modulatory', 'permissive'] as const;
@@ -81,7 +82,7 @@ export function registerFcsCapabilities(server: McpServer, deps: FcsToolDeps = {
     'audit, the five prohibitions of the negative heuristic, and the declared revision order. Carries no ' +
     'aggregate score of any kind — prohibition 4 forbids one.',
     { useLiveBiomarkers: z.boolean().optional().describe('Bind the conformance audit to the live IRB welfare channels. Default true.') },
-    async ({ useLiveBiomarkers }) =>
+    toolAnnotations('fcs_report'), async ({ useLiveBiomarkers }) =>
       emit(fcsReport(useLiveBiomarkers === false ? {} : liveBiomarkers(deps))),
   );
 
@@ -96,7 +97,7 @@ export function registerFcsCapabilities(server: McpServer, deps: FcsToolDeps = {
       stratum: z.number().int().min(1).max(8).optional().describe('Filter to one Pareto stratum.'),
       pairId: z.string().optional().describe('A single pair by its v1.1 class identifier, e.g. "2a", "10b".'),
     },
-    async ({ role, stratum, pairId }) => {
+    toolAnnotations('fcs_taxonomy'), async ({ role, stratum, pairId }) => {
       const strat = canonicalStratification();
       const rows = PAIRS.filter((p) =>
         (!role || p.role === role) &&
@@ -137,7 +138,7 @@ export function registerFcsCapabilities(server: McpServer, deps: FcsToolDeps = {
       tauCutsLog10: z.array(z.number()).max(4).optional()
         .describe('Ascending decimal-exponent cuts on the τ range\'s lower bound. Default [-1, 0].'),
     },
-    async ({ tauCutsLog10 }) => {
+    toolAnnotations('fcs_stratify'), async ({ tauCutsLog10 }) => {
       const ord: TauOrdinalisation = tauCutsLog10
         ? {
             cutsLog10: [...tauCutsLog10].sort((a, b) => a - b),
@@ -172,7 +173,7 @@ export function registerFcsCapabilities(server: McpServer, deps: FcsToolDeps = {
     'Compare two species–function pairs and say why they are ordered — or, just as informatively, why they ' +
     'are incomparable. Incomparability is a result of the partial order, not a gap in it.',
     { a: z.string().describe('First pair id, e.g. "1".'), b: z.string().describe('Second pair id, e.g. "2a".') },
-    async ({ a, b }) => {
+    toolAnnotations('fcs_compare'), async ({ a, b }) => {
       try {
         return emit(comparePairs(a, b));
       } catch (err) {
@@ -188,7 +189,7 @@ export function registerFcsCapabilities(server: McpServer, deps: FcsToolDeps = {
     'consciousness — with each level\'s formalism, epistemic status, complement reading, the ASTRA modules that ' +
     'implement or stand in for it, and the gap ASTRA cannot close at that level.',
     { level: z.enum(['I', 'II', 'III', 'IV']).optional().describe('One level; omit for all four.') },
-    async ({ level }) => emit({
+    toolAnnotations('fcs_levels'), async ({ level }) => emit({
       core: CORE,
       fieldHypothesis: FIELD_HYPOTHESIS,
       corePlacementNoteEn:
@@ -215,7 +216,7 @@ export function registerFcsCapabilities(server: McpServer, deps: FcsToolDeps = {
       viabilityPct: z.number().min(0).max(100).optional(),
       useLiveBiomarkers: z.boolean().optional().describe('Start from the live state store, overridden by any value given above. Default true.'),
     },
-    async ({ substrate, useLiveBiomarkers, ...overrides }) => {
+    toolAnnotations('fcs_conformance'), async ({ substrate, useLiveBiomarkers, ...overrides }) => {
       const base = useLiveBiomarkers === false ? {} : liveBiomarkers(deps);
       const bio: BiomarkerInputs = { ...base };
       if (overrides.calciumNm !== undefined) bio.calciumNm = overrides.calciumNm;
@@ -246,7 +247,7 @@ export function registerFcsCapabilities(server: McpServer, deps: FcsToolDeps = {
       dimensionalityFromInteroception: z.boolean().nullable().optional(),
       experimentRankedByM1: z.boolean().nullable().optional(),
     },
-    async (outcomes) => emit({
+    toolAnnotations('fcs_withdrawal'), async (outcomes) => emit({
       report: evaluateWithdrawal(outcomes as StrandOutcomes),
       revisionOrder: REVISION_ORDER.map((id) => ({
         rank: THESES[id].revisionRank, id,
@@ -276,7 +277,7 @@ export function registerFcsCapabilities(server: McpServer, deps: FcsToolDeps = {
         interventionSpared: z.boolean().describe('True when the intervention modified the class WITHOUT removing the general conditions of operation.'),
       }).optional().describe('A proposed "ablation → constitutive role" inference — checked against prohibition 5.'),
     },
-    async ({ text, aggregate, constitutiveInference }) => {
+    toolAnnotations('fcs_lint'), async ({ text, aggregate, constitutiveInference }) => {
       const payload: Record<string, unknown> = {
         prohibitions: PROHIBITION_ORDER.map((p) => PROHIBITIONS[p]),
       };

@@ -30,6 +30,7 @@ import { registerOrchTools } from './server-orch-tools.js';
 import { registerFcsCapabilities } from './server-fcs-tools.js';
 import { logger } from './utils/logger.js';
 import type { AstraBridgeState, SpikeAction } from './bridge-state.js';
+import { toolAnnotations } from './tool-annotations.js';
 
 // ── Shared SNN + WM (singleton, survives across sessions) ──
 
@@ -70,7 +71,7 @@ export function createAstraServer(): McpServer {
 
   // ═══ CORE TOOLS (1–12) ═══
 
-  server.tool('get_system_status', 'ASTRA System Status', {}, async () => {
+  server.tool('get_system_status', 'ASTRA System Status', {}, toolAnnotations('get_system_status'), async () => {
     const wm = wmManager.getStatus(); const snap = state.snapshot;
     const { neurons, synapses, ...snnMetrics } = snn.getMetrics();
     return { content: [{ type: 'text' as const, text: JSON.stringify({
@@ -85,16 +86,16 @@ export function createAstraServer(): McpServer {
     }, null, 2) }] };
   });
 
-  server.tool('get_metrics', 'Real-time Metrics', {}, async () => ({ content: [{ type: 'text' as const,
+  server.tool('get_metrics', 'Real-time Metrics', {}, toolAnnotations('get_metrics'), async () => ({ content: [{ type: 'text' as const,
     text: JSON.stringify({ snn: snn.getMetrics(), acm: acmAdapter.getMetrics(), ethics: ethicsAdapter.getBiomarkers(),
       worldModel: wmManager.wm.getMetrics(), timestamp: new Date().toISOString() }, null, 2) }] }));
 
-  server.tool('get_snn_state', 'SNN Engine State', {}, async () => ({
+  server.tool('get_snn_state', 'SNN Engine State', {}, toolAnnotations('get_snn_state'), async () => ({
     content: [{ type: 'text' as const, text: JSON.stringify(snn.getState(), null, 2) }] }));
 
   server.tool('snn_step', 'Advance SNN Simulation',
     { steps: z.number().int().min(1).max(1000).default(1) },
-    async ({ steps }: { steps: number }) => {
+    toolAnnotations('snn_step'), async ({ steps }: { steps: number }) => {
       const results = [];
       for (let i = 0; i < steps; i++) {
         results.push(snn.step(1.0));
@@ -108,21 +109,21 @@ export function createAstraServer(): McpServer {
       }, null, 2) }] };
     });
 
-  server.tool('snn_reset', 'Reset SNN Engine', {}, async () => {
+  server.tool('snn_reset', 'Reset SNN Engine', {}, toolAnnotations('snn_reset'), async () => {
     snn.reset(); wmManager.clearBuffer();
     return { content: [{ type: 'text' as const, text: '{"status":"SNN and WM buffer reset"}' }] };
   });
 
   server.tool('inject_spikes', 'Spike Injection',
     { neuronIds: z.array(z.number().int().min(0)), strength: z.number().min(-100).max(100).default(15) },
-    async ({ neuronIds, strength }: { neuronIds: number[]; strength: number }) => {
+    toolAnnotations('inject_spikes'), async ({ neuronIds, strength }: { neuronIds: number[]; strength: number }) => {
       const result = snn.injectSpikes(neuronIds, strength);
       _lastSpikeAction = { targetNeurons: neuronIds, strengths: neuronIds.map(() => strength), duration: 1 };
       wmManager.recordAction(_lastSpikeAction);
       return { content: [{ type: 'text' as const, text: JSON.stringify({ injected: neuronIds.length, strength, result }, null, 2) }] };
     });
 
-  server.tool('get_acm_score', 'Consciousness Assessment (Proxy)', {}, async () => {
+  server.tool('get_acm_score', 'Consciousness Assessment (Proxy)', {}, toolAnnotations('get_acm_score'), async () => {
     const wmM = wmManager.wm.getMetrics();
     return { content: [{ type: 'text' as const, text: JSON.stringify({
       ...acmAdapter.getState(),
@@ -133,18 +134,18 @@ export function createAstraServer(): McpServer {
     }, null, 2) }] };
   });
 
-  server.tool('check_ethics', 'IRB Neural Welfare Check', {}, async () => ({
+  server.tool('check_ethics', 'IRB Neural Welfare Check', {}, toolAnnotations('check_ethics'), async () => ({
     content: [{ type: 'text' as const, text: JSON.stringify(ethicsAdapter.getReport(), null, 2) }] }));
 
   server.tool('set_parameter', 'Modify State Parameter',
     { path: z.string(), value: z.number() },
-    async ({ path, value }: { path: string; value: number }) => {
+    toolAnnotations('set_parameter'), async ({ path, value }: { path: string; value: number }) => {
       const error = state.setChecked(path, value);
       return { content: [{ type: 'text' as const, text: JSON.stringify(
         error ? { success: false, path, value, error } : { success: true, path, value }, null, 2) }] };
     });
 
-  server.tool('get_platform_status', 'Bio-Computing Platforms', {}, async () => {
+  server.tool('get_platform_status', 'Bio-Computing Platforms', {}, toolAnnotations('get_platform_status'), async () => {
     const s = state.snapshot;
     return { content: [{ type: 'text' as const, text: JSON.stringify({
       finalspark: { coupling: s.fu.fs, status: s.mode, neuroplatform: np.status() },
@@ -152,7 +153,7 @@ export function createAstraServer(): McpServer {
     }, null, 2) }] };
   });
 
-  server.tool('export_snapshot', 'Full State Snapshot', {}, async () => ({
+  server.tool('export_snapshot', 'Full State Snapshot', {}, toolAnnotations('export_snapshot'), async () => ({
     content: [{ type: 'text' as const, text: JSON.stringify({
       snn: snn.getState(), acm: acmAdapter.getState(), ethics: ethicsAdapter.getReport(),
       worldModel: wmManager.wm.getSnapshot(), wmSimulation: wmManager.getStatus(),
@@ -161,7 +162,7 @@ export function createAstraServer(): McpServer {
 
   server.tool('simulation_control', 'Simulation Control',
     { command: z.enum(['start', 'stop', 'status']) },
-    async ({ command }: { command: string }) => {
+    toolAnnotations('simulation_control'), async ({ command }: { command: string }) => {
       if (command === 'start') startSimulation();
       else if (command === 'stop') stopSimulation();
       return { content: [{ type: 'text' as const, text: JSON.stringify(

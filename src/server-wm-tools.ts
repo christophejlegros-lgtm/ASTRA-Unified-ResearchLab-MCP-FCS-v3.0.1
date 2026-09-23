@@ -21,6 +21,7 @@ import {
   type WorldModelConfig,
 
 } from './engine/world-model.js';
+import { toolAnnotations } from './tool-annotations.js';
 
 // ─── Zod Schemas for Tool Inputs ────────────────────────────────────────────
 
@@ -150,7 +151,7 @@ export function registerWorldModelCapabilities(
     'wm_encode',
     'Encode SNN State to Latent Space',
     {},
-    async () => {
+    toolAnnotations('wm_encode'), async () => {
       const state = getState();
       const obs = extractObservation(state);
       const embedding = wm.encode(obs);
@@ -196,7 +197,7 @@ export function registerWorldModelCapabilities(
       action: SpikeActionSchema.describe('Spike injection action to condition prediction on'),
       steps: z.number().int().min(1).max(50).default(1).describe('Number of prediction steps (rollout)'),
     },
-    async ({ action, steps }) => {
+    toolAnnotations('wm_predict'), async ({ action, steps }) => {
       const state = getState();
       const obs = extractObservation(state);
       const embedding = wm.encode(obs);
@@ -257,7 +258,7 @@ export function registerWorldModelCapabilities(
       goal: GoalStateSchema.describe('Target state to plan towards'),
       horizon: z.number().int().min(1).max(20).default(8).describe('Planning horizon (steps)'),
     },
-    async ({ goal, horizon }) => {
+    toolAnnotations('wm_plan'), async ({ goal, horizon }) => {
       const state = getState();
       const currentObs = extractObservation(state);
       const goalObs = buildGoalObservation(currentObs, goal);
@@ -315,7 +316,7 @@ export function registerWorldModelCapabilities(
     {
       action: SpikeActionSchema.describe('Action that was applied'),
     },
-    async ({ action }) => {
+    toolAnnotations('wm_surprise'), async ({ action }) => {
       // We need two consecutive observations. Use last embedding + current state.
       const state = getState();
       const currentObs = extractObservation(state);
@@ -378,7 +379,7 @@ export function registerWorldModelCapabilities(
     {
       action: SpikeActionSchema.describe('Action applied between observations'),
     },
-    async ({ action }) => {
+    toolAnnotations('wm_train_step'), async ({ action }) => {
       const state = getState();
       const currentObs = extractObservation(state);
 
@@ -432,7 +433,7 @@ export function registerWorldModelCapabilities(
     'wm_status',
     'World Model Status & Metrics',
     {},
-    async () => {
+    toolAnnotations('wm_status'), async () => {
       const metrics = wm.getMetrics();
       const snapshot = wm.getSnapshot();
 

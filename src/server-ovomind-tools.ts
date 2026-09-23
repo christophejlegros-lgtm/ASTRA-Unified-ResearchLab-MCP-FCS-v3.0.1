@@ -27,6 +27,7 @@ import {
 } from './engine/ovomind.js';
 import { SUBSTRATES, lintClaim } from './engine/tcai/phenomenal-guard.js';
 import type { TCAIConsciousnessSystem } from './engine/tcai/acm-bridge.js';
+import { toolAnnotations } from './tool-annotations.js';
 
 const DOMINANCE_POLICIES = ['prior', 'endogenous', 'withhold'] as const;
 
@@ -70,7 +71,7 @@ export function registerOvomindTools(server: McpServer, deps: OvomindToolDeps): 
     'OVOMIND bridge status: adapter mode, substrate descriptor, frame counters, ' +
     'and the synthetic-phenomenology ethics assessment for the current configuration.',
     {},
-    async () => emit(bridge.status()),
+    toolAnnotations('ovo_status'), async () => emit(bridge.status()),
   );
 
   server.tool(
@@ -79,7 +80,7 @@ export function registerOvomindTools(server: McpServer, deps: OvomindToolDeps): 
     'with its epistemic tier, provenance and basis string. Dominance is never ' +
     'estimated from the human channel.',
     { controllability: z.number().min(0).max(1).optional() },
-    async ({ controllability }) => {
+    toolAnnotations('ovo_read'), async ({ controllability }) => {
       const frame = bridge.read(controllability);
       return emit(frame ?? { frame: null, note: 'Stream produced no frame.' });
     },
@@ -93,7 +94,7 @@ export function registerOvomindTools(server: McpServer, deps: OvomindToolDeps): 
       controllability: z.number().min(0).max(1).optional(),
       actuate: z.boolean().optional().describe('Also compute a control command (requires an armed controller).'),
     },
-    async ({ controllability, actuate }) => {
+    toolAnnotations('ovo_cycle'), async ({ controllability, actuate }) => {
       const frame = bridge.read(controllability);
       if (!frame) return emit({ error: 'NO_FRAME' });
       const fragment = bridge.toCycleFragment(frame);
@@ -129,7 +130,7 @@ export function registerOvomindTools(server: McpServer, deps: OvomindToolDeps): 
       protocolReference: z.string().nullable().optional()
         .describe('Consent / ethics protocol reference. Required to arm the control loop.'),
     },
-    async (args) => {
+    toolAnnotations('ovo_set_policy'), async (args) => {
       if (args.dominancePolicy) dominancePolicy = args.dominancePolicy;
       controller.setPolicy({
         ...(args.controlEnabled !== undefined ? { enabled: args.controlEnabled } : {}),
@@ -150,7 +151,7 @@ export function registerOvomindTools(server: McpServer, deps: OvomindToolDeps): 
     'Arm or disarm closed-loop affective actuation. Arming places a human subject ' +
     'inside the control loop and is refused without a protocol reference.',
     { arm: z.boolean() },
-    async ({ arm }) => {
+    toolAnnotations('ovo_arm_control'), async ({ arm }) => {
       if (!arm) { controller.disarm(); return emit({ armed: false, reason: 'Disarmed by request.' }); }
       const r = controller.arm();
       return emit({ ...r, ethics: bridge.status().ethics });
@@ -163,7 +164,7 @@ export function registerOvomindTools(server: McpServer, deps: OvomindToolDeps): 
     '(silicon SNN, organoid MEA, human wearable), with the axes each can constrain ' +
     'and the caveat that blocks a naive isomorphism claim.',
     {},
-    async () => emit({
+    toolAnnotations('ovo_isomorphism'), async () => emit({
       substrates: Object.values(SUBSTRATES),
       readable:
         'Only the human channel constrains valence externally; only it and the SNN ' +

@@ -24,6 +24,7 @@ import {
 import { lintClaim } from './engine/tcai/phenomenal-guard.js';
 import type { OvomindBridge } from './engine/ovomind.js';
 import type { TCAIConsciousnessSystem } from './engine/tcai/acm-bridge.js';
+import { toolAnnotations } from './tool-annotations.js';
 
 const SUBSTRATES = ['silicon-snn', 'organoid-mea', 'human-wearable'] as const;
 
@@ -56,7 +57,7 @@ export function registerOrchTools(server: McpServer, deps: OrchToolDeps): Orches
     'canonical 2×10¹⁰ tubulins, decoherence budget, and the verdict for each of the ' +
     'three ASTRA substrates.',
     {},
-    async () => emit(orchReport(gateEnabled ? gate : undefined)),
+    toolAnnotations('orch_report'), async () => emit(orchReport(gateEnabled ? gate : undefined)),
   );
 
   server.tool(
@@ -69,7 +70,7 @@ export function registerOrchTools(server: McpServer, deps: OrchToolDeps): Orches
         .describe('Effective mass displacement, m. Default 1.056e-11 (back-calibrated to 2×10¹⁰ @ 25 ms).'),
       massKg: z.number().positive().optional().describe('Superposed unit mass. Default: tubulin dimer.'),
     },
-    async (args) => emit(penroseCriterion(args)),
+    toolAnnotations('orch_criterion'), async (args) => emit(penroseCriterion(args)),
   );
 
   server.tool(
@@ -77,7 +78,7 @@ export function registerOrchTools(server: McpServer, deps: OrchToolDeps): Orches
     'Decoherence time budget for a target coherence window: Tegmark (2000) vs the ' +
     'Hagan/Hameroff/Tuszyński (2002) correction, and the residual gap.',
     { requiredCoherenceS: z.number().positive().optional() },
-    async ({ requiredCoherenceS }) => emit(decoherenceBudget(requiredCoherenceS ?? ORCH_EPOCH_S)),
+    toolAnnotations('orch_decoherence'), async ({ requiredCoherenceS }) => emit(decoherenceBudget(requiredCoherenceS ?? ORCH_EPOCH_S)),
   );
 
   server.tool(
@@ -89,7 +90,7 @@ export function registerOrchTools(server: McpServer, deps: OrchToolDeps): Orches
       neuronCount: z.number().positive().optional(),
       channelLatencyMs: z.number().positive().optional(),
     },
-    async ({ substrate, neuronCount, channelLatencyMs }) =>
+    toolAnnotations('orch_substrate'), async ({ substrate, neuronCount, channelLatencyMs }) =>
       emit(assessSubstrate(substrate, { neuronCount, channelLatencyMs })),
   );
 
@@ -104,7 +105,7 @@ export function registerOrchTools(server: McpServer, deps: OrchToolDeps): Orches
       tieBandFraction: z.number().min(0).max(0.5).optional(),
       ignitionFloor: z.number().min(0).max(1).optional(),
     },
-    async ({ enabled, ...cfg }) => {
+    toolAnnotations('orch_gate_config'), async ({ enabled, ...cfg }) => {
       if (enabled !== undefined) { gateEnabled = enabled; if (!enabled) gate.reset(); }
       gate.setConfig(cfg);
       return emit({
@@ -123,7 +124,7 @@ export function registerOrchTools(server: McpServer, deps: OrchToolDeps): Orches
     'through the epoch-quantised surrogate gate. Reports how many Orch OR epochs the ' +
     'affect frame integrated over.',
     { controllability: z.number().min(0).max(1).optional() },
-    async ({ controllability }) => {
+    toolAnnotations('orch_cycle'), async ({ controllability }) => {
       const frame = deps.ovomind.read(controllability);
       if (!frame) return emit({ error: 'NO_FRAME' });
       const result = deps.tcai.runCycle(deps.ovomind.toCycleFragment(frame));
