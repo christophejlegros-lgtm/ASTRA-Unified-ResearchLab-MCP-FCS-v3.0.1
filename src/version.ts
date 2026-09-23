@@ -6,4 +6,4 @@
  * Consommée par server.ts, sse-server.ts et http-server.ts afin
  * d'éliminer les chaînes de version divergentes (2.0.0 / 2.2.0 / 2.9.0).
  */
-export const ASTRA_VERSION = '3.0.0';
+export const ASTRA_VERSION = '3.1.0';

@@ -225,4 +225,4 @@ exact value to quote.
 
 ---
 
-*Assistance Multi IA · Assistant-Multi-AI@proton.me · Geneva*
+*Assistance Multi IA · Assistant-Multi-IA@proton.me · Geneva*

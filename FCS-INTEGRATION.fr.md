@@ -1,6 +1,6 @@
 # Couche FCS — fonctionnalisme contraint par le substrat
 
-**ASTRA v3.0.1 · outils `fcs_*` (8) · ressources `astra://fcs/*` (4) · prompts (2)**
+**ASTRA v3.1.0 · outils `fcs_*` (8) · ressources `astra://fcs/*` (4) · prompts (2)**
 
 Implémentation, dans ASTRA, des valeurs de la série :
 
@@ -270,7 +270,7 @@ de τ sur axe logarithmique, fenêtre de l'épisode marquée), conformité, retr
 ## 9. Tests
 
 ```bash
-npm run test:fcs     # 70 tests de la couche FCS
+npm run test:fcs     # 69 tests de la couche FCS
 npm test             # suite complète — 310 tests
 ```
 

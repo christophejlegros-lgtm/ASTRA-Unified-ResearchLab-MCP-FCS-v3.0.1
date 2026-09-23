@@ -1,6 +1,6 @@
 # FCS layer — substrate-constrained functionalism
 
-**ASTRA v3.0.1 · `fcs_*` tools (8) · `astra://fcs/*` resources (4) · prompts (2)**
+**ASTRA v3.1.0 · `fcs_*` tools (8) · `astra://fcs/*` resources (4) · prompts (2)**
 
 Implements, inside ASTRA, the values of the series:
 
@@ -267,7 +267,7 @@ console), negative heuristic (live linter), sources.
 ## 9. Tests
 
 ```bash
-npm run test:fcs     # 70 FCS-layer tests
+npm run test:fcs     # 69 FCS-layer tests
 npm test             # full suite — 310 tests
 ```
 

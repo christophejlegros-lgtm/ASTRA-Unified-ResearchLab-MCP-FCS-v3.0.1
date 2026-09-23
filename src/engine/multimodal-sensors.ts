@@ -18,7 +18,7 @@
  *   LeWM:     Maes et al. (2026) — JEPA world model with SIGReg
  *
  * © 2026 Christophe Jean Legros — Geneva
- * Assistance Multi IA · Assistant-Multi-AI@proton.me
+ * Assistance Multi IA · Assistant-Multi-IA@proton.me
  */
 
 // ─── Linear Algebra Helpers (shared) ────────────────────────────────────────

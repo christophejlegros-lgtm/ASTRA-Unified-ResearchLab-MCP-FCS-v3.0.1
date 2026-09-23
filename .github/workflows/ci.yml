@@ -3,7 +3,7 @@ name: CI
 # ASTRA Unified ResearchLab MCP — Continuous Integration
 # © 2026 Christophe Jean Legros — Geneva · Assistance Multi IA
 #
-# Aligned to v3.0 (unified): strict TypeScript build, the full test suite,
+# Aligned to v3.1.0 (unified + FCS): strict TypeScript build, the full test suite,
 # the TS↔NumPy golden check (needs Python + numpy), a stdio tool-count smoke
 # test (70 tools incl. ovo_*, orch_* and fcs_*), and a Docker build + /health smoke.
 
@@ -67,13 +67,13 @@ jobs:
 
       - name: Tool-count smoke test (stdio transport)
         # The stdio entrypoint logs the capability summary at startup.
-        # Assert v3.0 exposes exactly 70 tools · 15 resources · 10 prompts
-        # (50 core + 6 ovo_* + 6 orch_*).
+        # Assert v3.1.0 exposes exactly 70 tools · 15 resources · 10 prompts
+        # (50 core + 6 ovo_* + 6 orch_* + 8 fcs_*).
         run: |
           set -euo pipefail
           LOG="$(timeout 8s node dist/index.js 2>&1 || true)"
           echo "$LOG"
-          echo "$LOG" | grep -q "ASTRA MCP Server v3.0.0: 70 tools · 15 resources · 10 prompts" \
+          echo "$LOG" | grep -q "ASTRA MCP Server v3.1.0: 70 tools · 15 resources · 10 prompts" \
             || { echo "::error::Capability summary mismatch (expected 70 tools · 15 resources · 10 prompts)"; exit 1; }
 
   docker-smoke:

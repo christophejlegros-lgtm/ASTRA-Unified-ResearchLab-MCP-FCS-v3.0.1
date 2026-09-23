@@ -3,7 +3,7 @@
 **Autonomous Sentient Thoughtful Reasoning Agent**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-cyan.svg)](LICENSE)
-[![CI](https://github.com/christophejlegros-lgtm/ASTRA-Unified-ResearchLab-MCP-v3.0.1/actions/workflows/ci.yml/badge.svg)](https://github.com/christophejlegros-lgtm/ASTRA-Unified-ResearchLab-MCP-v3.0.1/actions)
+[![CI](https://github.com/christophejlegros-lgtm/ASTRA-Unified-ResearchLab-MCP-FCS-v3.0.1/actions/workflows/ci.yml/badge.svg)](https://github.com/christophejlegros-lgtm/ASTRA-Unified-ResearchLab-MCP-FCS-v3.0.1/actions)
 [![MCP Spec](https://img.shields.io/badge/MCP_Spec-2025--11--25-blue.svg)](https://modelcontextprotocol.io/specification/2025-11-25)
 [![MCP SDK](https://img.shields.io/badge/MCP_SDK-1.12+-blueviolet.svg)](https://modelcontextprotocol.io)
 [![Node.js](https://img.shields.io/badge/Node.js-≥20-green.svg)](https://nodejs.org)
@@ -11,7 +11,7 @@
 
 Production-grade [Model Context Protocol](https://modelcontextprotocol.io) server exposing the ASTRA bio-hybrid neuromorphic simulation pipeline to AI assistants. Built with the official `@modelcontextprotocol/sdk`, it integrates a layered SNN LIF+STDP engine, consciousness proxy assessment, bio-computing platform telemetry, and an IRB ethics monitor — all queryable as MCP tools, resources, and prompts from **Claude Desktop**, **Cursor**, **VS Code**, and any MCP-compatible client.
 
-## 🆕 v3.1 — FCS layer: substrate-constrained functionalism
+## 🆕 v3.1.0 — FCS layer: substrate-constrained functionalism
 
 Implements the values of the FCS series (documents I v1.5, II v1.4, IV v1.2,
 synthesis S-1.5) inside ASTRA as `fcs_*` tools — **not** as a scoring module.
@@ -39,7 +39,7 @@ synthesis S-1.5) inside ASTRA as `fcs_*` tools — **not** as a scoring module.
   distinction) and `lintFcs` (the five prohibitions), the latter distinguishing
   use from mention so that stating a prohibition or citing a title does not fire it.
 - MCP surface: 62 → **70 tools** (`fcs_*` ×8); resources 11 → 15, prompts 8 → 10.
-  Test suite 308 → **310 tests**.
+  Test suite 241 → **310 tests** (69 in `tests/fcs.test.ts`).
 - **New console:** `dashboard/ASTRA-FCS-Dashboard.html` — self-contained,
   bilingual FR/EN, recomputing the partial order in the browser and reporting
   whether it reproduces the published strata.
@@ -121,7 +121,7 @@ ASTRA v2.9 makes the continuous controller **non-degenerate**: instead of rampin
 ASTRA v2.2 integrates **[tlcdv/the_consciousness_ai](https://github.com/tlcdv/the_consciousness_ai)** — the Artificial Consciousness Module research codebase — at two levels:
 
 - **Native TypeScript port** (`src/engine/tcai/`): Global Neuronal Workspace with sigmoid ignition & reverberation, Kuramoto/AKOrN oscillatory binding, PAD emotional processing & reward shaping, attention-gated emotional memory, self-representation core + attention schema, and a metrics suite (GNW · Effective Information · Φ̃-RIIU) — all fed live from the SNN/world-model state and exposed as **8 new MCP tools** (`tcai_cycle`, `tcai_workspace_state`, `tcai_emotion_appraise`, `tcai_memory_store`, `tcai_memory_retrieve`, `tcai_self_model`, `tcai_metrics`, `tcai_reset`).
-- **Full vendored Python codebase** (`python/the_consciousness_ai/`, 215 files): the complete upstream ACM project for reference and PyTorch-based reproduction.
+- **Full vendored Python codebase** (`python/the_consciousness_ai/`, 396 files — distributed under its own **non-commercial** licence, see [License](#license)): the complete upstream ACM project for reference and PyTorch-based reproduction.
 
 See **[TCAI-INTEGRATION.md](TCAI-INTEGRATION.md)** for the complete Python → TypeScript mapping and architecture coupling. All consciousness-related metrics remain **computational proxies**, not measurements.
 
@@ -169,8 +169,8 @@ Koniku Kore ────────────────┘         │     
 ## Quick Start
 
 ```bash
-git clone https://github.com/christophejlegros-lgtm/ASTRA-Unified-ResearchLab-MCP-v3.0.1.git
-cd ASTRA-Unified-ResearchLab-MCP-v3.0.1
+git clone https://github.com/christophejlegros-lgtm/ASTRA-Unified-ResearchLab-MCP-FCS-v3.0.1.git
+cd ASTRA-Unified-ResearchLab-MCP-FCS-v3.0.1
 
 # Install & build
 npm install
@@ -256,9 +256,11 @@ docker compose up -d
 
 ## MCP Tools (70)
 
-All tools declare [MCP annotations](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)
-(readOnlyHint, destructiveHint, idempotentHint, openWorldHint) and human-readable titles.
 Counts below are asserted by the CI stdio smoke test, not maintained by hand.
+The access classes in the Core table (read-only / mutating / destructive) document each
+tool's behaviour; they are **not yet** emitted as MCP
+[tool annotations](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)
+(`readOnlyHint`, `destructiveHint`, …) — planned for a later release.
 
 **Core (12)**
 
@@ -345,7 +347,8 @@ src/
 │   ├── server-tcai-tools.ts          # TCAI/ACM (17 tools + 2 resources + 2 prompts, incl. closed-loop active inference)
 │   ├── server-neuroplatform-tools.ts # NeuroPlatform v2 (9 tools + 1 resource + 1 prompt)
 │   ├── server-ovomind-tools.ts       # OVOMIND affective bridge (6 tools)
-│   └── server-orch-tools.ts          # Orch OR criterion layer (6 tools)
+│   ├── server-orch-tools.ts          # Orch OR criterion layer (6 tools)
+│   └── server-fcs-tools.ts           # FCS layer (8 tools + 4 resources + 2 prompts)
 ├── engine/
 │   ├── state.ts          # Reactive state store + parameter bounds registry
 │   ├── snn.ts            # Layered SNN LIF+STDP engine (Map-indexed sparse weights, event-driven)
@@ -357,13 +360,15 @@ src/
 │   ├── neuroplatform.ts  # FinalSpark NeuroPlatform v2 port + OrganoidMEA simulator
 │   ├── ovomind.ts        # OVOMIND adapter (sim default; live adapter is a declared stub)
 │   ├── simulation.ts     # Background tick loop
+│   ├── fcs/              # FCS: taxonomy, levels, stratification (Pareto), conformance,
+│   │                     #   negative-heuristic linter, withdrawal conditions, references
 │   └── tcai/             # ACM native port: global-workspace, oscillatory-binding, emotion,
 │                         #   emotional-memory, self-model, second-order, active-inference,
 │                         #   metrics, acm-bridge, orch-or, phenomenal-guard, types
 └── utils/
     └── logger.ts         # Structured logging (pino → stderr)
 
-tests/                    # 241 tests · 52 suites
+tests/                    # 310 tests · 60 suites
 ├── astra.test.ts             # Unit: state, bounds, SNN, ACM, ethics, security
 ├── world-model.test.ts       # World Model: encoder, predictor, SIGReg, CEM, surprise
 ├── wm-simulation.test.ts     # WM simulation: buffer, training, planning, lifecycle
@@ -373,7 +378,8 @@ tests/                    # 241 tests · 52 suites
 ├── second-order.test.ts      # Second-order loop: setpoint regulation, production loop
 ├── aif-equivalence.test.ts   # TS↔NumPy active-inference golden equivalence
 ├── integration.test.ts       # Client SDK: tools, resources, prompts, workflow
-└── transports.test.ts        # HTTP/SSE transport layer: session lifecycle, guards, regressions
+├── transports.test.ts        # HTTP/SSE transport layer: session lifecycle, guards, regressions
+└── fcs.test.ts               # FCS: published strata reproduced, no-aggregation guard, linters
 
 configs/                  # Ready-to-use client configurations
 ```
@@ -440,6 +446,7 @@ npm run test:so            # second-order loop
 npm run test:wm            # World Model
 npm run test:sensors       # multimodal sensors
 npm run test:transports    # HTTP + SSE transport layer
+npm run test:fcs           # FCS layer
 
 # Static gates
 npm run build              # tsc strict (Node16 ESM)
@@ -450,7 +457,7 @@ npm run golden:check       # TS↔NumPy active-inference golden (requires python
 npm run inspect
 ```
 
-> **Full suite: 241/241 passing** (229 engine/integration + 12 transport-layer), 0 TypeScript errors
+> **Full suite: 310/310 passing** (229 engine/integration + 12 transport-layer + 69 FCS), 0 TypeScript errors
 > (strict, Node16 ESM), 0 ESLint errors. Verified on Node 20 and Node 22 in CI.
 
 ## Development
@@ -497,9 +504,18 @@ The default 128-neuron configuration is designed for interactive demonstration. 
 
 ## License
 
-MIT — © 2026 Christophe Jean Legros, Geneva
+MIT — © 2026 Christophe Jean Legros, Geneva — applies to everything in this repository
+**except** the directory below.
 
-**Assistance Multi IA** · [Assistant-Multi-AI@proton.me](mailto:Assistant-Multi-AI@proton.me)
+> **Third-party code under a different licence.** `python/the_consciousness_ai/` is vendored
+> from [tlcdv/the_consciousness_ai](https://github.com/tlcdv/the_consciousness_ai) and remains
+> under its own **Non-Commercial Open Source License** (see
+> [`python/the_consciousness_ai/LICENSE.md`](python/the_consciousness_ai/LICENSE.md)):
+> non-commercial use only, attribution to tlcdv required, no sublicensing. The MIT licence
+> above does **not** extend to it. The TypeScript port in `src/engine/tcai/` is based on
+> that project — original author: tlcdv (https://github.com/tlcdv/the_consciousness_ai).
+
+**Assistance Multi IA** · [Assistant-Multi-IA@proton.me](mailto:Assistant-Multi-IA@proton.me)
 
 ## References
 

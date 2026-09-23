@@ -220,4 +220,4 @@ blindage retenues ; vérifier l'article pour la valeur exacte à citer.
 
 ---
 
-*Assistance Multi IA · Assistant-Multi-AI@proton.me · Genève*
+*Assistance Multi IA · Assistant-Multi-IA@proton.me · Genève*

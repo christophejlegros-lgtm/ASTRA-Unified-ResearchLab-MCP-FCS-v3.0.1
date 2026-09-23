@@ -73,5 +73,5 @@ World Model (LeWM) ──surprise──────► novelty / predictionError
 - `npm run test:tcai` — TCAI suite only (binding, GNW, memory, emotion, self-model, metrics, full cycle)
 
 ---
-© 2026 Christophe Jean Legros — Genève · Assistance Multi IA · Assistant-Multi-AI@proton.me
+© 2026 Christophe Jean Legros — Genève · Assistance Multi IA · Assistant-Multi-IA@proton.me
 Upstream ACM: © tlcdv/the_consciousness_ai (vendored under `python/`, see its repository for license terms).

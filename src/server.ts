@@ -8,7 +8,7 @@
  * Returns a McpServer instance ready for transport connection.
  *
  * © 2026 Christophe Jean Legros — Geneva
- * Assistance Multi IA · Assistant-Multi-AI@proton.me
+ * Assistance Multi IA · Assistant-Multi-IA@proton.me
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -72,7 +72,7 @@ export function createAstraServer(): McpServer {
   server.tool('get_system_status', 'ASTRA System Status', {}, async () => {
     const wm = wmManager.getStatus(); const snap = state.snapshot;
     return { content: [{ type: 'text' as const, text: JSON.stringify({
-      system: 'ASTRA v2.1.0', mode: snap.mode, uptime: process.uptime(), tick: snap.tick,
+      system: `ASTRA v${ASTRA_VERSION}`, mode: snap.mode, uptime: process.uptime(), tick: snap.tick,
       snn: { neurons: snn.getNeuronCount(), synapses: snn.getSynapseCount(), layers: snn.getLayerSizes(), ...snn.getMetrics() },
       acm: acmAdapter.getState(), ethics: ethicsAdapter.getReport(),
       worldModel: { status: wm.health.latentCollapse ? 'COLLAPSED' : 'ACTIVE', trainingSteps: wm.worldModel.trainingSteps,

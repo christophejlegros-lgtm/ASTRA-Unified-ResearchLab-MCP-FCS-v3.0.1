@@ -281,4 +281,4 @@ l'architecture du classifieur ne l'est pas).
 
 ---
 
-*Assistance Multi IA · Assistant-Multi-AI@proton.me · Genève*
+*Assistance Multi IA · Assistant-Multi-IA@proton.me · Genève*

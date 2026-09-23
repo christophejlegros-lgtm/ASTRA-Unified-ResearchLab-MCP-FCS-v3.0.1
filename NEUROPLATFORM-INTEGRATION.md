@@ -89,5 +89,5 @@ python python/neuroplatform/astra_np_bridge.py
 - `npm run test:np` — NeuroPlatform suite only (StimParam, OrganoidMEA, controllers, bridge)
 
 ---
-© 2026 Christophe Jean Legros — Genève · Assistance Multi IA · Assistant-Multi-AI@proton.me
+© 2026 Christophe Jean Legros — Genève · Assistance Multi IA · Assistant-Multi-IA@proton.me
 Upstream API: © FinalSpark NeuroPlatform v2 (see [np-docs](https://finalspark-np.github.io/np-docs/) for terms).
