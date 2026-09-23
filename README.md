@@ -66,6 +66,10 @@ synthesis S-1.5) inside ASTRA as `fcs_*` tools — **not** as a scoring module.
   [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md), [`CITATION.cff`](CITATION.cff),
   [`PREREGISTRATION.md`](PREREGISTRATION.md) and [`REVIEW.md`](REVIEW.md) added.
   Test suite **323 tests** (6 in `tests/reproducibility.test.ts`).
+- **Dependencies hardened.** `express` 4 → 5 (the MCP SDK already ran on Express 5; the
+  project's `@types/express` were already v5) and `tsx` → 4.23 (bundles a patched
+  `esbuild`): `npm audit` reports **0 vulnerabilities** (previously 11, of which 7 in
+  runtime dependencies). No code change was needed; the 12 transport tests pass unchanged.
 - **New console:** `dashboard/ASTRA-FCS-Dashboard.html` — self-contained,
   bilingual FR/EN, recomputing the partial order in the browser and reporting
   whether it reproduces the published strata.
