@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Fonctionnalisme contraint par le substrat — synthèse illustrée</title>
+<meta name="author" content="Christophe Jean Legros — Assistance Multi IA, Genève">
+<meta name="description" content="Synthèse illustrée en trois dimensions du fonctionnalisme contraint par le substrat, de son complément métaphysique et de son ancrage neurochimique (S-1.5, 19 septembre 2026), synchronisée sur les documents I v1.5, II v1.4 et IV v1.2.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,700&family=Spectral:ital,wght@0,300;0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ───────────────── jetons de conception ───────────────── */
+:root{
+  /* palette : électrophysiologie du milieu neuronal */
+  --fond:            #060E1A;
+  --fond-profond:    #030810;
+  --panneau:         #0C1726;
+  --panneau-haut:    #122134;
+  --filet:           rgba(146,178,205,.18);
+  --filet-fort:      rgba(146,178,205,.34);
+
+  --champ:           #5FD3C4;   /* champ endogène — niveau I */
+  --courant:         #E8A33D;   /* flux ionique, efférence */
+  --clotur:          #B08CE8;   /* clôture, registre phénoménal */
+  --acces:           #7FB2F0;   /* diffusion globale — niveau IV */
+  --alerte:          #E2708A;   /* contesté */
+
+  --texte:           #E8EFF6;
+  --texte-attenue:   #93A6BB;
+  --texte-faible:    #64778C;
+
+  --serif:   "Spectral", "Iowan Old Style", Georgia, serif;
+  --display: "Fraunces", "Spectral", Georgia, serif;
+  --mono:    "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  --mesure: 68ch;
+  --rythme: clamp(1.4rem, 3.2vw, 2.6rem);
+
+  /* surfaces composées — redéfinies par le thème clair */
+  --voile:           rgba(6,14,26,.68);      /* fond des étiquettes flottantes */
+  --voile-fort:      rgba(6,14,26,.80);      /* fond des boutons de la scène */
+  --degrade-page:    radial-gradient(120% 80% at 50% -10%, #10243C 0%, var(--fond) 42%, var(--fond-profond) 100%);
+  --degrade-bandeau: linear-gradient(180deg, rgba(6,14,26,.94), rgba(6,14,26,.72));
+  --degrade-scene:   radial-gradient(80% 110% at 50% 8%, rgba(95,211,196,.07), transparent 60%),
+                     linear-gradient(180deg, #081424, #050C16);
+  --ombre-etiquette: none;
+}
+
+/* ───────────────── thème clair : papier d'atelier ─────────────────
+   Les teintes des quatre niveaux sont assombries — les mêmes hues,
+   portées à un contraste lisible sur fond clair — et non simplement
+   inversées : l'identité chromatique des niveaux est conservée.      */
+body.clair{
+  color-scheme: light;
+
+  --fond:            #F3EFE7;
+  --fond-profond:    #E6E0D4;
+  --panneau:         #FBF9F4;
+  --panneau-haut:    #F1ECE2;
+  --filet:           rgba(28,52,74,.17);
+  --filet-fort:      rgba(28,52,74,.32);
+
+  --champ:           #0C7466;
+  --courant:         #9E590B;
+  --clotur:          #5F3C9C;
+  --acces:           #27599C;
+  --alerte:          #AC3049;
+
+  --texte:           #131F2B;
+  --texte-attenue:   #455567;
+  --texte-faible:    #5A6A7A;
+
+  --voile:           rgba(251,249,244,.82);
+  --voile-fort:      rgba(251,249,244,.92);
+  --degrade-page:    radial-gradient(120% 80% at 50% -10%, #FFFFFF 0%, var(--fond) 46%, var(--fond-profond) 100%);
+  --degrade-bandeau: linear-gradient(180deg, rgba(243,239,231,.95), rgba(243,239,231,.74));
+  --degrade-scene:   radial-gradient(80% 110% at 50% 8%, rgba(12,116,102,.08), transparent 60%),
+                     linear-gradient(180deg, #FCFAF6, #ECE7DD);
+  --ombre-etiquette: 0 1px 3px rgba(28,52,74,.10);
+}
+
+:root{ color-scheme: dark; }
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+
+body{
+  margin:0;
+  background: var(--degrade-page) fixed;
+  transition: background-color .3s, color .3s;
+  color:var(--texte);
+  font-family:var(--serif);
+  font-weight:300;
+  font-size:clamp(1rem, .55vw + .9rem, 1.14rem);
+  line-height:1.72;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+/* bilinguisme : bascule par classe sur <body> */
+.en{display:none}
+body.lang-en .fr{display:none}
+body.lang-en .en{display:initial}
+
+.enveloppe{max-width:1180px;margin:0 auto;padding:0 clamp(1.1rem,4vw,3rem)}
+
+/* ───────────────── bandeau ───────────────── */
+.bandeau{
+  position:sticky;top:0;z-index:30;
+  backdrop-filter:blur(14px);
+  background:var(--degrade-bandeau);
+  border-bottom:1px solid var(--filet);
+}
+.bandeau .enveloppe{
+  display:flex;align-items:baseline;gap:1.2rem;
+  padding-top:.7rem;padding-bottom:.7rem;flex-wrap:wrap;
+}
+.sigle{
+  font-family:var(--display);font-weight:500;font-size:1.02rem;
+  letter-spacing:.005em;margin:0;
+}
+.sigle span{color:var(--texte-faible);font-weight:300}
+.bandeau nav{margin-left:auto;display:flex;gap:1.1rem;align-items:baseline;flex-wrap:wrap}
+.bandeau nav a{
+  font-family:var(--mono);font-size:.74rem;color:var(--texte-attenue);
+  text-decoration:none;border-bottom:1px solid transparent;padding-bottom:2px;
+}
+.bandeau nav a:hover,.bandeau nav a:focus-visible{color:var(--champ);border-color:var(--champ)}
+
+.bascules{margin-left:.2rem;display:flex;gap:.4rem;align-items:baseline}
+.bascule{
+  font-family:var(--mono);font-size:.72rem;
+  background:transparent;color:var(--texte-attenue);
+  border:1px solid var(--filet-fort);border-radius:2px;
+  padding:.3rem .6rem;cursor:pointer;
+}
+.bascule:hover,.bascule:focus-visible{color:var(--texte);border-color:var(--champ)}
+.bascule .glyphe{margin-right:.35rem;font-size:.8rem;line-height:1}
+
+/* ───────────────── ouverture ───────────────── */
+.ouverture{padding:clamp(2.6rem,7vw,5rem) 0 1.6rem}
+.titre{
+  font-family:var(--display);
+  font-optical-sizing:auto;
+  font-weight:300;
+  font-size:clamp(2.15rem, 5.6vw, 4.05rem);
+  line-height:1.02;
+  letter-spacing:-.018em;
+  margin:0 0 .5rem;
+  max-width:19ch;
+}
+.sous-titre{
+  font-family:var(--display);font-weight:300;font-style:italic;
+  font-size:clamp(1.05rem,1.9vw,1.45rem);
+  color:var(--champ);margin:0 0 1.6rem;max-width:44ch;line-height:1.35;
+}
+.chapeau{max-width:var(--mesure);color:var(--texte-attenue);margin:0 0 1.4rem}
+.chapeau strong{color:var(--texte);font-weight:600}
+.ourlet{
+  font-family:var(--mono);font-size:.72rem;color:var(--texte-faible);
+  display:flex;gap:1.4rem;flex-wrap:wrap;
+  border-top:1px solid var(--filet);padding-top:.7rem;max-width:var(--mesure);
+}
+
+/* ───────────────── scène ───────────────── */
+.scene-bloc{margin:2.2rem 0 0}
+.scene-cadre{
+  position:relative;
+  border:1px solid var(--filet);
+  background:var(--degrade-scene);
+  overflow:hidden;
+  aspect-ratio:16/9;
+  min-height:340px;
+}
+@media (max-width:700px){ .scene-cadre{aspect-ratio:4/5} }
+#scene{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+#scene:active{cursor:grabbing}
+
+.etiquettes{position:absolute;inset:0;pointer-events:none}
+.etiquette{
+  position:absolute;transform:translate(-50%,-50%);
+  font-family:var(--mono);font-size:.71rem;line-height:1.35;
+  color:var(--texte);white-space:nowrap;
+  padding:.22rem .5rem;
+  background:var(--voile);
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+  border-left:2px solid currentColor;
+  border-radius:0 2px 2px 0;
+  box-shadow:var(--ombre-etiquette);
+  opacity:.94;transition:opacity .25s;
+  /* le placement est calculé en JS : jamais de débordement hors du cadre */
+  will-change:left, top;
+}
+@media (max-width:760px){
+  .etiquette{font-size:.63rem;padding:.18rem .4rem}
+  .etiquette b{font-size:.7rem}
+  .etiquette em{font-size:.6rem}
+}
+.etiquette b{font-weight:500;display:block;font-size:.78rem}
+.etiquette em{font-style:normal;color:var(--texte-attenue);font-size:.67rem}
+.etiquette[data-n="1"]{color:var(--champ)}
+.etiquette[data-n="2"]{color:var(--clotur)}
+.etiquette[data-n="3"]{color:var(--courant)}
+.etiquette[data-n="4"]{color:var(--acces)}
+.etiquette.terne{opacity:.28}
+
+.scene-outils{
+  position:absolute;right:.7rem;bottom:.7rem;display:flex;gap:.4rem;flex-wrap:wrap;
+}
+.outil{
+  font-family:var(--mono);font-size:.68rem;
+  background:var(--voile-fort);color:var(--texte-attenue);
+  border:1px solid var(--filet-fort);border-radius:2px;
+  padding:.3rem .55rem;cursor:pointer;
+}
+.outil:hover,.outil:focus-visible{color:var(--texte);border-color:var(--champ)}
+.aide{
+  position:absolute;left:.8rem;bottom:.8rem;
+  font-family:var(--mono);font-size:.67rem;color:var(--texte-faible);
+  pointer-events:none;
+}
+.replique{
+  position:absolute;inset:0;display:none;place-items:center;
+  padding:1.5rem;text-align:center;color:var(--texte-attenue);
+}
+.replique svg{max-width:min(100%,560px);height:auto}
+body.sans-webgl .replique{display:grid}
+body.sans-webgl #scene,body.sans-webgl .etiquettes,body.sans-webgl .aide{display:none}
+
+.legende{
+  font-size:.88rem;color:var(--texte-faible);
+  max-width:var(--mesure);margin:.8rem 0 0;line-height:1.6;
+}
+
+/* ───────────────── sections ───────────────── */
+section{padding:clamp(3rem,7vw,5.5rem) 0 0}
+.intitule{
+  font-family:var(--display);font-weight:500;
+  font-size:clamp(1.35rem,2.6vw,1.95rem);
+  letter-spacing:-.012em;margin:0 0 .35rem;
+}
+.amorce{color:var(--texte-attenue);max-width:var(--mesure);margin:0 0 2rem}
+
+/* strates */
+.strates{display:grid;gap:1px;background:var(--filet);border:1px solid var(--filet)}
+.strate{
+  background:var(--panneau);
+  display:grid;grid-template-columns:auto 1fr 1fr;gap:clamp(1rem,3vw,2.2rem);
+  padding:clamp(1.1rem,2.6vw,1.8rem);
+  cursor:pointer;border:none;text-align:left;color:inherit;font:inherit;
+  transition:background .2s;
+  width:100%;
+}
+.strate:hover,.strate:focus-visible{background:var(--panneau-haut);outline:none}
+.strate.active{background:var(--panneau-haut);box-shadow:inset 3px 0 0 var(--teinte)}
+@media (max-width:820px){ .strate{grid-template-columns:auto 1fr} .strate .interpretation{grid-column:1/-1} }
+.chiffre{
+  font-family:var(--display);font-weight:300;font-size:2.1rem;line-height:1;
+  color:var(--teinte);min-width:2.2ch;
+}
+.strate h3{font-family:var(--display);font-weight:500;font-size:1.06rem;margin:.15rem 0 .4rem}
+.strate p{margin:0 0 .5rem;font-size:.95rem;color:var(--texte-attenue)}
+.interpretation{border-left:1px solid var(--filet);padding-left:clamp(1rem,3vw,2rem)}
+.interpretation .clef{
+  font-family:var(--mono);font-size:.7rem;color:var(--teinte);display:block;margin-bottom:.3rem;
+}
+.strate[data-n="1"]{--teinte:var(--champ)}
+.strate[data-n="2"]{--teinte:var(--clotur)}
+.strate[data-n="3"]{--teinte:var(--courant)}
+.strate[data-n="4"]{--teinte:var(--acces)}
+
+/* badges de statut épistémique */
+.badge{
+  font-family:var(--mono);font-size:.63rem;letter-spacing:.04em;
+  border:1px solid currentColor;border-radius:2px;
+  padding:.1rem .38rem;margin-right:.3rem;white-space:nowrap;display:inline-block;
+}
+.b-etabli{color:var(--champ)}
+.b-modelise{color:var(--courant)}
+.b-conteste{color:var(--alerte)}
+.b-normatif{color:var(--acces)}
+.b-metaphysique{color:var(--clotur)}
+
+/* thèses */
+.theses{display:grid;gap:1.4rem;grid-template-columns:repeat(auto-fit,minmax(268px,1fr))}
+.these{border-top:2px solid var(--teinte);padding-top:1rem;--teinte:var(--clotur)}
+.these:nth-child(2){--teinte:var(--courant)}
+.these:nth-child(3){--teinte:var(--champ)}
+.these h3{font-family:var(--display);font-weight:500;font-size:1.1rem;margin:.2rem 0 .5rem}
+.these h3 span{color:var(--teinte);font-family:var(--mono);font-size:.8rem;margin-right:.45rem}
+.these p{font-size:.93rem;margin:0 0 .7rem;color:var(--texte-attenue)}
+.chute{
+  font-size:.85rem;color:var(--texte-faible);border-left:1px solid var(--filet);
+  padding-left:.8rem;margin:0;
+}
+.chute b{color:var(--texte-attenue);font-weight:600}
+
+/* volets du test : séquence réelle, donc numérotée */
+.volets{counter-reset:volet;display:grid;gap:0;margin-top:.4rem}
+.volet{
+  counter-increment:volet;
+  display:grid;grid-template-columns:auto 1fr;gap:clamp(1rem,3vw,1.8rem);
+  padding:1.3rem 0;border-top:1px solid var(--filet);
+}
+.volet:last-child{border-bottom:1px solid var(--filet)}
+.volet::before{
+  content:counter(volet);
+  font-family:var(--display);font-size:1.5rem;font-weight:300;line-height:1;
+  color:var(--texte-faible);
+}
+.volet.decisif::before{color:var(--champ)}
+.volet h3{font-family:var(--display);font-weight:500;font-size:1.02rem;margin:0 0 .35rem}
+.volet p{margin:0 0 .4rem;font-size:.94rem;color:var(--texte-attenue);max-width:var(--mesure)}
+.verdict{font-family:var(--mono);font-size:.7rem;color:var(--texte-faible)}
+.volet.decisif .verdict{color:var(--champ)}
+
+/* groupes de volets et interdictions */
+.groupe-volets{font-family:var(--mono);font-size:.74rem;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:var(--texte-faible);margin:2.2rem 0 .2rem}
+.interdictions{max-width:var(--mesure);padding-left:1.4rem;color:var(--texte-attenue);font-size:.93rem}
+.interdictions li{margin-bottom:.45rem}
+
+/* tableau de retrait */
+.tableau{width:100%;border-collapse:collapse;margin-top:.6rem;font-size:.9rem}
+.tableau th,.tableau td{
+  text-align:left;vertical-align:top;padding:.75rem .9rem .75rem 0;
+  border-bottom:1px solid var(--filet);
+}
+.tableau th{
+  font-family:var(--mono);font-size:.68rem;font-weight:400;
+  color:var(--texte-faible);letter-spacing:.03em;
+}
+.tableau td:first-child{font-family:var(--mono);font-size:.78rem;color:var(--texte);white-space:nowrap}
+.tableau td{color:var(--texte-attenue)}
+@media (max-width:700px){
+  .tableau,.tableau tbody,.tableau tr,.tableau td{display:block;width:100%}
+  .tableau thead{display:none}
+  .tableau tr{border-bottom:1px solid var(--filet);padding:.8rem 0}
+  .tableau td{border:none;padding:.15rem 0}
+}
+
+/* références */
+.references{font-size:.86rem;color:var(--texte-faible);max-width:var(--mesure)}
+.references li{margin-bottom:.6rem;line-height:1.55}
+.references a{color:var(--texte-attenue);text-decoration:none;border-bottom:1px solid var(--filet-fort)}
+.references a:hover,.references a:focus-visible{color:var(--champ);border-color:var(--champ)}
+.resolu{font-family:var(--mono);font-size:.62rem;color:var(--champ)}
+.arésoudre{font-family:var(--mono);font-size:.62rem;color:var(--courant)}
+
+footer{
+  margin-top:clamp(3rem,7vw,5rem);padding:2rem 0 3rem;
+  border-top:1px solid var(--filet);
+  font-family:var(--mono);font-size:.7rem;color:var(--texte-faible);line-height:1.8;
+}
+footer p{margin:0}
+a:focus-visible,button:focus-visible{outline:2px solid var(--champ);outline-offset:3px}
+
+/* ───────────────── impression : le thème clair, toujours ───────────────── */
+@media print{
+  body{background:#FFF !important;color:#101820}
+  .bandeau{position:static;background:none;backdrop-filter:none;border-bottom:1px solid #CBD3DB}
+  .bandeau nav,.bascules,.scene-outils,.aide{display:none}
+  .scene-cadre{break-inside:avoid;page-break-inside:avoid;border-color:#CBD3DB}
+  section{break-inside:auto}
+  .strate,.these,.volet{break-inside:avoid;page-break-inside:avoid}
+  .references a{color:inherit}
+}
+</style>
+</head>
+<body>
+
+<header class="bandeau">
+  <div class="enveloppe">
+    <p class="sigle">Assistance Multi IA <span>· Genève · synthèse S-1.5</span></p>
+    <nav>
+      <a href="#cadre"><span class="fr">Cadre</span><span class="en">Framework</span></a>
+      <a href="#complement"><span class="fr">Complément</span><span class="en">Complement</span></a>
+      <a href="#test"><span class="fr">Test</span><span class="en">Test</span></a>
+      <a href="#neurochimie"><span class="fr">Neurochimie</span><span class="en">Neurochemistry</span></a>
+      <a href="#retrait"><span class="fr">Retrait</span><span class="en">Withdrawal</span></a>
+      <a href="#sources"><span class="fr">Sources</span><span class="en">Sources</span></a>
+    </nav>
+    <div class="bascules">
+      <button class="bascule" id="bascule" type="button" aria-label="Basculer français / anglais">FR / EN</button>
+      <button class="bascule" id="bascule-theme" type="button" aria-pressed="false"
+              aria-label="Basculer thème clair / sombre"><span class="glyphe" aria-hidden="true">☀</span><span class="fr">Clair</span><span class="en">Light</span></button>
+    </div>
+  </div>
+</header>
+
+<main class="enveloppe">
+
+  <div class="ouverture">
+    <h1 class="titre">
+      <span class="fr">Fonctionnalisme contraint par le substrat</span>
+      <span class="en">Substrate-constrained functionalism</span>
+    </h1>
+    <p class="sous-titre">
+      <span class="fr">et proto-conscience kinesthésique — synthèse illustrée du programme, de son complément métaphysique et de son ancrage neurochimique</span>
+      <span class="en">and kinaesthetic proto-consciousness — an illustrated synthesis of the programme, its metaphysical complement and its neurochemical anchoring</span>
+    </p>
+    <p class="chapeau">
+      <span class="fr">La conscience est individuée par un <strong>profil fonctionnel</strong>, réalisable de multiples façons en principe ; dans le vivant, elle est réalisée de fait par une classe restreinte de dynamiques ioniques couplées par leurs champs endogènes. Sa forme la plus primitive est une proto-conscience kinesthésique, portée par la boucle de commande et de retour du corps propre. Le noyau du programme n’affirme que cette réalisation de fait ; l’<strong>hypothèse du champ</strong>, qui fait du champ endogène une voie de couplage causalement efficace, appartient à sa ceinture et se teste au niveau du substrat. Le programme reste neutre à l’égard du problème difficile. Le complément métaphysique en est une lecture détachable : il n’ajoute aucun contenu empirique et ne réordonne aucune expérience ; les hypothèses structurales qu’il a fait découvrir, et qui réordonnent les expériences, appartiennent au programme.</span>
+      <span class="en">Consciousness is individuated by a <strong>functional profile</strong>, multiply realisable in principle; in living systems it is realised, as a matter of fact, by a restricted class of ionic dynamics coupled through their endogenous fields. Its most primitive form is a kinaesthetic proto-consciousness, carried by the command-and-return loop of one’s own body. The programme's core asserts only this factual realisation; the <strong>field hypothesis</strong>, which makes the endogenous field a causally efficacious coupling route, belongs to its belt and is tested at the level of the substrate. The programme stays neutral on the hard problem. The metaphysical complement is a detachable reading of it: it adds no empirical content and reorders no experiment; the structural hypotheses it brought to light, which do reorder experiments, belong to the programme.</span>
+    </p>
+    <p class="ourlet">
+      <span>© Genève 2026 Christophe Jean Legros</span>
+      <span>S-1.5 · 19 · 09 · 2026</span>
+      <span class="fr">Documents I v1.5, II v1.4, IV v1.2</span><span class="en">Documents I v1.5, II v1.4, IV v1.2</span>
+    </p>
+  </div>
+
+  <!-- ═══════════ scène tridimensionnelle ═══════════ -->
+  <div class="scene-bloc">
+    <div class="scene-cadre">
+      <canvas id="scene" aria-label="Représentation tridimensionnelle du cadre à quatre niveaux"></canvas>
+      <div class="etiquettes" id="etiquettes">
+        <div class="etiquette" data-n="1"><b>I</b><span class="fr">Substrat</span><span class="en">Substrate</span><br><em class="fr">champs · couplage éphaptique</em><em class="en">fields · ephaptic coupling</em></div>
+        <div class="etiquette" data-n="2"><b>II</b><span class="fr">Proto-conscience</span><span class="en">Proto-consciousness</span><br><em class="fr">boucle close efférence–réafférence</em><em class="en">closed efference–reafference loop</em></div>
+        <div class="etiquette" data-n="3"><b>III</b><span class="fr">Inférence hiérarchique</span><span class="en">Hierarchical inference</span><br><em class="fr">a priori descendants · erreurs ascendantes</em><em class="en">top-down priors · bottom-up errors</em></div>
+        <div class="etiquette" data-n="4"><b>IV</b><span class="fr">Conscience d’accès</span><span class="en">Access consciousness</span><br><em class="fr">ignition · diffusion globale</em><em class="en">ignition · global broadcast</em></div>
+      </div>
+      <p class="aide">
+        <span class="fr">Glisser pour pivoter · molette pour approcher · cliquer une strate</span>
+        <span class="en">Drag to orbit · scroll to zoom · click a layer</span>
+      </p>
+      <div class="scene-outils">
+        <button class="outil" id="btn-vue"><span class="fr">Vue de face</span><span class="en">Front view</span></button>
+        <button class="outil" id="btn-export"><span class="fr">Exporter en HD</span><span class="en">Export in HD</span></button>
+      </div>
+      <div class="replique">
+        <div>
+          <svg viewBox="0 0 560 320" width="560" height="320" role="img" aria-labelledby="ttrepl">
+            <title id="ttrepl">Cadre à quatre niveaux — figure de repli</title>
+            <g fill="none" stroke-width="1.2">
+              <g stroke="var(--acces)"><path d="M80 60 L360 60 L480 100 L200 100 Z"/></g>
+              <g stroke="var(--courant)"><path d="M80 130 L360 130 L480 170 L200 170 Z"/></g>
+              <g stroke="var(--clotur)"><path d="M80 200 L360 200 L480 240 L200 240 Z"/><ellipse cx="280" cy="220" rx="58" ry="20"/></g>
+              <g stroke="var(--champ)"><path d="M80 270 L360 270 L480 310 L200 310 Z"/></g>
+              <g stroke="var(--filet-fort)" stroke-dasharray="3 4">
+                <path d="M280 290 L280 220 M280 220 L280 150 M280 150 L280 80"/>
+              </g>
+            </g>
+            <g font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--texte-attenue)">
+              <text x="20" y="84">IV</text><text x="20" y="154">III</text>
+              <text x="20" y="224">II</text><text x="20" y="294">I</text>
+            </g>
+          </svg>
+          <p style="font-family:var(--mono);font-size:.72rem;margin-top:1rem">
+            <span class="fr">Rendu tridimensionnel indisponible (WebGL ou bibliothèque non chargée). Figure vectorielle de repli.</span>
+            <span class="en">Three-dimensional rendering unavailable (WebGL or library not loaded). Vector fallback figure.</span>
+          </p>
+        </div>
+      </div>
+    </div>
+    <p class="legende">
+      <span class="fr"><b>Figure 1.</b> Le cadre à quatre niveaux et son complément. Le niveau I porte les flux ioniques et le champ endogène qu’ils engendrent ; le niveau II, la plus petite boucle sensorimotrice opérationnellement close ; le niveau III, l’inférence hiérarchique ; le niveau IV, la disponibilité globale. Aucune flèche ne va du complément vers le programme : M1 lit le programme, elle ne le modifie pas ; M2 et le critère de M3, qui ordonnent des expériences, sont des hypothèses du programme. Le rendu est schématique et ne porte aucune quantité.</span>
+      <span class="en"><b>Figure 1.</b> The four-level framework and its complement. Level I carries the ionic currents and the endogenous field they generate; level II, the smallest operationally closed sensorimotor loop; level III, hierarchical inference; level IV, global availability. No arrow runs from the complement back to the programme: M1 reads the programme, it does not modify it; M2 and the criterion of M3, which order experiments, are hypotheses of the programme. The rendering is schematic and carries no quantity.</span>
+    </p>
+  </div>
+
+  <!-- ═══════════ le cadre ═══════════ -->
+  <section id="cadre">
+    <h2 class="intitule"><span class="fr">Le cadre à quatre niveaux</span><span class="en">The four-level framework</span></h2>
+    <p class="amorce">
+      <span class="fr">Chaque niveau reçoit son formalisme, son statut épistémique et sa lecture par le complément. Cliquer une strate pour la retrouver dans la figure.</span>
+      <span class="en">Each level is given its formalism, its epistemic status and its reading by the complement. Click a layer to locate it in the figure.</span>
+    </p>
+
+    <div class="strates">
+      <button class="strate" data-n="4">
+        <span class="chiffre">IV</span>
+        <div>
+          <h3><span class="fr">Conscience d’accès</span><span class="en">Access consciousness</span></h3>
+          <p><span class="fr">Diffusion globale, ignition corticale tardive, disponibilité au rapport et au contrôle. La pensée est la dynamique sérielle de ce niveau, sous une conjecture contestée. Observable polynomiale : indice de complexité perturbationnelle.</span>
+             <span class="en">Global broadcast, late cortical ignition, availability for report and control. Thought is the serial dynamics of this level, under a contested conjecture. Polynomial observable: perturbational complexity index.</span></p>
+          <span class="badge b-etabli fr">Établi (signatures)</span><span class="badge b-etabli en">Established (signatures)</span>
+          <span class="badge b-conteste fr">Contesté (suffisance)</span><span class="badge b-conteste en">Contested (sufficiency)</span>
+        </div>
+        <div class="interpretation">
+          <span class="clef">M3 <span class="fr">étendue · clôture globale · ceinture</span><span class="en">extended · global closure · belt</span></span>
+          <p><span class="fr">La clôture opérationnelle portée à l’ensemble du système. Observable : structure de similarité sous perturbation.</span>
+             <span class="en">Operational closure extended to the whole system. Observable: similarity structure under perturbation.</span></p>
+        </div>
+      </button>
+
+      <button class="strate" data-n="3">
+        <span class="chiffre">III</span>
+        <div>
+          <h3><span class="fr">Inférence hiérarchique</span><span class="en">Hierarchical inference</span></h3>
+          <p><span class="fr">Codage prédictif : a priori descendants, erreurs de prédiction ascendantes. L’inférence exacte étant NP-difficile, une théorie doit spécifier la famille d’approximations qu’elle prête au système, faute de quoi elle est vide.</span>
+             <span class="en">Predictive coding: top-down priors, bottom-up prediction errors. Since exact inference is NP-hard, a theory must specify the family of approximations it ascribes to the system, failing which it is empty.</span></p>
+          <span class="badge b-modelise fr">Modélisé</span><span class="badge b-modelise en">Modelled</span>
+          <span class="badge b-conteste fr">NP-difficile en exact</span><span class="badge b-conteste en">NP-hard when exact</span>
+        </div>
+        <div class="interpretation">
+          <span class="clef">M2 <span class="fr">· structure reflétée · ceinture</span><span class="en">· reflected structure · belt</span></span>
+          <p><span class="fr">Les niveaux d’inférence ne sont pas seulement des mécanismes : ce sont des dimensions de l’espace phénoménal.</span>
+             <span class="en">Levels of inference are not only mechanisms: they are dimensions of phenomenal space.</span></p>
+        </div>
+      </button>
+
+      <button class="strate" data-n="2">
+        <span class="chiffre">II</span>
+        <div>
+          <h3><span class="fr">Proto-conscience kinesthésique</span><span class="en">Kinaesthetic proto-consciousness</span></h3>
+          <p><span class="fr">Boucle efférence–réafférence, soi minimal, agentivité. Le corps est le premier objet non parce qu’il serait plus proche du sujet, mais parce qu’il est le seul dont le système possède simultanément la commande et le retour.</span>
+             <span class="en">Efference–reafference loop, minimal self, agency. The body is the first object not because it is nearer the subject, but because it is the only one of which the system holds command and return at once.</span></p>
+          <span class="badge b-modelise fr">Modélisé</span><span class="badge b-modelise en">Modelled</span>
+          <span class="badge b-conteste fr">Contesté (localisation)</span><span class="badge b-conteste en">Contested (localisation)</span>
+        </div>
+        <div class="interpretation">
+          <span class="clef">M3 <span class="fr">· première clôture · critère en ceinture</span><span class="en">· first closure · criterion in belt</span></span>
+          <p><span class="fr">Le plus petit sujet est la plus petite boucle close. Rival déclaré : la clôture intéroceptive, à laquelle le choix cède si les effets de dimensionnalité y apparaissent.</span>
+             <span class="en">The smallest subject is the smallest closed loop. Declared rival: interoceptive closure, to which the choice yields if the dimensionality effects appear there.</span></p>
+        </div>
+      </button>
+
+      <button class="strate" data-n="1">
+        <span class="chiffre">I</span>
+        <div>
+          <h3><span class="fr">Substrat</span><span class="en">Substrate</span></h3>
+          <p><span class="fr">Flux ioniques transmembranaires, champs endogènes, couplage éphaptique. Les champs existent, sont mesurables, et leur origine ionique est comprise. Ce qui reste à établir, et que l’hypothèse du champ affirme, est qu’ils soient une voie de couplage causalement autonome plutôt qu’un épiphénomène de mesure ; les volets de niveau I le testent.</span>
+             <span class="en">Transmembrane ionic currents, endogenous fields, ephaptic coupling. The fields exist, are measurable, and their ionic origin is understood. What remains to establish, and what the field hypothesis asserts, is that they are a causally autonomous coupling route rather than a measurement epiphenomenon; the level-I strands test this.</span></p>
+          <span class="badge b-etabli fr">Établi (existence)</span><span class="badge b-etabli en">Established (existence)</span>
+          <span class="badge b-modelise fr">Modélisé (hypothèse du champ)</span><span class="badge b-modelise en">Modelled (field hypothesis)</span>
+        </div>
+        <div class="interpretation">
+          <span class="clef">M1 <span class="fr">· bases catégoriques · complément</span><span class="en">· categorical bases · complement</span></span>
+          <p><span class="fr">L’ancrage de la phénoménalité, et l’unité physique du champ comme support de la combinaison. Aucune observable propre ; valeur d’allocation marginale nulle.</span>
+             <span class="en">The anchoring of phenomenality, and the physical unity of the field as the support of combination. No observable of its own; nil marginal allocation value.</span></p>
+        </div>
+      </button>
+    </div>
+  </section>
+
+  <!-- ═══════════ complément ═══════════ -->
+  <section id="complement">
+    <h2 class="intitule"><span class="fr">Le complément et les hypothèses qu'il a fait découvrir</span><span class="en">The complement and the hypotheses it brought to light</span></h2>
+    <p class="amorce">
+      <span class="fr">Le document II construit un monisme russellien structural à individuation par clôture, en trois thèses. Sa version 1.4 sépare ce qui relève de l'interprétation et ce qui relève du programme : M2 et le critère de M3 ordonnent des expériences, et sont versés à la ceinture du programme ; le complément stricto sensu se réduit à M1 et à la lecture ontologique de M3. La détachabilité devient exacte : si le complément est faux, le programme conserve son contenu empirique et son heuristique.</span>
+      <span class="en">Document II builds a structural Russellian monism with individuation by closure, in three theses. Its version 1.4 separates what belongs to interpretation from what belongs to the programme: M2 and the criterion of M3 order experiments, and are moved into the programme's belt; the complement proper reduces to M1 and the ontological reading of M3. Detachability becomes exact: if the complement is false, the programme keeps its empirical content and its heuristic.</span>
+    </p>
+
+    <div class="theses">
+      <article class="these">
+        <span class="badge b-metaphysique fr">Métaphysique · complément</span><span class="badge b-metaphysique en">Metaphysical · complement</span>
+        <h3><span>M1</span><span class="fr">Nature intrinsèque</span><span class="en">Intrinsic nature</span></h3>
+        <p><span class="fr">Les propriétés structurales et dispositionnelles que l'électrodynamique du milieu neuronal attribue aux flux ioniques et aux champs endogènes ont des bases catégoriques, et la phénoménalité y est ancrée. Panprotopsychiste par défaut. La lecture déflationniste conduisant au même programme, la valeur d'allocation marginale de M1 est nulle : elle est conservée comme lecture, non comme hypothèse régulatrice.</span>
+           <span class="en">The structural and dispositional properties that the electrodynamics of the neural medium ascribes to ionic currents and endogenous fields have categorical bases, and phenomenality is anchored in them. Panprotopsychist by default. Since the deflationary reading leads to the same programme, M1's marginal allocation value is nil: it is kept as a reading, not as a regulating hypothesis.</span></p>
+        <p class="chute"><b><span class="fr">Clause datée :</span><span class="en">Dated clause:</span></b>
+          <span class="fr"> si, au 30 septembre 2027, aucune expérience n'a été exhibée dont le rang dépende de M1, elle est tenue définitivement pour une lecture sans rôle régulateur.</span>
+          <span class="en"> if, by 30 September 2027, no experiment has been exhibited whose ranking depends on M1, it is held definitively to be a reading with no regulating role.</span></p>
+      </article>
+
+      <article class="these">
+        <span class="badge b-modelise fr">Modélisé · ceinture</span><span class="badge b-modelise en">Modelled · belt</span>
+        <span class="badge b-conteste fr">Contesté</span><span class="badge b-conteste en">Contested</span>
+        <h3><span>M2</span><span class="fr">Structure</span><span class="en">Structure</span></h3>
+        <p><span class="fr">Le caractère phénoménal d'un état est fixé par l'organisation dynamique à grain fin de son réalisateur, au grain de la dynamique ionique couplée par le champ ; la structure de l'espace phénoménal est homomorphe à celle de la dynamique. Hypothèse de correspondance, qui présuppose l'hypothèse du champ.</span>
+           <span class="en">The phenomenal character of a state is fixed by the fine-grained dynamical organisation of its realiser, at the grain of the field-coupled ionic dynamics; the structure of phenomenal space is homomorphic to that of the dynamics. A correspondence hypothesis, which presupposes the field hypothesis.</span></p>
+        <p class="chute"><b><span class="fr">Si elle est fausse :</span><span class="en">If false:</span></b>
+          <span class="fr"> l'hypothèse du champ perd son argument structural ; M1, M3 et la contrainte de substrat subsistent.</span>
+          <span class="en"> the field hypothesis loses its structural argument; M1, M3 and the substrate constraint remain.</span></p>
+      </article>
+
+      <article class="these">
+        <span class="badge b-modelise fr">Critère : ceinture</span><span class="badge b-modelise en">Criterion: belt</span>
+        <span class="badge b-metaphysique fr">Lecture : complément</span><span class="badge b-metaphysique en">Reading: complement</span>
+        <h3><span>M3</span><span class="fr">Individuation par clôture</span><span class="en">Individuation by closure</span></h3>
+        <p><span class="fr">Critère : la frontière phénoménale suit la clôture opérationnelle d'une boucle d'auto-modulation ; la proto-conscience kinesthésique correspond à la plus petite boucle close. Lecture : le sujet est ce que la clôture délimite.</span>
+           <span class="en">Criterion: the phenomenal boundary follows the operational closure of a self-modulation loop; kinaesthetic proto-consciousness corresponds to the smallest closed loop. Reading: the subject is what closure delimits.</span></p>
+        <p class="chute"><b><span class="fr">Si elle est fausse :</span><span class="en">If false:</span></b>
+          <span class="fr"> reste un monisme russellien structural sans critère d'individuation ; le problème de la frontière est rouvert.</span>
+          <span class="en"> a structural Russellian monism without individuation criterion remains; the boundary problem is reopened.</span></p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ═══════════ test ═══════════ -->
+  <section id="test">
+    <h2 class="intitule"><span class="fr">Le test prioritaire : ce que chaque volet dissocie</span><span class="en">The priority test: what each strand dissociates</span></h2>
+    <p class="amorce">
+      <span class="fr">La difficulté n'est pas de mesure mais de conjonction. Les potentiels de champ résultent de la superposition des courants transmembranaires, synaptiques et non synaptiques : observables de champ et de décharge entretiennent une dépendance générative. Depuis la version 1.5 du document principal, la contrainte de substrat (noyau) est distinguée de l'hypothèse du champ (ceinture), et le premier axe est articulé en trois niveaux de preuve. Aucune signature de la conscience n'est mesurable dans une tranche : les volets de niveau I testent le porteur, un auxiliaire de pont déclaré relie le porteur aux signatures, et seuls les volets humains touchent la structure phénoménale.</span>
+      <span class="en">The difficulty is not one of measurement but of conjunction. Field potentials arise from the superposition of transmembrane currents, synaptic and non-synaptic: field and spiking observables stand in a generative dependence. Since version 1.5 of the main document, the substrate constraint (core) is distinguished from the field hypothesis (belt), and the first axis is articulated in three levels of evidence. No signature of consciousness is measurable in a slice: the level-I strands test the carrier, a declared bridge auxiliary links carrier to signatures, and only the human strands touch phenomenal structure.</span>
+    </p>
+
+    <h3 class="groupe-volets"><span class="fr">Niveau I · hypothèse du champ</span><span class="en">Level I · field hypothesis</span></h3>
+    <div class="volets">
+      <article class="volet decisif">
+        <div>
+          <h3><span class="fr">Blocage synaptique, propagation éphaptique conservée</span><span class="en">Synaptic blockade, ephaptic propagation preserved</span></h3>
+          <p><span class="fr">La propagation persiste à travers une coupure sous blocage synaptique et cède à un champ d'opposition (Chiang et al., 2019). Le volet supprime la voie rivale, mais le champ reste engendré par des courants non synaptiques : il établit l'autonomie causale du champ comme voie de propagation, non l'indépendance des observables.</span>
+             <span class="en">Propagation persists across a cut under synaptic blockade and yields to an opposing field (Chiang et al., 2019). The strand removes the rival route, but the field is still generated by non-synaptic currents: it establishes the causal autonomy of the field as a propagation route, not the independence of the observables.</span></p>
+          <p class="verdict"><span class="fr">In vitro · supprime la voie rivale · issue négative : l'hypothèse du champ tombe, le noyau demeure</span><span class="en">In vitro · removes the rival route · negative outcome: the field hypothesis falls, the core remains</span></p>
+        </div>
+      </article>
+      <article class="volet decisif">
+        <div>
+          <h3><span class="fr">Manipulation osmotique de la fraction volumique, sous blocage synaptique</span><span class="en">Osmotic manipulation of volume fraction, under synaptic blockade</span></h3>
+          <p><span class="fr">La résistivité du milieu fixe le gain du couplage : faire varier la fraction volumique fait varier le rapport entre courant et champ, c'est-à-dire la dépendance générative elle-même. Prédiction : l'efficacité de la propagation varie dans le sens fixé par la résistivité, à potassium et volume cellulaire contrôlés. Antériorité : Traynelis &amp; Dingledine (1989), Dudek et al. (1990). Texte de référence : document IV, section 4.</span>
+             <span class="en">The resistivity of the medium sets the coupling gain: varying volume fraction varies the ratio of current to field, that is, the generative dependence itself. Prediction: propagation efficacy varies in the direction set by resistivity, with potassium and cell volume controlled. Priority: Traynelis &amp; Dingledine (1989), Dudek et al. (1990). Reference text: document IV, section 4.</span></p>
+          <p class="verdict"><span class="fr">In vitro · seul volet qui fasse varier la voie d'intérêt · dissociant sous contrôles</span><span class="en">In vitro · the only strand that varies the route of interest · dissociating under controls</span></p>
+        </div>
+      </article>
+    </div>
+
+    <h3 class="groupe-volets"><span class="fr">Pont · du niveau I au niveau IV</span><span class="en">Bridge · from level I to level IV</span></h3>
+    <div class="volets">
+      <article class="volet">
+        <div>
+          <h3><span class="fr">Auxiliaire de pont : cycle veille-sommeil et intervention locale</span><span class="en">Bridge auxiliary: sleep–wake cycle and local intervention</span></h3>
+          <p><span class="fr">Chez l'animal non anesthésié, le couplage doit covarier avec la fraction volumique et les signatures au cours du cycle veille-sommeil ; une intervention locale sur la fraction volumique, à composition ionique mesurée, doit déplacer les marqueurs locaux de ces signatures. La covariation seule ne discrimine pas : la composition ionique varie avec l'état (Ding et al., 2016), et une cause commune neuromodulatrice peut agir en amont. L'intervention locale rompt la cause commune.</span>
+             <span class="en">In the non-anaesthetised animal, coupling must covary with volume fraction and signatures across the sleep–wake cycle; a local intervention on volume fraction, with ionic composition measured, must shift the local markers of those signatures. Covariation alone does not discriminate: ionic composition varies with state (Ding et al., 2016), and a neuromodulatory common cause may act upstream. The local intervention breaks the common cause.</span></p>
+          <p class="verdict"><span class="fr">In vivo · révisé avant l'hypothèse du champ · valeur portée par l'intervention</span><span class="en">In vivo · revised before the field hypothesis · value carried by the intervention</span></p>
+        </div>
+      </article>
+    </div>
+
+    <h3 class="groupe-volets"><span class="fr">Humain · hypothèse de grain M2</span><span class="en">Human · grain hypothesis M2</span></h3>
+    <div class="volets">
+      <article class="volet">
+        <div>
+          <h3><span class="fr">EEG et MEG reconstruits au niveau des sources</span><span class="en">Source-reconstructed EEG and MEG</span></h3>
+          <p><span class="fr">Partition de variance entre matrice de champ et substitut de décharge, contre la matrice de similarité phénoménale. Le biais méthodologique favorise le champ : l'issue favorable ne discrimine pas, l'issue contraire au biais est informative.</span>
+             <span class="en">Variance partitioning between field matrix and spiking proxy, against the phenomenal similarity matrix. The methodological bias favours the field: the favourable outcome does not discriminate, the outcome against the bias is informative.</span></p>
+          <p class="verdict"><span class="fr">Coût faible · informatif dans un seul sens</span><span class="en">Low cost · informative in one direction only</span></p>
+        </div>
+      </article>
+      <article class="volet">
+        <div>
+          <h3><span class="fr">Enregistrements intracrâniens cliniques</span><span class="en">Clinical intracranial recordings</span></h3>
+          <p><span class="fr">Potentiels de champ locaux et décharges unitaires enregistrés simultanément chez des patients implantés, avec rapport : la décharge est mesurée, non inférée. Dissociation partielle ; même asymétrie du biais, avec un pouvoir supérieur.</span>
+             <span class="en">Local field potentials and single units recorded simultaneously in implanted patients, with report: firing is measured, not inferred. Partial dissociation; same asymmetry of bias, with greater power.</span></p>
+          <p class="verdict"><span class="fr">Coût modéré · condition de retrait de M2 dans le sens contraire au biais</span><span class="en">Moderate cost · withdrawal condition for M2 against the bias</span></p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ═══════════ neurochimie ═══════════ -->
+  <section id="neurochimie">
+    <h2 class="intitule"><span class="fr">L'ancrage neurochimique</span><span class="en">The neurochemical anchoring</span></h2>
+    <p class="amorce">
+      <span class="fr">Le document IV (v1.2) répartit treize classes moléculaires en dix-sept couples espèce–fonction et leur assigne l'un de cinq rôles. Il les ordonne par dominance de Pareto sur trois sous-critères — distance causale au porteur, constante de temps, effet d'ablation — et obtient un ordre partiel en huit strates, sans agrégation numérique.</span>
+      <span class="en">Document IV (v1.2) divides thirteen molecular classes into seventeen species–function pairs and assigns each one of five roles. It orders them by Pareto dominance on three sub-criteria — causal distance to the carrier, time constant, ablation effect — and obtains a partial order in eight strata, without numerical aggregation.</span>
+    </p>
+    <table class="tableau">
+      <thead><tr>
+        <th><span class="fr">Rôle</span><span class="en">Role</span></th>
+        <th><span class="fr">Définition</span><span class="en">Definition</span></th>
+        <th><span class="fr">Couples</span><span class="en">Pairs</span></th>
+      </tr></thead>
+      <tbody>
+        <tr><td><span class="fr">Constitutif</span><span class="en">Constitutive</span></td><td><span class="fr">Charge mobile ou vanne ; son retrait supprime le porteur.</span><span class="en">Mobile charge or valve; its removal abolishes the carrier.</span></td><td><span class="fr">ions (1) ; canaux, connexines (2a)</span><span class="en">ions (1); channels, connexins (2a)</span></td></tr>
+        <tr><td><span class="fr">Générateur</span><span class="en">Generator</span></td><td><span class="fr">Commande la composante dominante du porteur sans être requis pour son existence.</span><span class="en">Commands the carrier's dominant component without being required for its existence.</span></td><td><span class="fr">glutamate, GABA, glycine (3)</span><span class="en">glutamate, GABA, glycine (3)</span></td></tr>
+        <tr><td><span class="fr">Paramétrique</span><span class="en">Parametric</span></td><td><span class="fr">Fixe lentement un coefficient des équations du porteur.</span><span class="en">Slowly sets a coefficient of the carrier's equations.</span></td><td><span class="fr">milieu extracellulaire (4), sels minéraux (5), lipides et myéline (11)</span><span class="en">extracellular medium (4), mineral salts (5), lipids and myelin (11)</span></td></tr>
+        <tr><td><span class="fr">Modulateur</span><span class="en">Modulatory</span></td><td><span class="fr">Agit par un autre rôle ; fixe gain, seuil, phase ou précision.</span><span class="en">Acts through another role; sets gain, threshold, phase or precision.</span></td><td><span class="fr">neuromodulateurs (6), ADN et ARN (8), hormones (9a), neurostéroïdes (9b), protons (10a), NO (10b), zinc (12a)</span><span class="en">neuromodulators (6), DNA and RNA (8), hormones (9a), neurosteroids (9b), protons (10a), NO (10b), zinc (12a)</span></td></tr>
+        <tr><td><span class="fr">Permissif</span><span class="en">Permissive</span></td><td><span class="fr">Condition de maintien ; son retrait conduit à une défaillance non sélective.</span><span class="en">Maintenance condition; its removal leads to non-selective failure.</span></td><td><span class="fr">Na⁺/K⁺-ATPase (2b), métabolites (7), Fe, Cu, Se, Mn (12b), cofacteurs (13)</span><span class="en">Na⁺/K⁺-ATPase (2b), metabolites (7), Fe, Cu, Se, Mn (12b), cofactors (13)</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ═══════════ retrait ═══════════ -->
+  <section id="retrait">
+    <h2 class="intitule"><span class="fr">Ce qui ferait céder chaque thèse</span><span class="en">What would make each thesis yield</span></h2>
+    <p class="amorce">
+      <span class="fr">Une condition d'abandon sans terme serait une clause de style. Le programme énonce donc, pour chaque thèse, la condition de retrait et ce qui subsiste après elle. Le noyau — individuation par un profil fonctionnel, contrainte de substrat au sens faible, émergence faible, recevabilité polynomiale — n'y figure pas : sa révision serait l'abandon du programme.</span>
+      <span class="en">An abandonment condition with no deadline would be a stylistic clause. The programme therefore states, for each thesis, the withdrawal condition and what survives it. The core — individuation by a functional profile, substrate constraint in the weak sense, weak emergence, polynomial admissibility — does not appear: its revision would be the abandonment of the programme.</span>
+    </p>
+    <table class="tableau">
+      <thead>
+        <tr>
+          <th><span class="fr">Thèse</span><span class="en">Thesis</span></th>
+          <th><span class="fr">Condition de retrait</span><span class="en">Withdrawal condition</span></th>
+          <th><span class="fr">Ce qui subsiste</span><span class="en">What survives</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="fr">Hypothèse du champ</span><span class="en">Field hypothesis</span></td>
+          <td><span class="fr">Volets de niveau I négatifs : pas de propagation par le champ sous blocage synaptique, ou efficacité indépendante de la fraction volumique, à potassium et volume cellulaire contrôlés.</span><span class="en">Negative level-I strands: no field-mediated propagation under synaptic blockade, or efficacy independent of volume fraction, with potassium and cell volume controlled.</span></td>
+          <td><span class="fr">La contrainte de substrat ; le programme cherche quelle autre voie de la classe ionique réalise le profil. M2 tombe avec son présupposé.</span><span class="en">The substrate constraint; the programme looks for which other route of the ionic class realises the profile. M2 falls with its presupposition.</span></td>
+        </tr>
+        <tr>
+          <td><span class="fr">Auxiliaire de pont</span><span class="en">Bridge auxiliary</span></td>
+          <td><span class="fr">Ni covariation au cours du cycle veille-sommeil, ni effet de l'intervention locale sur les marqueurs de niveau IV, à composition ionique mesurée.</span><span class="en">Neither covariation across the sleep–wake cycle nor effect of the local intervention on level-IV markers, with ionic composition measured.</span></td>
+          <td><span class="fr">L'hypothèse du champ, restreinte au niveau I.</span><span class="en">The field hypothesis, restricted to level I.</span></td>
+        </tr>
+        <tr>
+          <td>M1</td>
+          <td><span class="fr">Aucune expérience exhibée au 30 septembre 2027 dont le rang dépende de M1 ; ou complément modificateur corroboré, qui la rendrait superflue.</span><span class="en">No experiment exhibited by 30 September 2027 whose ranking depends on M1; or a corroborated modifying complement, which would make it superfluous.</span></td>
+          <td><span class="fr">M2 et M3 ; programme et heuristique inchangés.</span><span class="en">M2 and M3; programme and heuristic unchanged.</span></td>
+        </tr>
+        <tr>
+          <td>M2</td>
+          <td><span class="fr">Hypothèse du champ réfutée ; ou, chez l'humain, aucune part de structure phénoménale expliquée par le champ au-delà de la décharge, issue contraire au biais.</span><span class="en">Field hypothesis refuted; or, in humans, no share of phenomenal structure explained by the field beyond firing, an outcome against the bias.</span></td>
+          <td><span class="fr">M1 et M3 ; l'hypothèse du champ si seule la seconde condition est remplie ; la contrainte de substrat dans tous les cas.</span><span class="en">M1 and M3; the field hypothesis if only the second condition holds; the substrate constraint in every case.</span></td>
+        </tr>
+        <tr>
+          <td>M3</td>
+          <td><span class="fr">Déplacements de frontière mieux prédits par une synchronie imposée (résonance partagée) ou par la topologie du champ que par la clôture.</span><span class="en">Boundary shifts better predicted by imposed synchrony (shared resonance) or by field topology than by closure.</span></td>
+          <td><span class="fr">Un monisme russellien structural sans critère d'individuation ; frontière rouverte.</span><span class="en">A structural Russellian monism without an individuation criterion; boundary reopened.</span></td>
+        </tr>
+        <tr>
+          <td><span class="fr">Kinesthésique</span><span class="en">Kinaesthetic</span></td>
+          <td><span class="fr">Effets de dimensionnalité obtenus par manipulation de la congruence intéroceptive, non sensorimotrice.</span><span class="en">Dimensionality effects obtained by manipulating interoceptive, not sensorimotor, congruence.</span></td>
+          <td><span class="fr">Le cadre, avec un niveau II redéfini comme intéroceptif.</span><span class="en">The framework, with level II redefined as interoceptive.</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 class="groupe-volets"><span class="fr">Ordre de révision déclaré</span><span class="en">Declared revision order</span></h3>
+    <p class="amorce">
+      <span class="fr">Procédure d'inférence et auxiliaires de mesure → auxiliaire de pont → hypothèse de grain (M2) → critère d'individuation (M3) → thèse kinesthésique → hypothèse du champ. Commun aux documents I, II et IV.</span>
+      <span class="en">Inference procedure and measurement auxiliaries → bridge auxiliary → grain hypothesis (M2) → individuation criterion (M3) → kinaesthetic thesis → field hypothesis. Common to documents I, II and IV.</span>
+    </p>
+
+    <h3 class="groupe-volets"><span class="fr">Heuristique négative de la série</span><span class="en">The series' negative heuristic</span></h3>
+    <ol class="interdictions">
+      <li><span class="fr">Interdiction de quantifier un degré de proto-conscience ou d'expérience.</span><span class="en">No quantifying a degree of proto-consciousness or of experience.</span></li>
+      <li><span class="fr">Interdiction d'identifier une mesure à la phénoménalité.</span><span class="en">No identifying a measure with phenomenality.</span></li>
+      <li><span class="fr">Interdiction d'inférer un mécanisme d'un succès d'ajustement.</span><span class="en">No inferring a mechanism from a fitting success.</span></li>
+      <li><span class="fr">Interdiction des scores agrégés sur des critères ordinaux dépourvus d'échelle commune.</span><span class="en">No aggregate scores over ordinal criteria lacking a common scale.</span></li>
+      <li><span class="fr">Interdiction d'inférer un rôle constitutif d'un effet d'ablation permissif.</span><span class="en">No inferring a constitutive role from a permissive ablation effect.</span></li>
+    </ol>
+  </section>
+
+  <!-- ═══════════ références ═══════════ -->
+  <section id="sources">
+    <h2 class="intitule"><span class="fr">Appuis principaux de la synthèse</span><span class="en">Principal supports of the synthesis</span></h2>
+    <p class="amorce">
+      <span class="fr">Sélection restreinte aux résultats mobilisés ci-dessus. L'appareil complet figure dans les documents I, II et IV. La mention <span class="resolu">(v)</span> signale une entrée dont le DOI a été résolu, lors de la rédaction ou le 19 septembre 2026, contre le système Handle de la DOI Foundation ou contre les métadonnées Crossref ; toutes les entrées ci-dessous portent cette mention.</span>
+      <span class="en">Restricted to the results drawn on above. The full apparatus is in documents I, II and IV. <span class="resolu">(v)</span> marks an entry whose DOI was resolved, at the time of writing or on 19 September 2026, against the DOI Foundation Handle system or Crossref metadata; every entry below carries this mark.</span>
+    </p>
+    <ol class="references">
+      <li>Anastassiou, C. A., Perin, R., Markram, H., &amp; Koch, C. (2011). Ephaptic coupling of cortical neurons. <i>Nature Neuroscience, 14</i>(2), 217–223. <a href="https://doi.org/10.1038/nn.2727">10.1038/nn.2727</a> <span class="resolu">(v)</span></li>
+      <li>Bishop, R. C., &amp; Atmanspacher, H. (2006). Contextual emergence in the description of properties. <i>Foundations of Physics, 36</i>(12), 1753–1777. <a href="https://doi.org/10.1007/s10701-006-9082-8">10.1007/s10701-006-9082-8</a> <span class="resolu">(v)</span></li>
+      <li>Buzsáki, G., Anastassiou, C. A., &amp; Koch, C. (2012). The origin of extracellular fields and currents — EEG, ECoG, LFP and spikes. <i>Nature Reviews Neuroscience, 13</i>(6), 407–420. <a href="https://doi.org/10.1038/nrn3241">10.1038/nrn3241</a> <span class="resolu">(v)</span></li>
+      <li>Casali, A. G., Gosseries, O., Rosanova, M., Boly, M., Sarasso, S., Casali, K. R., Casarotto, S., Bruno, M.-A., Laureys, S., Tononi, G., &amp; Massimini, M. (2013). A theoretically based index of consciousness independent of sensory processing and behavior. <i>Science Translational Medicine, 5</i>(198), 198ra105. <a href="https://doi.org/10.1126/scitranslmed.3006294">10.1126/scitranslmed.3006294</a> <span class="resolu">(v)</span></li>
+      <li>Chiang, C.-C., Shivacharan, R. S., Wei, X., Gonzalez-Reyes, L. E., &amp; Durand, D. M. (2019). Slow periodic activity in the longitudinal hippocampal slice can self-propagate non-synaptically by a mechanism consistent with ephaptic coupling. <i>The Journal of Physiology, 597</i>(1), 249–269. <a href="https://doi.org/10.1113/JP276904">10.1113/JP276904</a> <span class="resolu">(v)</span></li>
+      <li>Ding, F., O'Donnell, J., Xu, Q., Kang, N., Goldman, N., &amp; Nedergaard, M. (2016). Changes in the composition of brain interstitial ions control the sleep-wake cycle. <i>Science, 352</i>(6285), 550–555. <a href="https://doi.org/10.1126/science.aad4821">10.1126/science.aad4821</a> <span class="resolu">(v)</span></li>
+      <li>Dudek, F. E., Obenaus, A., &amp; Tasker, J. G. (1990). Osmolality-induced changes in extracellular volume alter epileptiform bursts independent of chemical synapses in the rat: Importance of non-synaptic mechanisms in hippocampal epileptogenesis. <i>Neuroscience Letters, 120</i>(2), 267–270. <a href="https://doi.org/10.1016/0304-3940(90)90056-F">10.1016/0304-3940(90)90056-F</a> <span class="resolu">(v)</span></li>
+      <li>Fink, S. B., Kob, L., &amp; Lyre, H. (2021). A structural constraint on neural correlates of consciousness. <i>Philosophy and the Mind Sciences, 2</i>, 7. <a href="https://doi.org/10.33735/phimisci.2021.79">10.33735/phimisci.2021.79</a> <span class="resolu">(v)</span></li>
+      <li>Kleiner, J., &amp; Hoel, E. (2021). Falsification and consciousness. <i>Neuroscience of Consciousness, 2021</i>(1), niab001. <a href="https://doi.org/10.1093/nc/niab001">10.1093/nc/niab001</a> <span class="resolu">(v)</span></li>
+      <li>Kriegeskorte, N., Mur, M., &amp; Bandettini, P. (2008). Representational similarity analysis – connecting the branches of systems neuroscience. <i>Frontiers in Systems Neuroscience, 2</i>, 4. <a href="https://doi.org/10.3389/neuro.06.004.2008">10.3389/neuro.06.004.2008</a> <span class="resolu">(v)</span></li>
+      <li>Okasha, S. (2011). Theory choice and social choice: Kuhn versus Arrow. <i>Mind, 120</i>(477), 83–115. <a href="https://doi.org/10.1093/mind/fzr010">10.1093/mind/fzr010</a> <span class="resolu">(v)</span></li>
+      <li>Syková, E., &amp; Nicholson, C. (2008). Diffusion in brain extracellular space. <i>Physiological Reviews, 88</i>(4), 1277–1340. <a href="https://doi.org/10.1152/physrev.00027.2007">10.1152/physrev.00027.2007</a> <span class="resolu">(v)</span></li>
+      <li>Traynelis, S. F., &amp; Dingledine, R. (1989). Role of extracellular space in hyperosmotic suppression of potassium-induced electrographic seizures. <i>Journal of Neurophysiology, 61</i>(5), 927–938. <a href="https://doi.org/10.1152/jn.1989.61.5.927">10.1152/jn.1989.61.5.927</a> <span class="resolu">(v)</span></li>
+    </ol>
+  </section>
+
+  <footer>
+    <p>© Genève 2026 Christophe Jean Legros · Assistance Multi IA · Assistant-Multi-IA@proton.me</p>
+    <p><span class="fr">Synthèse illustrée S-1.5 du 19 septembre 2026, synchronisée sur les documents I (v1.5), II (v1.4) et IV (v1.2). La synthèse porte désormais une numérotation propre, préfixée S ; la version précédente, numérotée 1.4 et datée du 13 septembre 2026, devient S-1.4. Aucune valeur numérique n'est avancée sans source ; la figure est schématique et ne porte aucune quantité.</span>
+       <span class="en">Illustrated synthesis S-1.5 of 19 September 2026, synchronised with documents I (v1.5), II (v1.4) and IV (v1.2). The synthesis now carries its own numbering, prefixed S; the previous version, numbered 1.4 and dated 13 September 2026, becomes S-1.4. No numerical value is advanced without a source; the figure is schematic and carries no quantity.</span></p>
+  </footer>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  /* crochets posés ici, renseignés plus bas une fois la scène construite */
+  var majTheme3D  = null;   /* répercute le thème sur les matériaux WebGL */
+  var apresChangement = null; /* remesure et replace les étiquettes */
+
+  /* ───── bascule linguistique ───── */
+  /* même clé que le document IV : la langue choisie suit le lecteur d'un document à l'autre */
+  var CLE_LANGUE = 'fcs-langue';
+  var btnLangue = document.getElementById('bascule');
+  function memoriserL(v){ try{ localStorage.setItem(CLE_LANGUE, v); }catch(e){} }
+  function memoriseL(){ try{ return localStorage.getItem(CLE_LANGUE); }catch(e){ return null; } }
+  function appliquerLangue(l, retenir){
+    var en = (l === 'en');
+    document.body.classList.toggle('lang-en', en);
+    document.documentElement.lang = en ? 'en' : 'fr';
+    btnLangue.textContent = en ? 'EN / FR' : 'FR / EN';
+    if(retenir) memoriserL(en ? 'en' : 'fr');
+    if(apresChangement) apresChangement();   /* les libellés changent de largeur */
+  }
+  appliquerLangue(memoriseL() || 'fr', false);
+  btnLangue.addEventListener('click', function(){
+    appliquerLangue(document.body.classList.contains('lang-en') ? 'fr' : 'en', true);
+  });
+
+  /* ───── bascule chromatique : clair / sombre ───── */
+  var CLE_THEME = 'fcs-theme';
+  var btnTheme  = document.getElementById('bascule-theme');
+  var glypheTheme = btnTheme.querySelector('.glyphe');
+  var libelleFR   = btnTheme.querySelector('.fr');
+  var libelleEN   = btnTheme.querySelector('.en');
+  var themeCourant = 'sombre';
+
+  /* le stockage local est refusé sur certains contextes file:// — on l'entoure */
+  function memoriser(t){ try{ localStorage.setItem(CLE_THEME, t); }catch(e){} }
+  function memorise(){ try{ return localStorage.getItem(CLE_THEME); }catch(e){ return null; } }
+
+  function majBoutonTheme(){
+    var versClair = (themeCourant === 'sombre');   /* le bouton annonce l'action */
+    glypheTheme.textContent = versClair ? '☀' : '☾';
+    libelleFR.textContent   = versClair ? 'Clair' : 'Sombre';
+    libelleEN.textContent   = versClair ? 'Light' : 'Dark';
+    btnTheme.setAttribute('aria-pressed', themeCourant === 'clair' ? 'true' : 'false');
+    btnTheme.setAttribute('aria-label', versClair
+      ? 'Passer au thème clair / switch to light theme'
+      : 'Passer au thème sombre / switch to dark theme');
+  }
+
+  function appliquerTheme(t, retenir){
+    themeCourant = (t === 'clair') ? 'clair' : 'sombre';
+    document.body.classList.toggle('clair', themeCourant === 'clair');
+    document.documentElement.style.colorScheme = (themeCourant === 'clair') ? 'light' : 'dark';
+    majBoutonTheme();
+    if(retenir) memoriser(themeCourant);
+    if(majTheme3D) majTheme3D(themeCourant);
+    if(apresChangement) apresChangement();
+  }
+
+  var prefClair = window.matchMedia('(prefers-color-scheme: light)');
+  appliquerTheme(memorise() || (prefClair.matches ? 'clair' : 'sombre'), false);
+
+  btnTheme.addEventListener('click', function(){
+    appliquerTheme(themeCourant === 'sombre' ? 'clair' : 'sombre', true);
+  });
+  /* tant que rien n'a été choisi explicitement, on suit le système */
+  if(prefClair.addEventListener){
+    prefClair.addEventListener('change', function(e){
+      if(!memorise()) appliquerTheme(e.matches ? 'clair' : 'sombre', false);
+    });
+  }
+
+  if(typeof THREE === 'undefined'){ document.body.classList.add('sans-webgl'); return; }
+
+  var canvas = document.getElementById('scene');
+  var renderer;
+  try{
+    renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:true, alpha:true, preserveDrawingBuffer:true});
+  }catch(e){ document.body.classList.add('sans-webgl'); return; }
+
+  var HD = Math.min(window.devicePixelRatio || 1, 2);
+  renderer.setPixelRatio(HD);
+
+  var scene  = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(38, 16/9, 0.1, 200);
+
+  /* palettes de la scène : les teintes de construction restent celles du
+     thème sombre ; l'indexation ci-dessous permet de les permuter à chaud. */
+  var PALETTE = {
+    sombre:{1:0x5FD3C4, 2:0xB08CE8, 3:0xE8A33D, 4:0x7FB2F0, neutre:0x92B2CD},
+    clair :{1:0x0B6F62, 2:0x54348C, 3:0x8C4E08, 4:0x214E8C, neutre:0x4B6278}
+  };
+  var FOND3D = {sombre:0x060E1A, clair:0xFBF9F4};
+  var GAIN3D = {sombre:1, clair:1.85};   /* un trait clair sur fond clair s'efface */
+  var COULEUR = PALETTE.sombre;
+  var theme3D = 'sombre';
+  var GAIN = 1;
+  function opac(base, facteur){
+    return Math.min(1, base*GAIN) * (facteur === undefined ? 1 : facteur);
+  }
+  var Y = {1:-4.8, 2:-1.6, 3:1.6, 4:4.8};
+  var LARGEUR = 9.4, PROFONDEUR = 5.9;
+
+  var strates = {};   /* n → {plan, groupe} */
+  var plans = [];
+  var reduit = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ───── strates ───── */
+  function creerStrate(n){
+    var g = new THREE.Group();
+    g.position.y = Y[n];
+
+    var geo = new THREE.PlaneGeometry(LARGEUR, PROFONDEUR);
+    var plan = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
+      color:COULEUR[n], transparent:true, opacity:0.055, side:THREE.DoubleSide, depthWrite:false
+    }));
+    plan.rotation.x = -Math.PI/2;
+    plan.userData.n = n;
+    g.add(plan); plans.push(plan);
+
+    var bord = new THREE.LineSegments(
+      new THREE.EdgesGeometry(geo),
+      new THREE.LineBasicMaterial({color:COULEUR[n], transparent:true, opacity:0.55})
+    );
+    bord.rotation.x = -Math.PI/2;
+    g.add(bord);
+
+    scene.add(g);
+    strates[n] = {groupe:g, plan:plan, bord:bord, materiaux:[plan.material, bord.material]};
+    return g;
+  }
+  [1,2,3,4].forEach(creerStrate);
+
+  /* ── niveau I : flux ioniques et champ endogène ── */
+  var NB = 1600;
+  var posI = new Float32Array(NB*3);
+  var basI = new Float32Array(NB*2);
+  for(var i=0;i<NB;i++){
+    var x = (Math.random()-0.5)*LARGEUR*0.94;
+    var z = (Math.random()-0.5)*PROFONDEUR*0.94;
+    posI[i*3]=x; posI[i*3+1]=(Math.random()-0.5)*0.5; posI[i*3+2]=z;
+    basI[i*2]=x; basI[i*2+1]=z;
+  }
+  var geoI = new THREE.BufferGeometry();
+  geoI.setAttribute('position', new THREE.BufferAttribute(posI,3));
+  var nuage = new THREE.Points(geoI, new THREE.PointsMaterial({
+    color:COULEUR[1], size:0.055, transparent:true, opacity:0.75, sizeAttenuation:true
+  }));
+  strates[1].groupe.add(nuage);
+
+  /* lignes de champ */
+  var lignesChamp = [];
+  for(var L=0;L<5;L++){
+    var pts=[], dz=(L-2)*1.0;
+    for(var t=0;t<=48;t++){
+      var u=t/48;
+      pts.push(new THREE.Vector3(
+        (u-0.5)*LARGEUR*0.9,
+        0.32+Math.sin(u*Math.PI)*0.55,
+        dz + Math.sin(u*Math.PI*2 + L)*0.45
+      ));
+    }
+    var courbe = new THREE.CatmullRomCurve3(pts);
+    var lg = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(courbe.getPoints(90)),
+      new THREE.LineBasicMaterial({color:0xE8A33D, transparent:true, opacity:0.28})
+    );
+    strates[1].groupe.add(lg);
+    lignesChamp.push(lg);
+  }
+
+  /* ── niveau II : boucle close efférence–réafférence ── */
+  var anneau = new THREE.Mesh(
+    new THREE.TorusGeometry(1.85, 0.045, 10, 128),
+    new THREE.MeshBasicMaterial({color:COULEUR[2], transparent:true, opacity:0.85})
+  );
+  anneau.rotation.x = -Math.PI/2;
+  strates[2].groupe.add(anneau);
+
+  var halo = new THREE.Mesh(
+    new THREE.RingGeometry(1.70, 2.00, 96),
+    new THREE.MeshBasicMaterial({color:COULEUR[2], transparent:true, opacity:0.10, side:THREE.DoubleSide})
+  );
+  halo.rotation.x = -Math.PI/2;
+  strates[2].groupe.add(halo);
+
+  function marqueur(couleur){
+    var m = new THREE.Mesh(
+      new THREE.SphereGeometry(0.13, 16, 16),
+      new THREE.MeshBasicMaterial({color:couleur})
+    );
+    strates[2].groupe.add(m); return m;
+  }
+  var efference  = marqueur(0xE8A33D);   /* commande */
+  var reafference= marqueur(0x5FD3C4);   /* retour */
+
+  /* ── niveau III : hiérarchie d'inférence ── */
+  var rangs = [
+    {z:-1.85, n:7}, {z:-0.10, n:5}, {z:1.65, n:3}
+  ];
+  var noeuds = [];
+  rangs.forEach(function(r, ri){
+    var ligne=[];
+    for(var k=0;k<r.n;k++){
+      var x = (k-(r.n-1)/2) * (LARGEUR*0.82/Math.max(r.n-1,1));
+      var s = new THREE.Mesh(
+        new THREE.SphereGeometry(0.105, 14, 14),
+        new THREE.MeshBasicMaterial({color:COULEUR[3], transparent:true, opacity:0.9})
+      );
+      s.position.set(x, 0, r.z);
+      strates[3].groupe.add(s);
+      ligne.push(s);
+    }
+    noeuds.push(ligne);
+  });
+  for(var ri=0; ri<noeuds.length-1; ri++){
+    for(var a=0;a<noeuds[ri].length;a++){
+      for(var b=0;b<noeuds[ri+1].length;b++){
+        if(Math.abs(a/(noeuds[ri].length-1) - b/Math.max(noeuds[ri+1].length-1,1)) > 0.34) continue;
+        var monte = new THREE.Line(
+          new THREE.BufferGeometry().setFromPoints([
+            noeuds[ri][a].position.clone(), noeuds[ri+1][b].position.clone()
+          ]),
+          new THREE.LineBasicMaterial({color: (a+b)%2 ? 0x5FD3C4 : 0xE8A33D, transparent:true, opacity:0.30})
+        );
+        strates[3].groupe.add(monte);
+      }
+    }
+  }
+
+  /* ── niveau IV : ignition et diffusion globale ── */
+  var ondes = [];
+  for(var o=0;o<3;o++){
+    var anneauIV = new THREE.Mesh(
+      new THREE.RingGeometry(0.55, 0.60, 96),
+      new THREE.MeshBasicMaterial({color:COULEUR[4], transparent:true, opacity:0.5, side:THREE.DoubleSide})
+    );
+    anneauIV.rotation.x = -Math.PI/2;
+    anneauIV.userData.phase = o/3;
+    strates[4].groupe.add(anneauIV);
+    ondes.push(anneauIV);
+  }
+  var foyer = new THREE.Mesh(
+    new THREE.SphereGeometry(0.19, 20, 20),
+    new THREE.MeshBasicMaterial({color:COULEUR[4]})
+  );
+  strates[4].groupe.add(foyer);
+
+  /* ── colonne de liaison entre niveaux ── */
+  var colonne = new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(0, Y[1], 0), new THREE.Vector3(0, Y[4], 0)
+    ]),
+    new THREE.LineBasicMaterial({color:0x92B2CD, transparent:true, opacity:0.22})
+  );
+  scene.add(colonne);
+
+  /* ───── caméra en orbite ───── */
+  var orbite = {rayon:19.5, theta:0.62, phi:1.14, cibleY:0, rayonCible:19.5, thetaCible:0.62, phiCible:1.14, cibleYCible:0};
+  var interactif = false;
+
+  function placerCamera(){
+    orbite.theta  += (orbite.thetaCible  - orbite.theta)  * 0.09;
+    orbite.phi    += (orbite.phiCible    - orbite.phi)    * 0.09;
+    orbite.rayon  += (orbite.rayonCible  - orbite.rayon)  * 0.09;
+    orbite.cibleY += (orbite.cibleYCible - orbite.cibleY) * 0.09;
+    var r = orbite.rayon, p = orbite.phi, t = orbite.theta;
+    camera.position.set(
+      r*Math.sin(p)*Math.sin(t),
+      r*Math.cos(p) + orbite.cibleY,
+      r*Math.sin(p)*Math.cos(t)
+    );
+    camera.lookAt(0, orbite.cibleY, 0);
+  }
+
+  var glisse=false, dernierX=0, dernierY=0, departX=0, departY=0, aGlisse=false;
+  var SEUIL_GLISSER = 5;   /* au-delà, le relâchement n'est pas un clic */
+  canvas.addEventListener('pointerdown', function(e){
+    glisse=true; interactif=true; dernierX=e.clientX; dernierY=e.clientY;
+    departX=e.clientX; departY=e.clientY; aGlisse=false;
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointermove', function(e){
+    if(!glisse) return;
+    if(Math.abs(e.clientX-departX) + Math.abs(e.clientY-departY) > SEUIL_GLISSER) aGlisse = true;
+    orbite.thetaCible -= (e.clientX-dernierX)*0.006;
+    orbite.phiCible = Math.max(0.30, Math.min(1.52, orbite.phiCible - (e.clientY-dernierY)*0.005));
+    dernierX=e.clientX; dernierY=e.clientY;
+  });
+  ['pointerup','pointercancel','pointerleave'].forEach(function(ev){
+    canvas.addEventListener(ev, function(){ glisse=false; });
+  });
+  canvas.addEventListener('wheel', function(e){
+    e.preventDefault(); interactif=true;
+    orbite.rayonCible = Math.max(11, Math.min(30, orbite.rayonCible + e.deltaY*0.012));
+  }, {passive:false});
+
+  /* ───── sélection d'une strate ───── */
+  var rayon = new THREE.Raycaster();
+  var souris = new THREE.Vector2();
+  var selection = null;
+
+  /* opacités recalculées à partir des bases mémorisées : le gain du thème
+     et l'état de sélection s'y composent sans s'écraser l'un l'autre. */
+  function rafraichirOpacites(){
+    [1,2,3,4].forEach(function(k){
+      var terne = (selection !== null && selection !== k);
+      strates[k].plan.material.opacity = opac(0.055, terne ? 0.33 : 1);
+      strates[k].bord.material.opacity = opac(0.55,  terne ? 0.29 : 1);
+      strates[k].groupe.traverse(function(obj){
+        if(obj.material && obj !== strates[k].plan && obj !== strates[k].bord){
+          var mt = obj.material;
+          if(mt.userData.opaciteBase === undefined) mt.userData.opaciteBase = mt.opacity;
+          mt.transparent = true;
+          mt.opacity = opac(mt.userData.opaciteBase, terne ? 0.22 : 1);
+        }
+      });
+    });
+  }
+
+  function selectionner(n){
+    selection = (selection === n) ? null : n;
+    rafraichirOpacites();
+    orbite.cibleYCible = (selection === null) ? 0 : Y[selection]*0.62;
+    orbite.rayonCible  = (selection === null) ? 19.5 : 15.5;
+    document.querySelectorAll('.strate').forEach(function(el){
+      el.classList.toggle('active', selection !== null && +el.dataset.n === selection);
+    });
+    document.querySelectorAll('.etiquette').forEach(function(el){
+      el.classList.toggle('terne', selection !== null && +el.dataset.n !== selection);
+    });
+    interactif = true;
+  }
+
+  canvas.addEventListener('click', function(e){
+    if(aGlisse){ aGlisse = false; return; }   /* fin d'une orbite, non une sélection */
+    var r = canvas.getBoundingClientRect();
+    souris.x = ((e.clientX-r.left)/r.width)*2-1;
+    souris.y = -((e.clientY-r.top)/r.height)*2+1;
+    rayon.setFromCamera(souris, camera);
+    var touches = rayon.intersectObjects(plans);
+    if(touches.length) selectionner(touches[0].object.userData.n);
+  });
+
+  document.querySelectorAll('.strate').forEach(function(el){
+    el.addEventListener('click', function(){
+      selectionner(+el.dataset.n);
+      document.querySelector('.scene-cadre').scrollIntoView({behavior: reduit ? 'auto':'smooth', block:'center'});
+    });
+  });
+
+  document.getElementById('btn-vue').addEventListener('click', function(){
+    orbite.thetaCible = 0; orbite.phiCible = 1.35; orbite.rayonCible = 20; orbite.cibleYCible = 0;
+    interactif = true;
+  });
+
+  /* ───── export en haute définition ───── */
+  document.getElementById('btn-export').addEventListener('click', function(){
+    var l = canvas.clientWidth, h = canvas.clientHeight;
+    renderer.setPixelRatio(3);
+    renderer.setSize(l, h, false);
+    renderer.setClearColor(FOND3D[theme3D], 1);   /* PNG sur fond du thème, non transparent */
+    renderer.render(scene, camera);
+    var url = renderer.domElement.toDataURL('image/png');
+    renderer.setClearColor(0x000000, 0);
+    renderer.setPixelRatio(HD);
+    renderer.setSize(l, h, false);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'FCS-cadre-quatre-niveaux-' + theme3D + '-HD.png';
+    a.click();
+  });
+
+  /* ───── étiquettes projetées ─────
+     La projection seule plaçait le niveau I sous le bord inférieur du cadre :
+     « overflow:hidden » le tronquait sur le filet et l'aide de manipulation le
+     recouvrait. Le placement est donc borné à une zone utile, marges et
+     réserves comprises, puis désempilé verticalement. */
+  var etiquettes = Array.prototype.slice.call(document.querySelectorAll('.etiquette'));
+  var ancre = new THREE.Vector3();
+  var mesures = [];
+
+  var MARGE_LAT   = 12;   /* filet latéral */
+  var RESERVE_HAUT = 12;
+  var RESERVE_BAS  = 54;  /* bande occupée par l'aide et les deux boutons */
+  var ECART_MIN    = 8;   /* respiration entre deux étiquettes voisines */
+
+  /* mesure hors boucle de rendu : lire offsetWidth à chaque image forcerait
+     un recalcul de mise en page soixante fois par seconde. */
+  function mesurerEtiquettes(){
+    mesures = etiquettes.map(function(el){
+      var avant = el.style.display;
+      el.style.display = 'block';
+      var m = {l: el.offsetWidth, h: el.offsetHeight};
+      el.style.display = avant;
+      return m;
+    });
+  }
+
+  function placerEtiquettes(){
+    var L = canvas.clientWidth, H = canvas.clientHeight;
+    var boites = [];
+
+    etiquettes.forEach(function(el, i){
+      var n = +el.dataset.n;
+      /* ancre au milieu du bord gauche de la strate, et non à son coin avant :
+         le coin projetait le niveau I nettement sous son propre plan. */
+      ancre.set(-LARGEUR/2 - 0.35, Y[n], 0);
+      ancre.project(camera);
+      if(ancre.z > 1){ el.style.display = 'none'; return; }
+      el.style.display = 'block';
+
+      var m = mesures[i] || {l: el.offsetWidth, h: el.offsetHeight};
+      var x = (ancre.x*0.5 + 0.5) * L;
+      var y = (-ancre.y*0.5 + 0.5) * H;
+      var brut = y;   /* ordonnée projetée, avant tout bornage */
+
+      var xmin = MARGE_LAT + m.l/2, xmax = L - MARGE_LAT - m.l/2;
+      var ymin = RESERVE_HAUT + m.h/2, ymax = H - RESERVE_BAS - m.h/2;
+      x = (xmin > xmax) ? L/2 : Math.min(Math.max(x, xmin), xmax);
+      y = (ymin > ymax) ? H/2 : Math.min(Math.max(y, ymin), ymax);
+
+      boites.push({el:el, x:x, y:y, brut:brut, h:m.h});
+    });
+
+    if(!boites.length) return;
+
+    /* tri sur l'ordonnée projetée, non sur l'ordonnée bornée : deux étiquettes
+       ramenées à la même limite garderaient sinon l'ordre du document, ce qui
+       inverserait la hiérarchie des niveaux. */
+    boites.sort(function(a,b){ return a.brut - b.brut; });
+
+    var hauteurTotale = 0;
+    boites.forEach(function(b){ hauteurTotale += b.h; });
+    var besoin = hauteurTotale + ECART_MIN*(boites.length-1);
+    var dispo  = H - RESERVE_HAUT - RESERVE_BAS;
+
+    if(besoin > dispo){
+      /* cadre trop bas : répartition régulière, le moindre mal */
+      var pas = dispo / boites.length, curseur = RESERVE_HAUT;
+      boites.forEach(function(b){ b.y = curseur + pas/2; curseur += pas; });
+    }else{
+      for(var i = boites.length-1; i > 0; i--){
+        var ecart = (boites[i].h + boites[i-1].h)/2 + ECART_MIN;
+        if(boites[i].y - boites[i-1].y < ecart) boites[i-1].y = boites[i].y - ecart;
+      }
+      var debord = (RESERVE_HAUT + boites[0].h/2) - boites[0].y;
+      if(debord > 0) boites.forEach(function(b){ b.y += debord; });
+    }
+
+    boites.forEach(function(b){
+      b.el.style.left = Math.round(b.x) + 'px';
+      b.el.style.top  = Math.round(b.y) + 'px';
+    });
+  }
+
+  /* ───── dimensionnement ───── */
+  function redimensionner(){
+    var cadre = canvas.parentElement;
+    var l = cadre.clientWidth, h = cadre.clientHeight;
+    renderer.setSize(l, h, false);
+    camera.aspect = l/h;
+    camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize', function(){ redimensionner(); mesurerEtiquettes(); });
+  redimensionner();
+  mesurerEtiquettes();
+
+  /* les polices chargées après coup modifient la largeur des étiquettes */
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(function(){ mesurerEtiquettes(); placerEtiquettes(); });
+  }
+
+  /* crochets : bascule linguistique et bascule chromatique */
+  apresChangement = function(){ mesurerEtiquettes(); placerEtiquettes(); };
+
+  /* ───── indexation des matériaux pour la bascule chromatique ─────
+     Chaque matériau est rattaché à sa clé de palette par sa teinte de
+     construction ; son opacité d'origine est mémorisée comme base. */
+  var registre = [];
+  (function indexerMateriaux(){
+    var inverse = {};
+    [1,2,3,4].forEach(function(k){ inverse[PALETTE.sombre[k]] = k; });
+    inverse[PALETTE.sombre.neutre] = 'neutre';
+    scene.traverse(function(o){
+      if(!o.material) return;
+      var mats = Array.isArray(o.material) ? o.material : [o.material];
+      mats.forEach(function(m){
+        if(!m.color) return;
+        var cle = inverse[m.color.getHex()];
+        if(cle === undefined) return;
+        if(m.userData.opaciteBase === undefined) m.userData.opaciteBase = m.opacity;
+        registre.push({m:m, cle:cle});
+      });
+    });
+  })();
+
+  majTheme3D = function(t){
+    theme3D = (t === 'clair') ? 'clair' : 'sombre';
+    GAIN = GAIN3D[theme3D];
+    var pal = PALETTE[theme3D];
+    registre.forEach(function(e){
+      e.m.color.setHex(pal[e.cle]);
+      e.m.opacity = opac(e.m.userData.opaciteBase);
+    });
+    rafraichirOpacites();   /* rétablit l'état de sélection par-dessus */
+  };
+  majTheme3D(document.body.classList.contains('clair') ? 'clair' : 'sombre');
+
+  /* ───── boucle de rendu ───── */
+  var t0 = performance.now();
+  function animer(){
+    requestAnimationFrame(animer);
+    var t = (performance.now()-t0)/1000;
+
+    if(!reduit){
+      /* dérive des porteurs de charge */
+      var p = geoI.attributes.position.array;
+      for(var i=0;i<NB;i++){
+        var bx = basI[i*2], bz = basI[i*2+1];
+        p[i*3]   = bx + Math.sin(t*0.5 + bz*0.8)*0.16;
+        p[i*3+2] = bz + Math.cos(t*0.4 + bx*0.6)*0.16;
+        p[i*3+1] = Math.sin(t*1.1 + bx*0.5 + bz*0.5)*0.22;
+      }
+      geoI.attributes.position.needsUpdate = true;
+
+      /* boucle close : la commande, puis son retour */
+      var a1 = t*0.9, a2 = a1 - 0.55;
+      efference.position.set(Math.cos(a1)*1.85, 0, Math.sin(a1)*1.85);
+      reafference.position.set(Math.cos(a2)*1.85, 0, Math.sin(a2)*1.85);
+
+      /* ignition */
+      ondes.forEach(function(r){
+        var u = (t*0.34 + r.userData.phase) % 1;
+        var s = 0.6 + u*6.2;
+        r.scale.set(s, s, s);
+        r.material.opacity = opac(0.42, (1-u)) * (selection===null || selection===4 ? 1 : 0.22);
+      });
+      foyer.scale.setScalar(1 + Math.sin(t*2.2)*0.12);
+
+      /* respiration des lignes de champ */
+      lignesChamp.forEach(function(lg, k){
+        lg.material.opacity = opac(0.18 + 0.14*Math.abs(Math.sin(t*0.6 + k))) * (selection===null || selection===1 ? 1 : 0.22);
+      });
+
+      if(!interactif) orbite.thetaCible += 0.0016;
+    }
+
+    placerCamera();
+    placerEtiquettes();
+    renderer.render(scene, camera);
+  }
+  animer();
+})();
+</script>
+</body>
+</html>

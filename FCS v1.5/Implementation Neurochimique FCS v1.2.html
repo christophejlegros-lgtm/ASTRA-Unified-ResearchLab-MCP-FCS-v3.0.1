@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>L'implémentation neurochimique</title>
+<meta name="author" content="Christophe Jean Legros — Assistance Multi IA, Genève">
+<meta name="description" content="Document IV de la série : l'implémentation neurochimique du fonctionnalisme contraint par le substrat, treize classes, cinq rôles causaux et huit strates d'un ordre partiel par dominance (v1.2, 19 septembre 2026).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,700&family=Spectral:ital,wght@0,300;0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ───────────────── jetons de conception ─────────────────
+   Repris du document de synthèse v1.4 : même palette, même
+   typographie, mêmes classes. Trois teintes sont ajoutées
+   pour la tripartition fonctionnelle propre à ce document. */
+:root{
+  --fond:            #060E1A;
+  --fond-profond:    #030810;
+  --panneau:         #0C1726;
+  --panneau-haut:    #122134;
+  --filet:           rgba(146,178,205,.18);
+  --filet-fort:      rgba(146,178,205,.34);
+
+  --champ:           #5FD3C4;   /* champ endogène — niveau I */
+  --courant:         #E8A33D;   /* flux ionique, efférence */
+  --clotur:          #B08CE8;   /* clôture, registre phénoménal */
+  --acces:           #7FB2F0;   /* diffusion globale — niveau IV */
+  --alerte:          #E2708A;   /* contesté */
+
+  /* tripartition fonctionnelle */
+  --constitutif:     #5FD3C4;
+  --modulateur:      #E8A33D;
+  --permissif:       #8296AC;
+  --generateur:      #7FB2F0;
+  --parametrique:    #B08CE8;
+
+  --texte:           #E8EFF6;
+  --texte-attenue:   #93A6BB;
+  --texte-faible:    #64778C;
+
+  --serif:   "Spectral", "Iowan Old Style", Georgia, serif;
+  --display: "Fraunces", "Spectral", Georgia, serif;
+  --mono:    "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  --mesure: 68ch;
+
+  --voile:           rgba(6,14,26,.68);
+  --degrade-page:    radial-gradient(120% 80% at 50% -10%, #10243C 0%, var(--fond) 42%, var(--fond-profond) 100%);
+  --degrade-bandeau: linear-gradient(180deg, rgba(6,14,26,.94), rgba(6,14,26,.72));
+  --degrade-figure:  radial-gradient(80% 110% at 50% 8%, rgba(95,211,196,.06), transparent 60%),
+                     linear-gradient(180deg, #081424, #050C16);
+  --ombre-etiquette: none;
+}
+
+/* ───────────────── thème clair : papier d'atelier ───────────────── */
+body.clair{
+  color-scheme: light;
+
+  --fond:            #F3EFE7;
+  --fond-profond:    #E6E0D4;
+  --panneau:         #FBF9F4;
+  --panneau-haut:    #F1ECE2;
+  --filet:           rgba(28,52,74,.17);
+  --filet-fort:      rgba(28,52,74,.32);
+
+  --champ:           #0C7466;
+  --courant:         #9E590B;
+  --clotur:          #5F3C9C;
+  --acces:           #27599C;
+  --alerte:          #AC3049;
+
+  --constitutif:     #0C7466;
+  --modulateur:      #9E590B;
+  --permissif:       #4B5B6C;
+  --generateur:      #27599C;
+  --parametrique:    #5F3C9C;
+
+  --texte:           #131F2B;
+  --texte-attenue:   #455567;
+  --texte-faible:    #5A6A7A;
+
+  --voile:           rgba(251,249,244,.82);
+  --degrade-page:    radial-gradient(120% 80% at 50% -10%, #FFFFFF 0%, var(--fond) 46%, var(--fond-profond) 100%);
+  --degrade-bandeau: linear-gradient(180deg, rgba(243,239,231,.95), rgba(243,239,231,.74));
+  --degrade-figure:  radial-gradient(80% 110% at 50% 8%, rgba(12,116,102,.08), transparent 60%),
+                     linear-gradient(180deg, #FCFAF6, #ECE7DD);
+  --ombre-etiquette: 0 1px 3px rgba(28,52,74,.10);
+}
+
+:root{ color-scheme: dark; }
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+
+body{
+  margin:0;
+  background: var(--degrade-page) fixed;
+  transition: background-color .3s, color .3s;
+  color:var(--texte);
+  font-family:var(--serif);
+  font-weight:300;
+  font-size:clamp(1rem, .55vw + .9rem, 1.14rem);
+  line-height:1.72;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+/* bilinguisme : bascule par classe sur <body> */
+.en{display:none}
+body.lang-en .fr{display:none}
+body.lang-en .en{display:initial}
+
+.enveloppe{max-width:1180px;margin:0 auto;padding:0 clamp(1.1rem,4vw,3rem)}
+
+/* ───────────────── bandeau ───────────────── */
+.bandeau{
+  position:sticky;top:0;z-index:30;
+  backdrop-filter:blur(14px);
+  background:var(--degrade-bandeau);
+  border-bottom:1px solid var(--filet);
+}
+.bandeau .enveloppe{
+  display:flex;align-items:baseline;gap:1.2rem;
+  padding-top:.7rem;padding-bottom:.7rem;flex-wrap:wrap;
+}
+.sigle{font-family:var(--display);font-weight:500;font-size:1.02rem;letter-spacing:.005em;margin:0}
+.sigle span{color:var(--texte-faible);font-weight:300}
+.bandeau nav{margin-left:auto;display:flex;gap:1.1rem;align-items:baseline;flex-wrap:wrap}
+.bandeau nav a{
+  font-family:var(--mono);font-size:.74rem;color:var(--texte-attenue);
+  text-decoration:none;border-bottom:1px solid transparent;padding-bottom:2px;
+}
+.bandeau nav a:hover,.bandeau nav a:focus-visible{color:var(--champ);border-color:var(--champ)}
+
+.bascules{margin-left:.2rem;display:flex;gap:.4rem;align-items:baseline}
+.bascule{
+  font-family:var(--mono);font-size:.72rem;
+  background:transparent;color:var(--texte-attenue);
+  border:1px solid var(--filet-fort);border-radius:2px;
+  padding:.3rem .6rem;cursor:pointer;
+}
+.bascule:hover,.bascule:focus-visible{color:var(--texte);border-color:var(--champ)}
+.bascule .glyphe{margin-right:.35rem;font-size:.8rem;line-height:1}
+
+/* ───────────────── ouverture ───────────────── */
+.ouverture{padding:clamp(2.6rem,7vw,5rem) 0 1.6rem}
+.titre{
+  font-family:var(--display);font-optical-sizing:auto;font-weight:300;
+  font-size:clamp(2.15rem, 5.6vw, 4.05rem);
+  line-height:1.02;letter-spacing:-.018em;margin:0 0 .5rem;max-width:19ch;
+}
+.sous-titre{
+  font-family:var(--display);font-weight:300;font-style:italic;
+  font-size:clamp(1.05rem,1.9vw,1.45rem);
+  color:var(--champ);margin:0 0 1.6rem;max-width:46ch;line-height:1.35;
+}
+.chapeau{max-width:var(--mesure);color:var(--texte-attenue);margin:0 0 1.4rem}
+.chapeau strong{color:var(--texte);font-weight:600}
+.ourlet{
+  font-family:var(--mono);font-size:.72rem;color:var(--texte-faible);
+  display:flex;gap:1.4rem;flex-wrap:wrap;
+  border-top:1px solid var(--filet);padding-top:.7rem;max-width:var(--mesure);
+}
+
+/* ───────────────── sections ───────────────── */
+section{padding:clamp(3rem,7vw,5.5rem) 0 0}
+.intitule{
+  font-family:var(--display);font-weight:500;
+  font-size:clamp(1.35rem,2.6vw,1.95rem);
+  letter-spacing:-.012em;margin:0 0 .35rem;
+}
+.surtitre{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;
+  color:var(--texte-faible);margin:0 0 .5rem;text-transform:uppercase;
+}
+.amorce{color:var(--texte-attenue);max-width:var(--mesure);margin:0 0 1.8rem}
+.corps{max-width:var(--mesure)}
+.corps p{margin:0 0 1.05rem}
+.corps h3{
+  font-family:var(--display);font-weight:500;font-size:1.1rem;
+  margin:2rem 0 .6rem;letter-spacing:-.008em;
+}
+
+/* encadré de formulation */
+.encadre{
+  border-left:2px solid var(--champ);
+  background:var(--panneau);
+  padding:1rem 1.2rem;margin:1.5rem 0;
+  max-width:var(--mesure);
+  font-size:.97rem;color:var(--texte);
+}
+.encadre p{margin:0}
+.encadre p + p{margin-top:.7rem}
+
+/* badges de statut épistémique */
+.badge{
+  font-family:var(--mono);font-size:.63rem;letter-spacing:.04em;
+  border:1px solid currentColor;border-radius:2px;
+  padding:.1rem .38rem;margin-right:.3rem;white-space:nowrap;display:inline-block;
+}
+.b-etabli{color:var(--champ)}
+.b-modelise{color:var(--courant)}
+.b-conteste{color:var(--alerte)}
+.b-normatif{color:var(--acces)}
+
+/* badges de rôle causal */
+.role{
+  font-family:var(--mono);font-size:.63rem;letter-spacing:.04em;
+  border-radius:2px;padding:.1rem .38rem;margin-right:.3rem;
+  white-space:nowrap;display:inline-block;
+  border:1px solid currentColor;
+}
+.r-constitutif{color:var(--constitutif);background:color-mix(in srgb, var(--constitutif) 10%, transparent)}
+.r-modulateur{color:var(--modulateur);background:color-mix(in srgb, var(--modulateur) 10%, transparent)}
+.r-permissif{color:var(--permissif);background:color-mix(in srgb, var(--permissif) 12%, transparent)}
+.r-generateur{color:var(--generateur);background:color-mix(in srgb, var(--generateur) 10%, transparent)}
+.r-parametrique{color:var(--parametrique);background:color-mix(in srgb, var(--parametrique) 10%, transparent)}
+
+/* ───────────────── rangs ───────────────── */
+.rangs{display:grid;gap:1px;background:var(--filet);border:1px solid var(--filet);margin-top:1.4rem}
+.rang{
+  background:var(--panneau);
+  display:grid;grid-template-columns:auto 1fr;
+  gap:clamp(1rem,3vw,2.2rem);
+  padding:clamp(1.2rem,2.6vw,1.9rem);
+}
+.rang:hover{background:var(--panneau-haut)}
+.rang[data-role="constitutif"]{--teinte:var(--constitutif)}
+.rang[data-role="modulateur"]{--teinte:var(--modulateur)}
+.rang[data-role="permissif"]{--teinte:var(--permissif)}
+.rang[data-role="generateur"]{--teinte:var(--generateur)}
+.rang[data-role="parametrique"]{--teinte:var(--parametrique)}
+.chiffre{
+  font-family:var(--display);font-weight:300;font-size:2.1rem;line-height:1;
+  color:var(--teinte);min-width:2.2ch;
+}
+.rang h3{font-family:var(--display);font-weight:500;font-size:1.12rem;margin:.1rem 0 .55rem}
+.rang h3 .espece{color:var(--texte-faible);font-weight:300;font-size:.92rem;display:block;font-family:var(--serif)}
+.rang p{margin:0 0 .75rem;font-size:.96rem;color:var(--texte-attenue);max-width:62ch}
+.rang p:last-of-type{margin-bottom:.9rem}
+.rang .fiche{
+  font-family:var(--mono);font-size:.68rem;color:var(--texte-faible);
+  border-top:1px solid var(--filet);padding-top:.6rem;margin-top:.3rem;
+  display:flex;gap:1.2rem;flex-wrap:wrap;
+}
+.rang .fiche b{font-weight:500;color:var(--texte-attenue)}
+@media (max-width:640px){
+  .rang{grid-template-columns:1fr;gap:.6rem}
+  .chiffre{font-size:1.6rem}
+}
+
+/* ───────────────── figures ───────────────── */
+.figure{margin:2rem 0 0}
+.figure-cadre{
+  border:1px solid var(--filet);
+  background:var(--degrade-figure);
+  padding:1rem;overflow-x:auto;
+}
+.figure-cadre svg{display:block;width:100%;height:auto;min-width:640px}
+.legende{
+  font-size:.86rem;color:var(--texte-faible);
+  max-width:var(--mesure);margin:.8rem 0 0;line-height:1.6;
+}
+.legende b{color:var(--texte-attenue);font-weight:600}
+
+/* ───────────────── tableau ───────────────── */
+.tableau{width:100%;border-collapse:collapse;margin-top:.8rem;font-size:.88rem}
+.tableau th,.tableau td{
+  text-align:left;vertical-align:top;padding:.7rem .9rem .7rem 0;
+  border-bottom:1px solid var(--filet);
+}
+.tableau th{
+  font-family:var(--mono);font-size:.66rem;font-weight:400;
+  color:var(--texte-faible);letter-spacing:.03em;
+}
+.tableau td:first-child{font-family:var(--mono);font-size:.76rem;color:var(--texte);white-space:nowrap}
+.tableau td{color:var(--texte-attenue)}
+.tableau .cell-role{font-family:var(--mono);font-size:.68rem;white-space:nowrap}
+.tableau .c-constitutif{color:var(--constitutif)}
+.tableau .c-modulateur{color:var(--modulateur)}
+.tableau .c-permissif{color:var(--permissif)}
+.tableau .c-generateur{color:var(--generateur)}
+.tableau .c-parametrique{color:var(--parametrique)}
+ol.interdits{list-style:none;counter-reset:interdit}
+ol.interdits li{counter-increment:interdit}
+ol.interdits li::before{content:counter(interdit) " · ";font-family:var(--mono);font-size:.8rem;color:var(--texte-faible)}
+@media (max-width:760px){
+  .tableau,.tableau tbody,.tableau tr,.tableau td{display:block;width:100%}
+  .tableau thead{display:none}
+  .tableau tr{border-bottom:1px solid var(--filet);padding:.8rem 0}
+  .tableau td{border:none;padding:.15rem 0}
+  .tableau td:first-child{white-space:normal}
+}
+
+/* interdictions */
+.interdits{list-style:none;padding:0;margin:1.2rem 0 0;max-width:var(--mesure)}
+.interdits li{
+  border-left:2px solid var(--alerte);padding:.5rem 0 .5rem .9rem;
+  margin-bottom:.8rem;font-size:.95rem;color:var(--texte-attenue);
+}
+.interdits li b{color:var(--texte);font-weight:600}
+.interdits li.neuve{border-left-color:var(--acces)}
+
+/* journal de révision */
+.revision{list-style:none;padding:0;margin:1rem 0 0;max-width:var(--mesure);font-size:.92rem;color:var(--texte-attenue)}
+.revision li{border-left:2px solid var(--filet-fort);padding:.35rem 0 .35rem .9rem;margin-bottom:.55rem}
+.revision li b{color:var(--texte);font-weight:600}
+
+/* ───────────────── références ───────────────── */
+.references{font-size:.86rem;color:var(--texte-faible);max-width:var(--mesure)}
+.references li{margin-bottom:.6rem;line-height:1.55}
+.references a{color:var(--texte-attenue);text-decoration:none;border-bottom:1px solid var(--filet-fort)}
+.references a:hover,.references a:focus-visible{color:var(--champ);border-color:var(--champ)}
+.resolu{font-family:var(--mono);font-size:.62rem;color:var(--champ)}
+.herite{font-family:var(--mono);font-size:.62rem;color:var(--texte-faible)}
+
+footer{
+  margin-top:clamp(3rem,7vw,5rem);padding:2rem 0 3rem;
+  border-top:1px solid var(--filet);
+  font-family:var(--mono);font-size:.7rem;color:var(--texte-faible);line-height:1.8;
+}
+footer p{margin:0}
+a:focus-visible,button:focus-visible{outline:2px solid var(--champ);outline-offset:3px}
+
+/* ───────────────── impression ───────────────── */
+@media print{
+  body{background:#FFF !important;color:#101820}
+  .bandeau{position:static;background:none;backdrop-filter:none;border-bottom:1px solid #CBD3DB}
+  .bandeau nav,.bascules{display:none}
+  .figure-cadre{break-inside:avoid;page-break-inside:avoid;border-color:#CBD3DB;overflow:visible}
+  .figure-cadre svg{min-width:0}
+  section{break-inside:auto}
+  .rang,.encadre{break-inside:avoid;page-break-inside:avoid}
+  .references a{color:inherit}
+}
+</style>
+</head>
+<body>
+
+<header class="bandeau">
+  <div class="enveloppe">
+    <p class="sigle">Assistance Multi IA <span>· Genève · IV · v1.2</span></p>
+    <nav>
+      <a href="#critere"><span class="fr">Critère</span><span class="en">Criterion</span></a>
+      <a href="#classes"><span class="fr">Classes</span><span class="en">Classes</span></a>
+      <a href="#tableau"><span class="fr">Strates</span><span class="en">Strata</span></a>
+      <a href="#axe"><span class="fr">Axe</span><span class="en">Axis</span></a>
+      <a href="#partition"><span class="fr">Partition</span><span class="en">Partition</span></a>
+      <a href="#revision"><span class="fr">Révision</span><span class="en">Revision</span></a>
+      <a href="#sources"><span class="fr">Sources</span><span class="en">Sources</span></a>
+    </nav>
+    <div class="bascules">
+      <button class="bascule" id="bascule" type="button" aria-label="Basculer français / anglais">FR / EN</button>
+      <button class="bascule" id="bascule-theme" type="button" aria-pressed="false"
+              aria-label="Basculer thème clair / sombre"><span class="glyphe" aria-hidden="true">☀</span><span class="fr">Clair</span><span class="en">Light</span></button>
+    </div>
+  </div>
+</header>
+
+<main class="enveloppe">
+  <div class="ouverture">
+    <p class="surtitre"><span class="fr">Document IV · ceinture protectrice</span><span class="en">Document IV · protective belt</span></p>
+    <h1 class="titre">
+      <span class="fr">L'implémentation neurochimique</span>
+      <span class="en">The neurochemical implementation</span>
+    </h1>
+    <p class="sous-titre">
+      <span class="fr">du fonctionnalisme contraint par le substrat — treize classes moléculaires, cinq rôles causaux, huit strates d'un ordre partiel</span>
+      <span class="en">of substrate-constrained functionalism — thirteen molecular classes, five causal roles, eight strata of a partial order</span>
+    </p>
+    <p class="chapeau">
+      <span class="fr">Le document principal distingue, depuis sa version 1.5, la <strong>contrainte de substrat</strong>, qui appartient au noyau et affirme seulement que le profil fonctionnel est réalisé de fait par une classe restreinte de dynamiques ioniques transmembranaires, et l'<strong>hypothèse du champ</strong>, qui appartient à la ceinture et fait du champ électromagnétique endogène une voie de couplage causalement efficace. Le porteur de niveau I est, sous cette hypothèse, le courant ionique transmembranaire et le champ qu'il engendre. Ce document dit quelles espèces chimiques réalisent ce porteur, lesquelles en fixent les paramètres, lesquelles le modulent et lesquelles se contentent de l'entretenir. Il répartit treize classes moléculaires, acides nucléiques compris, en dix-sept couples espèce–fonction, leur assigne l'un de <strong>cinq rôles causaux — constitutif, générateur, paramétrique, modulateur, permissif</strong> — et les ordonne par dominance sur trois sous-critères déclarés. L'ordre obtenu est partiel : il comporte huit strates, et il ne prétend pas à davantage.</span>
+      <span class="en">Since its version 1.5, the main document distinguishes the <strong>substrate constraint</strong>, which belongs to the core and asserts only that the functional profile is realised, as a matter of fact, by a restricted class of transmembrane ionic dynamics, from the <strong>field hypothesis</strong>, which belongs to the belt and makes the endogenous electromagnetic field a causally efficacious coupling route. Under that hypothesis the level-I carrier is the transmembrane ionic current and the field it generates. This document says which chemical species realise that carrier, which set its parameters, which modulate it and which merely maintain it. It divides thirteen molecular classes, nucleic acids included, into seventeen species–function pairs, assigns each one of <strong>five causal roles — constitutive, generator, parametric, modulatory, permissive</strong> — and orders them by dominance on three declared sub-criteria. The resulting order is partial: it has eight strata, and claims no more.</span>
+    </p>
+    <p class="ourlet">
+      <span>© Genève 2026 Christophe Jean Legros</span>
+      <span>v1.2 · 19 · 09 · 2026</span>
+      <span class="fr">Prolonge les documents I (v1.5) et II (v1.4)</span><span class="en">Extends documents I (v1.5) and II (v1.4)</span>
+    </p>
+  </div>
+
+  <!-- ═══════════ 1. le critère ═══════════ -->
+  <section id="critere">
+    <p class="surtitre"><span class="fr">1 · le critère d'ordonnancement</span><span class="en">1 · the ordering criterion</span></p>
+    <h2 class="intitule"><span class="fr">Ce qui décide de la place</span><span class="en">What decides placement</span></h2>
+    <p class="amorce">
+      <span class="fr">Une hiérarchie d'importance n'a de sens que relativement à une question. Celle-ci est posée par l'hypothèse du champ. L'ordre qu'elle produit s'écarte sensiblement de l'ordre de l'intervention clinique, surtout pour les facteurs permissifs, dont la saillance clinique est maximale et le pouvoir discriminant théorique faible.</span>
+      <span class="en">A hierarchy of importance is meaningful only relative to a question. This one is set by the field hypothesis. The order it yields departs markedly from the order of clinical intervention, above all for permissive factors, whose clinical salience is maximal and whose theoretical discriminating power is low.</span>
+    </p>
+
+    <div class="corps">
+      <p>
+        <span class="fr">Le principe n'est pas propre à la neurochimie. En génétique quantitative, la part de variance « due à » un facteur dépend de la population et de la plage de variation considérées, non du seul facteur (Lewontin, 1974/2006). En philosophie de la causalité, désigner « la » cause parmi toutes les conditions nécessaires suppose un contraste et un ensemble d'interventions de référence (Waters, 2007 ; Woodward, 2010). Une hiérarchie qui ne déclare pas sa question en présuppose une. <span class="badge b-etabli">ÉTABLI</span></span>
+        <span class="en">The principle is not peculiar to neurochemistry. In quantitative genetics, the share of variance "due to" a factor depends on the population and the range of variation considered, not on the factor alone (Lewontin, 1974/2006). In the philosophy of causation, singling out "the" cause among all necessary conditions presupposes a contrast and a reference set of interventions (Waters, 2007; Woodward, 2010). A hierarchy that does not declare its question presupposes one. <span class="badge b-etabli">ESTABLISHED</span></span>
+      </p>
+      <p>
+        <span class="fr">La pratique clinique ordonne implicitement les classes moléculaires selon l'intervention disponible : on dose une hormone, on corrige une natrémie, on supplémente une vitamine. Cet ordre est légitime pour sa propre question, mais c'est celui de l'intervention, non celui de la constitution. Si le porteur est la dynamique électromagnétique engendrée par les flux ioniques transmembranaires, l'importance d'une classe chimique, <em>relativement à cette question</em>, se mesure à sa proximité causale à cette dynamique. Les deux ordres coïncident en partie ; ils divergent surtout aux extrémités permissives, et pour les classes dont l'action passe par le génome. <span class="badge b-normatif">NORMATIF</span></span>
+        <span class="en">Clinical practice implicitly orders molecular classes by available intervention: one assays a hormone, corrects a sodium level, supplements a vitamin. That order is legitimate for its own question, but it is the order of intervention, not of constitution. If the carrier is the electromagnetic dynamics generated by transmembrane ionic currents, the importance of a chemical class, <em>relative to that question</em>, is measured by its causal proximity to that dynamics. The two orders partly coincide; they diverge chiefly at the permissive extremes, and for the classes whose action runs through the genome. <span class="badge b-normatif">NORMATIVE</span></span>
+      </p>
+
+      <h3><span class="fr">Trois sous-critères, définis de façon homogène</span><span class="en">Three sub-criteria, defined homogeneously</span></h3>
+      <p>
+        <span class="fr">La place d'un couple espèce–fonction est fixée par trois grandeurs ordinales, dont la version 1.1 ne donnait pas une définition uniforme. La première est la <b>distance causale au porteur</b>, d. Elle se compte en étapes, une étape étant une relation causale médiée par une entité distincte (ligand → récepteur, récepteur → second messager, gène → transcrit, transcrit → protéine). La charge mobile est à distance 0. Une grandeur qui entre directement comme coefficient ou comme variable dans les équations du porteur — conductance de Hodgkin et Huxley, résistivité du conducteur volumique, force électromotrice de Nernst, capacité membranaire — est à distance 1. La deuxième est la <b>constante de temps</b>, τ, définie désormais pour toutes les classes de la même manière : la plus longue de deux durées, celle de l'action de la classe sur le porteur et celle de la variation physiologique de la classe elle-même. C'est cette grandeur qui décide si une classe peut individuer un épisode conscient, de l'ordre de la centaine de millisecondes selon les signatures de niveau IV (Dehaene &amp; Changeux, 2011 ; Koch et al., 2016) : la résistivité du milieu agit instantanément sur le champ, mais elle ne varie qu'en minutes ; elle ne peut donc qu'en fixer la forme. La version 1.1 prenait tantôt la durée de l'action, tantôt celle de la variation, et au rang 11 les deux. La troisième est l'<b>effet d'ablation</b> sur les signatures de niveau IV, en quatre degrés ordonnés : suppression par action directe, déformation, dérive lente ou absence d'effet dans la fenêtre, défaillance non sélective. <span class="badge b-normatif">NORMATIF</span></span>
+        <span class="en">The placement of a species–function pair is fixed by three ordinal quantities, which version 1.1 did not define uniformly. The first is <b>causal distance to the carrier</b>, d. It is counted in steps, a step being a causal relation mediated by a distinct entity (ligand → receptor, receptor → second messenger, gene → transcript, transcript → protein). The mobile charge is at distance 0. A quantity that enters directly as a coefficient or variable in the carrier's equations — Hodgkin–Huxley conductance, volume-conductor resistivity, Nernst electromotive force, membrane capacitance — is at distance 1. The second is the <b>time constant</b>, τ, now defined the same way for every class: the longer of two durations, that of the class's action on the carrier and that of the class's own physiological variation. This quantity decides whether a class can individuate a conscious episode, of the order of a hundred milliseconds on level-IV signatures (Dehaene &amp; Changeux, 2011; Koch et al., 2016): the resistivity of the medium acts instantly on the field, but varies only over minutes; it can therefore only set the field's form. Version 1.1 took sometimes the duration of action, sometimes that of variation, and at rank 11 both. The third is the <b>ablation effect</b> on level-IV signatures, in four ordered degrees: abolition by direct action, deformation, slow drift or no effect within the window, non-selective failure. <span class="badge b-normatif">NORMATIVE</span></span>
+      </p>
+
+      <h3><span class="fr">Cinq rôles causaux</span><span class="en">Five causal roles</span></h3>
+      <p>
+        <span class="fr">La version 1.1 condensait ces sous-critères en trois rôles. Deux classes ne satisfaisaient pas la définition du rôle sous lequel elles étaient rangées. Le rang 3, déclaré constitutif, n'est pas requis par le porteur : la préparation de référence de tout le programme (Chiang et al., 2019) est précisément une ablation de sa fonction dans laquelle la propagation par le champ persiste. Les rangs 4 et 5, déclarés « constitutifs de la forme », fixaient un gain et des forces, ce que la définition du rôle modulateur attribuait à ce dernier. La tripartition est conservée comme partition grossière — elle transpose la distinction entre <em>prérequis</em>, <em>substrat</em> et <em>conséquences</em> des corrélats neuronaux de la conscience (Aru et al., 2012 ; de Graaf et al., 2012) — et raffinée en cinq rôles.</span>
+        <span class="en">Version 1.1 condensed these sub-criteria into three roles. Two classes did not satisfy the definition of the role under which they were filed. Rank 3, declared constitutive, is not required by the carrier: the programme's reference preparation (Chiang et al., 2019) is precisely an ablation of its function in which field-mediated propagation persists. Ranks 4 and 5, declared "constitutive of form", set a gain and forces, which the definition of the modulatory role assigned to the latter. The tripartition is kept as a coarse partition — it transposes the distinction between <em>prerequisites</em>, <em>substrate</em> and <em>consequences</em> of the neural correlates of consciousness (Aru et al., 2012; de Graaf et al., 2012) — and refined into five roles.</span>
+      </p>
+      <div class="encadre">
+        <p>
+          <span class="fr"><span class="role r-constitutif">CONSTITUTIF</span> La classe est la charge mobile ou la vanne qui en fixe la dynamique dans la fenêtre d'un épisode. Son retrait supprime le porteur ; son remplacement par une classe fonctionnellement équivalente le conserve.</span>
+          <span class="en"><span class="role r-constitutif">CONSTITUTIVE</span> The class is the mobile charge or the valve that sets its dynamics within the window of an episode. Its removal abolishes the carrier; its replacement by a functionally equivalent class preserves it.</span>
+        </p>
+        <p>
+          <span class="fr"><span class="role r-generateur">GÉNÉRATEUR</span> La classe commande une source majeure du porteur en conditions physiologiques, sans être requise pour son existence. Son retrait supprime la composante dominante du champ mesuré et les signatures de niveau IV ; le porteur persiste sous une forme réduite.</span>
+          <span class="en"><span class="role r-generateur">GENERATOR</span> The class commands a major source of the carrier under physiological conditions, without being required for its existence. Its removal abolishes the dominant component of the measured field and level-IV signatures; the carrier persists in a reduced form.</span>
+        </p>
+        <p>
+          <span class="fr"><span class="role r-parametrique">PARAMÉTRIQUE</span> La classe fixe un coefficient des équations du porteur — résistivité, force électromotrice, capacité — et varie lentement. Son retrait partiel déplace le porteur sans le supprimer ; elle en fixe la forme et n'individue pas d'épisode.</span>
+          <span class="en"><span class="role r-parametrique">PARAMETRIC</span> The class sets a coefficient of the carrier's equations — resistivity, electromotive force, capacitance — and varies slowly. Its partial removal shifts the carrier without abolishing it; it sets the carrier's form and individuates no episode.</span>
+        </p>
+        <p>
+          <span class="fr"><span class="role r-modulateur">MODULATEUR</span> La classe agit sur le porteur par l'intermédiaire d'au moins un autre rôle — récepteur, second messager, expression — et fixe le gain, le seuil, la phase ou la précision d'une dynamique de réseau qui persiste sans elle.</span>
+          <span class="en"><span class="role r-modulateur">MODULATORY</span> The class acts on the carrier through at least one other role — receptor, second messenger, expression — and sets the gain, threshold, phase or precision of a network dynamics that persists without it.</span>
+        </p>
+        <p>
+          <span class="fr"><span class="role r-permissif">PERMISSIF</span> La classe est une condition de maintien de l'ensemble. Son retrait conduit à une défaillance non sélective.</span>
+          <span class="en"><span class="role r-permissif">PERMISSIVE</span> The class is a maintenance condition of the whole. Its removal leads to non-selective failure.</span>
+        </p>
+      </div>
+      <p>
+        <span class="fr">La distinction entre paramétrique et modulateur lève l'ambiguïté du mot « gain », que la version 1.1 employait pour deux rôles. Le gain de couplage éphaptique fixé par la résistivité du milieu est un coefficient de l'équation du champ : il est paramétrique. Le gain de réseau fixé par les neuromodulateurs passe par des récepteurs et des seconds messagers : il est modulateur. Le critère n'est pas le mot, mais la position de la grandeur par rapport aux équations du porteur. <span class="badge b-normatif">NORMATIF</span></span>
+        <span class="en">The distinction between parametric and modulatory removes the ambiguity of the word "gain", which version 1.1 used for two roles. The ephaptic coupling gain set by the resistivity of the medium is a coefficient of the field equation: it is parametric. The network gain set by neuromodulators runs through receptors and second messengers: it is modulatory. The criterion is not the word but the position of the quantity relative to the carrier's equations. <span class="badge b-normatif">NORMATIVE</span></span>
+      </p>
+      <p>
+        <span class="fr">Le rôle permissif demande une précision que la version 1.1 omettait. Un facteur permissif produit, à l'ablation complète, l'effet le plus spectaculaire qui soit — l'abolition de la conscience — et cette issue ne départage aucune théorie, puisque toutes la prédisent : l'hypoglycémie profonde et l'anoxie abolissent la conscience sans rien apprendre sur sa nature. Mais la valeur d'information d'un facteur permissif n'est pas nulle pour autant. Elle est faible pour l'issue d'abolition ; elle ne l'est pas pour l'<em>ordre de défaillance</em> des signatures sous privation graduée, qui peut différer selon les théories. Saillance clinique et pouvoir discriminant théorique sont deux grandeurs indépendantes : elles divergent au maximum pour les facteurs permissifs, et elles ne varient pas en sens inverse en général, comme le montrent les anesthésiques qui renforcent la conductance GABA-A, à la fois centraux en clinique et discriminants pour la théorie.</span>
+        <span class="en">The permissive role needs a precision that version 1.1 omitted. A permissive factor produces, on complete ablation, the most spectacular effect there is — abolition of consciousness — and that outcome separates no theory, since all predict it: profound hypoglycaemia and anoxia abolish consciousness while teaching nothing about its nature. But the information value of a permissive factor is not therefore nil. It is low for the abolition outcome; it is not low for the <em>order of failure</em> of signatures under graded deprivation, which may differ across theories. Clinical salience and theoretical discriminating power are two independent quantities: they diverge most for permissive factors, and they do not vary inversely in general, as anaesthetics that enhance GABA-A conductance show, being both clinically central and theoretically discriminating.</span>
+      </p>
+
+      <h3><span class="fr">La règle d'agrégation : dominance, et ordre partiel</span><span class="en">The aggregation rule: dominance, and a partial order</span></h3>
+      <p>
+        <span class="fr">La version 1.1 produisait un ordre total de treize rangs sans déclarer comment les trois sous-critères se combinaient, et la règle changeait d'un rang à l'autre : la constante de temps l'emportait sur la distance au rang 8, la distance sur la constante de temps aux rangs 4 et 5, et le troisième sous-critère « tranchait » au rang 11. Or un ordre total sur des critères ordinaux dépourvus d'échelle commune est une agrégation, et le document II (section 1.4, d'après Okasha, 2011) tient une telle agrégation pour formellement problématique ; l'heuristique négative de la série l'interdit (interdiction 4). La règle retenue est donc la seule qui satisfasse l'unanimité sans introduire de dictature de critère : la <b>dominance au sens de Pareto</b>. Un couple en domine un autre s'il est au moins aussi proche du porteur sur les trois sous-critères, et strictement plus proche sur l'un d'eux. Le résultat est un ordre partiel, présenté en <b>strates</b> : la strate 1 réunit les couples qu'aucun autre ne domine ; la strate k, ceux qu'aucun couple restant ne domine une fois les strates précédentes retirées. Deux couples d'une même strate sont incomparables ou équivalents ; le présent document ne les ordonne pas. <span class="badge b-normatif">NORMATIF</span></span>
+        <span class="en">Version 1.1 produced a total order of thirteen ranks without declaring how the three sub-criteria combined, and the rule changed from rank to rank: the time constant outweighed distance at rank 8, distance outweighed the time constant at ranks 4 and 5, and the third sub-criterion "decided" at rank 11. Yet a total order over ordinal criteria lacking a common scale is an aggregation, and document II (section 1.4, after Okasha, 2011) holds such aggregation to be formally problematic; the series' negative heuristic forbids it (prohibition 4). The rule adopted is therefore the only one that satisfies unanimity without introducing a dictatorship of criterion: <b>Pareto dominance</b>. One pair dominates another if it is at least as close to the carrier on all three sub-criteria and strictly closer on one. The result is a partial order, presented in <b>strata</b>: stratum 1 gathers the pairs no other dominates; stratum k, those no remaining pair dominates once the previous strata are removed. Two pairs in the same stratum are incomparable or equivalent; this document does not order them. <span class="badge b-normatif">NORMATIVE</span></span>
+      </p>
+      <p>
+        <span class="fr">Les numéros de la version 1.1 sont conservés comme identifiants des classes, pour la stabilité des renvois ; ils ne désignent plus une position. Les classes que la fonction divise reçoivent une lettre : 2a et 2b, 9a et 9b, 10a et 10b, 12a et 12b. Les valeurs attribuées à chaque couple sur chaque sous-critère sont des jugements déclarés, révisables avec les auxiliaires de mesure (section 5) ; la stratification en dépend, et le tableau de la section 3 les donne toutes afin que chacune puisse être contestée isolément.</span>
+        <span class="en">The numbers of version 1.1 are kept as class identifiers, for the stability of cross-references; they no longer denote a position. Classes that function divides receive a letter: 2a and 2b, 9a and 9b, 10a and 10b, 12a and 12b. The values assigned to each pair on each sub-criterion are declared judgements, revisable with the measurement auxiliaries (section 5); the stratification depends on them, and the table in section 3 gives them all so that each can be contested separately.</span>
+      </p>
+
+      <h3><span class="fr">L'heuristique négative de la série</span><span class="en">The series' negative heuristic</span></h3>
+      <p>
+        <span class="fr">La version 1.1 ajoutait ici une « quatrième heuristique négative » aux trois du document principal, alors que le document II en énonçait une troisième différente. La série dispose désormais d'une liste unique, reprise à l'identique dans les documents I (tableau 3) et II (tableau 3) et dans la synthèse. L'interdiction introduite par le présent document y figure en cinquième position.</span>
+        <span class="en">Version 1.1 added here a "fourth negative heuristic" to the three of the main document, whereas document II stated a different third one. The series now has a single list, reproduced identically in documents I (table 3) and II (table 3) and in the synthesis. The prohibition introduced by the present document appears there in fifth place.</span>
+      </p>
+      <ol class="interdits">
+        <li><span class="fr"><b>Interdiction de quantifier un degré de proto-conscience ou d'expérience.</b></span><span class="en"><b>No quantifying a degree of proto-consciousness or of experience.</b></span></li>
+        <li><span class="fr"><b>Interdiction d'identifier une mesure à la phénoménalité.</b></span><span class="en"><b>No identifying a measure with phenomenality.</b></span></li>
+        <li><span class="fr"><b>Interdiction d'inférer un mécanisme d'un succès d'ajustement.</b></span><span class="en"><b>No inferring a mechanism from a fitting success.</b></span></li>
+        <li><span class="fr"><b>Interdiction des scores agrégés sur des critères ordinaux dépourvus d'échelle commune.</b></span><span class="en"><b>No aggregate scores over ordinal criteria lacking a common scale.</b></span></li>
+        <li class="neuve"><span class="fr"><b>Interdiction d'inférer un rôle constitutif d'un effet d'ablation permissif.</b> Qu'une classe soit nécessaire au maintien de la conscience n'établit jamais qu'elle en soit constitutive ; seule une intervention qui modifie la classe <em>sans</em> supprimer les conditions générales de fonctionnement peut trancher. <span class="badge b-normatif">NORMATIF</span></span><span class="en"><b>No inferring a constitutive role from a permissive ablation effect.</b> That a class is necessary to the maintenance of consciousness never establishes that it is constitutive of it; only an intervention that modifies the class <em>without</em> removing the general conditions of operation can decide. <span class="badge b-normatif">NORMATIVE</span></span></li>
+      </ol>
+
+      <h3><span class="fr">Limite du critère d'ablation</span><span class="en">Limit of the ablation criterion</span></h3>
+      <p>
+        <span class="fr">Le débat sur la pertinence constitutive a montré que les tests interventionnistes ne séparent pas proprement la constitution de la causalité. Intervenir sur un constituant modifie nécessairement le tout dont il fait partie : l'intervention est « à main lourde » (<em>fat-handed</em>) par construction (Craver, 2007 ; Baumgartner &amp; Gebharter, 2016). L'effet d'ablation ne suffit donc pas, à lui seul, à distinguer un rôle constitutif d'un rôle causal proche ; il ne tranche ici qu'en conjonction avec les deux autres sous-critères, et les attributions de rôle restent révisables. <span class="badge b-conteste">CONTESTÉ</span> <span class="badge b-normatif">NORMATIF</span></span>
+        <span class="en">The debate on constitutive relevance has shown that interventionist tests do not cleanly separate constitution from causation. Intervening on a constituent necessarily alters the whole of which it is part: the intervention is fat-handed by construction (Craver, 2007; Baumgartner &amp; Gebharter, 2016). The ablation effect therefore does not, on its own, distinguish a constitutive role from a proximate causal one; here it decides only in conjunction with the other two sub-criteria, and role assignments remain revisable. <span class="badge b-conteste">CONTESTED</span> <span class="badge b-normatif">NORMATIVE</span></span>
+      </p>
+
+      <h3><span class="fr">Le classement porte sur des fonctions, non sur des substances</span><span class="en">The ordering is of functions, not of substances</span></h3>
+      <p>
+        <span class="fr">Une même espèce chimique peut occuper deux places éloignées selon la fonction considérée. Le glutamate est, en classe 3, générateur des courants synaptiques ; il est aussi, en classe 13, un métabolite du cycle de l'azote. Le calcium est porteur de charge en classe 1 et second messager intracellulaire, fonction qui relève des cascades de signalisation et non du porteur. L'ADN mitochondrial relève de la classe 7 par les sous-unités de la chaîne respiratoire qu'il code, l'ADN nucléaire de la classe 8 par les canaux qu'il spécifie. La version 1.1 énonçait ce principe puis le violait deux fois : elle plaçait le zinc « au rang 3 par son mode, au rang 12 par sa concentration », alors que la concentration n'est pas un sous-critère ; et elle traitait les neurostéroïdes non génomiques comme une « exception » au rang 9 plutôt que comme une fonction distincte. Ce qui est ordonné ci-dessous, ce sont des couples espèce–fonction, et chaque fonction reçoit sa propre place. <span class="badge b-normatif">NORMATIF</span></span>
+        <span class="en">One and the same chemical species may occupy two distant places depending on the function considered. Glutamate is, in class 3, a generator of synaptic currents; it is also, in class 13, a metabolite of nitrogen turnover. Calcium is a charge carrier in class 1 and an intracellular second messenger, a function belonging to signalling cascades rather than to the carrier. Mitochondrial DNA belongs to class 7 through the respiratory-chain subunits it encodes, nuclear DNA to class 8 through the channels it specifies. Version 1.1 stated this principle and then violated it twice: it placed zinc "at rank 3 by its mode, at rank 12 by its concentration", although concentration is not a sub-criterion; and it treated non-genomic neurosteroids as an "exception" at rank 9 rather than as a distinct function. What is ordered below is species–function pairs, and each function receives its own place. <span class="badge b-normatif">NORMATIVE</span></span>
+      </p>
+    </div>
+
+    <!-- ── figure 1 ── -->
+    <div class="figure">
+      <div class="figure-cadre">
+<svg viewBox="0 0 900 600" width="900" height="600" role="img" aria-labelledby="t-fig1 d-fig1">
+<title id="t-fig1">Carte des treize classes</title><desc id="d-fig1">Chaque couple espèce–fonction est un segment horizontal couvrant sa plage de constante de temps, placé sur la rangée de sa distance causale au porteur. La teinte code le rôle ; le chiffre entre crochets donne la strate.</desc>
+<rect x="304" y="36" width="46" height="462" fill="var(--acces)" opacity="0.10"/>
+<text x="327" y="28" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--acces)"><tspan class="fr">épisode conscient</tspan><tspan class="en">conscious episode</tspan></text>
+<g stroke="var(--filet-fort)" fill="none"><path d="M96 500 L866 500"/></g>
+<g font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--texte-faible)" text-anchor="middle">
+<path d="M96 500 L96 506" stroke="var(--filet)"/><text x="96" y="521">10⁻⁴</text>
+<path d="M173 500 L173 506" stroke="var(--filet)"/><text x="173" y="521">10⁻³</text>
+<path d="M250 500 L250 506" stroke="var(--filet)"/><text x="250" y="521">10⁻²</text>
+<path d="M327 500 L327 506" stroke="var(--filet)"/><text x="327" y="521">10⁻¹</text>
+<path d="M404 500 L404 506" stroke="var(--filet)"/><text x="404" y="521">10⁰</text>
+<path d="M481 500 L481 506" stroke="var(--filet)"/><text x="481" y="521">10¹</text>
+<path d="M558 500 L558 506" stroke="var(--filet)"/><text x="558" y="521">10²</text>
+<path d="M635 500 L635 506" stroke="var(--filet)"/><text x="635" y="521">10³</text>
+<path d="M712 500 L712 506" stroke="var(--filet)"/><text x="712" y="521">10⁴</text>
+<path d="M789 500 L789 506" stroke="var(--filet)"/><text x="789" y="521">10⁵</text>
+<path d="M866 500 L866 506" stroke="var(--filet)"/><text x="866" y="521">10⁶</text>
+<text x="481" y="542" fill="var(--texte-attenue)"><tspan class="fr">constante de temps τ, plage en ordres de grandeur (s)</tspan><tspan class="en">time constant τ, range in orders of magnitude (s)</tspan></text></g>
+<g font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--texte-faible)">
+<path d="M96 74 L866 74" stroke="var(--filet)" stroke-dasharray="2 5"/>
+<text x="86" y="66" text-anchor="end">d = 0</text>
+<path d="M96 152 L866 152" stroke="var(--filet)" stroke-dasharray="2 5"/>
+<text x="86" y="144" text-anchor="end">d = 1</text>
+<path d="M96 262 L866 262" stroke="var(--filet)" stroke-dasharray="2 5"/>
+<text x="86" y="254" text-anchor="end">d = 2</text>
+<path d="M96 364 L866 364" stroke="var(--filet)" stroke-dasharray="2 5"/>
+<text x="86" y="356" text-anchor="end">d = 3</text>
+<path d="M96 452 L866 452" stroke="var(--filet)" stroke-dasharray="2 5"/>
+<text x="86" y="444" text-anchor="end">d = 4+</text>
+<text transform="translate(22 270) rotate(-90)" text-anchor="middle" fill="var(--texte-attenue)"><tspan class="fr">distance causale au porteur (étapes, ordinale)</tspan><tspan class="en">causal distance to the carrier (steps, ordinal)</tspan></text></g>
+<g font-family="IBM Plex Mono, monospace" font-size="9.5">
+<rect x="96.0" y="58.0" width="154.0" height="8" rx="2" fill="var(--constitutif)"/>
+<text x="256.0" y="65.5" text-anchor="start" fill="var(--constitutif)"><tspan font-weight="500">1</tspan> <tspan class="fr" fill="var(--texte-attenue)">ions</tspan><tspan class="en" fill="var(--texte-attenue)">ions</tspan> <tspan fill="var(--texte-faible)">[S1]</tspan></text>
+<rect x="96.0" y="128.0" width="77.0" height="8" rx="2" fill="var(--constitutif)"/>
+<text x="179.0" y="135.5" text-anchor="start" fill="var(--constitutif)"><tspan font-weight="500">2a</tspan> <tspan class="fr" fill="var(--texte-attenue)">canaux · connexines</tspan><tspan class="en" fill="var(--texte-attenue)">channels · connexins</tspan> <tspan fill="var(--texte-faible)">[S2]</tspan></text>
+<rect x="404.0" y="128.0" width="154.0" height="8" rx="2" fill="var(--permissif)"/>
+<text x="564.0" y="135.5" text-anchor="start" fill="var(--permissif)"><tspan font-weight="500">2b</tspan> <tspan class="fr" fill="var(--texte-attenue)">Na⁺/K⁺-ATPase</tspan><tspan class="en" fill="var(--texte-attenue)">Na⁺/K⁺-ATPase</tspan> <tspan fill="var(--texte-faible)">[S3]</tspan></text>
+<rect x="173.0" y="238.0" width="154.0" height="8" rx="2" fill="var(--generateur)"/>
+<text x="333.0" y="245.5" text-anchor="start" fill="var(--generateur)"><tspan font-weight="500">3</tspan> <tspan class="fr" fill="var(--texte-attenue)">glutamate · GABA</tspan><tspan class="en" fill="var(--texte-attenue)">glutamate · GABA</tspan> <tspan fill="var(--texte-faible)">[S3]</tspan></text>
+<rect x="481.0" y="150.0" width="231.0" height="8" rx="2" fill="var(--parametrique)"/>
+<text x="718.0" y="157.5" text-anchor="start" fill="var(--parametrique)"><tspan font-weight="500">4</tspan> <tspan class="fr" fill="var(--texte-attenue)">milieu extracellulaire</tspan><tspan class="en" fill="var(--texte-attenue)">extracellular medium</tspan> <tspan fill="var(--texte-faible)">[S3]</tspan></text>
+<rect x="558.0" y="172.0" width="231.0" height="8" rx="2" fill="var(--parametrique)"/>
+<text x="552.0" y="179.5" text-anchor="end" fill="var(--parametrique)"><tspan font-weight="500">5</tspan> <tspan class="fr" fill="var(--texte-attenue)">sels minéraux</tspan><tspan class="en" fill="var(--texte-attenue)">mineral salts</tspan> <tspan fill="var(--texte-faible)">[S4]</tspan></text>
+<rect x="327.0" y="340.0" width="231.0" height="8" rx="2" fill="var(--modulateur)"/>
+<text x="564.0" y="347.5" text-anchor="start" fill="var(--modulateur)"><tspan font-weight="500">6</tspan> <tspan class="fr" fill="var(--texte-attenue)">neuromodulateurs</tspan><tspan class="en" fill="var(--texte-attenue)">neuromodulators</tspan> <tspan fill="var(--texte-faible)">[S4]</tspan></text>
+<rect x="404.0" y="362.0" width="154.0" height="8" rx="2" fill="var(--permissif)"/>
+<text x="564.0" y="369.5" text-anchor="start" fill="var(--permissif)"><tspan font-weight="500">7</tspan> <tspan class="fr" fill="var(--texte-attenue)">métabolites</tspan><tspan class="en" fill="var(--texte-attenue)">metabolites</tspan> <tspan fill="var(--texte-faible)">[S6]</tspan></text>
+<rect x="558.0" y="384.0" width="308.0" height="8" rx="2" fill="var(--modulateur)"/>
+<text x="552.0" y="391.5" text-anchor="end" fill="var(--modulateur)"><tspan font-weight="500">8</tspan> <tspan class="fr" fill="var(--texte-attenue)">ADN · ARN</tspan><tspan class="en" fill="var(--texte-attenue)">DNA · RNA</tspan> <tspan fill="var(--texte-faible)">[S6]</tspan></text>
+<rect x="635.0" y="428.0" width="77.0" height="8" rx="2" fill="var(--modulateur)"/>
+<text x="718.0" y="435.5" text-anchor="start" fill="var(--modulateur)"><tspan font-weight="500">9a</tspan> <tspan class="fr" fill="var(--texte-attenue)">hormones (génomique)</tspan><tspan class="en" fill="var(--texte-attenue)">hormones (genomic)</tspan> <tspan fill="var(--texte-faible)">[S7]</tspan></text>
+<rect x="404.0" y="260.0" width="77.0" height="8" rx="2" fill="var(--modulateur)"/>
+<text x="487.0" y="267.5" text-anchor="start" fill="var(--modulateur)"><tspan font-weight="500">9b</tspan> <tspan class="fr" fill="var(--texte-attenue)">neurostéroïdes</tspan><tspan class="en" fill="var(--texte-attenue)">neurosteroids</tspan> <tspan fill="var(--texte-faible)">[S5]</tspan></text>
+<rect x="327.0" y="282.0" width="77.0" height="8" rx="2" fill="var(--modulateur)"/>
+<text x="410.0" y="289.5" text-anchor="start" fill="var(--modulateur)"><tspan font-weight="500">10a</tspan> <tspan class="fr" fill="var(--texte-attenue)">protons (pH)</tspan><tspan class="en" fill="var(--texte-attenue)">protons (pH)</tspan> <tspan fill="var(--texte-faible)">[S4]</tspan></text>
+<rect x="327.0" y="428.0" width="154.0" height="8" rx="2" fill="var(--modulateur)"/>
+<text x="487.0" y="435.5" text-anchor="start" fill="var(--modulateur)"><tspan font-weight="500">10b</tspan> <tspan class="fr" fill="var(--texte-attenue)">NO</tspan><tspan class="en" fill="var(--texte-attenue)">NO</tspan> <tspan fill="var(--texte-faible)">[S5]</tspan></text>
+<rect x="789.0" y="194.0" width="77.0" height="8" rx="2" fill="var(--parametrique)"/>
+<text x="783.0" y="201.5" text-anchor="end" fill="var(--parametrique)"><tspan font-weight="500">11</tspan> <tspan class="fr" fill="var(--texte-attenue)">lipides · myéline</tspan><tspan class="en" fill="var(--texte-attenue)">lipids · myelin</tspan> <tspan fill="var(--texte-faible)">[S3]</tspan></text>
+<rect x="250.0" y="304.0" width="154.0" height="8" rx="2" fill="var(--modulateur)"/>
+<text x="410.0" y="311.5" text-anchor="start" fill="var(--modulateur)"><tspan font-weight="500">12a</tspan> <tspan class="fr" fill="var(--texte-attenue)">zinc synaptique</tspan><tspan class="en" fill="var(--texte-attenue)">synaptic zinc</tspan> <tspan fill="var(--texte-faible)">[S4]</tspan></text>
+<rect x="635.0" y="450.0" width="231.0" height="8" rx="2" fill="var(--permissif)"/>
+<text x="629.0" y="457.5" text-anchor="end" fill="var(--permissif)"><tspan font-weight="500">12b</tspan> <tspan class="fr" fill="var(--texte-attenue)">Fe · Cu · Se · Mn</tspan><tspan class="en" fill="var(--texte-attenue)">Fe · Cu · Se · Mn</tspan> <tspan fill="var(--texte-faible)">[S8]</tspan></text>
+<rect x="635.0" y="472.0" width="231.0" height="8" rx="2" fill="var(--permissif)"/>
+<text x="629.0" y="479.5" text-anchor="end" fill="var(--permissif)"><tspan font-weight="500">13</tspan> <tspan class="fr" fill="var(--texte-attenue)">cofacteurs · vitamines</tspan><tspan class="en" fill="var(--texte-attenue)">cofactors · vitamins</tspan> <tspan fill="var(--texte-faible)">[S8]</tspan></text>
+</g>
+<g font-family="IBM Plex Mono, monospace" font-size="10" transform="translate(96 576)">
+<rect x="0" y="-9" width="18" height="8" rx="2" fill="var(--constitutif)"/><text x="24" y="0" fill="var(--texte-attenue)"><tspan class="fr">constitutif</tspan><tspan class="en">constitutive</tspan></text>
+<rect x="150" y="-9" width="18" height="8" rx="2" fill="var(--generateur)"/><text x="174" y="0" fill="var(--texte-attenue)"><tspan class="fr">générateur</tspan><tspan class="en">generator</tspan></text>
+<rect x="300" y="-9" width="18" height="8" rx="2" fill="var(--parametrique)"/><text x="324" y="0" fill="var(--texte-attenue)"><tspan class="fr">paramétrique</tspan><tspan class="en">parametric</tspan></text>
+<rect x="450" y="-9" width="18" height="8" rx="2" fill="var(--modulateur)"/><text x="474" y="0" fill="var(--texte-attenue)"><tspan class="fr">modulateur</tspan><tspan class="en">modulatory</tspan></text>
+<rect x="600" y="-9" width="18" height="8" rx="2" fill="var(--permissif)"/><text x="624" y="0" fill="var(--texte-attenue)"><tspan class="fr">permissif</tspan><tspan class="en">permissive</tspan></text>
+</g></svg>
+      </div>
+      <p class="legende">
+        <span class="fr"><b>Figure 1.</b> Carte des dix-sept couples espèce–fonction. L'ordonnée est la distance causale au porteur de niveau I, comptée en étapes et donc ordinale : les rangées sont discrètes, et la position verticale à l'intérieur d'une rangée ne sert qu'à éviter les chevauchements. L'abscisse est la constante de temps au sens homogène de la section 1 ; chaque couple est un segment qui couvre sa plage en ordres de grandeur, et non un point, puisque la littérature n'autorise pas davantage. La bande verticale marque la fenêtre d'un épisode conscient : un couple situé entièrement à sa droite ne peut pas individuer un état, seulement en régler la forme ou les paramètres. Le chiffre entre crochets donne la strate de l'ordre partiel ; la teinte, le rôle. La version 1.1 plaçait les classes sur une ordonnée graduée et fractionnaire, en contradiction avec son caractère déclaré ordinal.</span>
+        <span class="en"><b>Figure 1.</b> Map of the seventeen species–function pairs. The ordinate is causal distance to the level-I carrier, counted in steps and therefore ordinal: rows are discrete, and vertical position within a row serves only to avoid overlap. The abscissa is the time constant in the homogeneous sense of section 1; each pair is a segment spanning its range in orders of magnitude, not a point, since the literature allows no more. The vertical band marks the window of a conscious episode: a pair lying entirely to its right cannot individuate a state, only set its form or parameters. The number in brackets gives the stratum of the partial order; the hue, the role. Version 1.1 placed classes on a graduated, fractional ordinate, contradicting its declared ordinal character.</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 2. les treize classes ═══════════ -->
+  <section id="classes">
+    <p class="surtitre"><span class="fr">2 · l'implémentation</span><span class="en">2 · the implementation</span></p>
+    <h2 class="intitule"><span class="fr">Les treize classes</span><span class="en">The thirteen classes</span></h2>
+    <p class="amorce">
+      <span class="fr">Chaque couple espèce–fonction reçoit son rôle causal, sa distance au porteur, sa constante de temps, son effet d'ablation, sa strate et son statut épistémique. Les classes sont présentées dans l'ordre de leurs identifiants, non dans celui des strates.</span>
+      <span class="en">Each species–function pair is given its causal role, its distance to the carrier, its time constant, its ablation effect, its stratum and its epistemic status. Classes are presented in the order of their identifiers, not of the strata.</span>
+    </p>
+
+    <div class="rangs">
+
+      <!-- ── 1 ── -->
+      <article class="rang" data-role="constitutif">
+        <span class="chiffre">1</span>
+        <div>
+          <h3>
+            <span class="fr">Ions<span class="espece">Na⁺, K⁺, Ca²⁺, Cl⁻ — la charge mobile elle-même</span></span>
+            <span class="en">Ions<span class="espece">Na⁺, K⁺, Ca²⁺, Cl⁻ — the mobile charge itself</span></span>
+          </h3>
+          <p>
+            <span class="fr">Les ions ne causent pas le porteur : ils le sont. Le modèle de Hodgkin et Huxley (1952) décrit le potentiel d'action comme la conséquence de conductances ioniques voltage-dépendantes, et Buzsáki, Anastassiou et Koch (2012) établissent que le champ extracellulaire enregistré par l'EEG, l'ECoG et les potentiels de champ locaux résulte de la superposition des courants transmembranaires. Entre la classe et le porteur, la distance est nulle. <span class="badge b-etabli">ÉTABLI</span></span>
+            <span class="en">Ions do not cause the carrier: they are it. Hodgkin and Huxley's model (1952) describes the action potential as the consequence of voltage-dependent ionic conductances, and Buzsáki, Anastassiou and Koch (2012) establish that the extracellular field recorded by EEG, ECoG and local field potentials results from the superposition of transmembrane currents. Between class and carrier the distance is nil. <span class="badge b-etabli">ESTABLISHED</span></span>
+          </p>
+          <p>
+            <span class="fr">Ding et collègues (2016) ont montré que la composition ionique interstitielle — potassium, calcium, magnésium, protons — varie avec l'état de vigilance, que les neuromodulateurs agissent en partie en la modifiant, et qu'imposer localement une composition de type éveil suffit à convertir l'activité corticale d'une souris endormie vers le profil électroencéphalographique de l'éveil. La composition ionique est donc une variable de commande proximale, en aval des neuromodulateurs. L'effet démontré est local et électrophysiologique, et il a été obtenu chez la souris. Le même résultat fait de la composition ionique un confondant du volet de pont (section 4). <span class="badge b-etabli">ÉTABLI (résultat)</span> <span class="badge b-modelise">MODÉLISÉ (portée)</span></span>
+            <span class="en">Ding and colleagues (2016) showed that interstitial ionic composition — potassium, calcium, magnesium, protons — varies with vigilance state, that neuromodulators act partly by changing it, and that locally imposing a wake-like composition suffices to convert the cortical activity of a sleeping mouse to the electroencephalographic profile of wakefulness. Ionic composition is therefore a proximal control variable, downstream of the neuromodulators. The demonstrated effect is local and electrophysiological, and was obtained in mice. The same result makes ionic composition a confound of the bridge strand (section 4). <span class="badge b-etabli">ESTABLISHED (result)</span> <span class="badge b-modelise">MODELLED (scope)</span></span>
+          </p>
+          <p class="fiche">
+            <span class="role r-constitutif"><span class="fr">CONSTITUTIF</span><span class="en">CONSTITUTIVE</span></span>
+            <span><b>d</b> 0</span>
+            <span><b>τ</b> 10⁻⁴ – 10⁻² s</span>
+            <span><b><span class="fr">Ablation</span><span class="en">Ablation</span></b> <span class="fr">suppression du porteur</span><span class="en">abolition of the carrier</span></span>
+            <span><b><span class="fr">Strate</span><span class="en">Stratum</span></b> S1</span>
+          </p>
+        </div>
+      </article>
+
+      <!-- ── 2 ── -->
+      <article class="rang" data-role="constitutif">
+        <span class="chiffre">2</span>
+        <div>
+          <h3>
+            <span class="fr">Protéines transmembranaires<span class="espece">2a canaux voltage-dépendants, récepteurs ionotropes, connexines · 2b Na⁺/K⁺-ATPase</span></span>
+            <span class="en">Transmembrane proteins<span class="espece">2a voltage-gated channels, ionotropic receptors, connexins · 2b Na⁺/K⁺-ATPase</span></span>
+          </h3>
+          <p>
+            <span class="fr">Les canaux ne portent pas le courant : ils en fixent la dynamique. Dans le formalisme de Hodgkin-Huxley, ils sont les conductances g(V, t) ; le porteur est le courant, la protéine est la vanne. Ils sont à distance 1 et agissent dans la fenêtre d'un épisode : c'est ce qui les rend constitutifs (2a). Les connexines ouvrent une voie de couplage électrique direct entre cellules (Connors &amp; Long, 2004), distincte du couplage éphaptique et pourtant également non synaptique ; la section 4 en tire un contrôle. <span class="badge b-etabli">ÉTABLI</span></span>
+            <span class="en">Channels do not carry the current: they set its dynamics. In the Hodgkin–Huxley formalism they are the conductances g(V, t); the carrier is the current, the protein is the valve. They are at distance 1 and act within the window of an episode: this makes them constitutive (2a). Connexins open a route of direct electrical coupling between cells (Connors &amp; Long, 2004), distinct from ephaptic coupling and yet equally non-synaptic; section 4 draws a control from this. <span class="badge b-etabli">ESTABLISHED</span></span>
+          </p>
+          <p>
+            <span class="fr">La Na⁺/K⁺-ATPase, qui entretient les gradients et consomme l'essentiel de l'énergie de signalisation (Attwell &amp; Laughlin, 2001), est une autre fonction de la même classe : elle est permissive, bien qu'à distance 1, et son blocage conduit à une défaillance non sélective en quelques secondes à minutes (2b). La version 1.1 signalait cette division interne sans en tirer la conséquence ; le principe des couples espèce–fonction l'impose. Que 2b figure en strate 3 malgré son rôle permissif illustre que strate et rôle sont deux informations distinctes.</span>
+            <span class="en">The Na⁺/K⁺-ATPase, which maintains the gradients and consumes most of the signalling energy (Attwell &amp; Laughlin, 2001), is another function of the same class: it is permissive, although at distance 1, and its blockade leads to non-selective failure within seconds to minutes (2b). Version 1.1 noted this internal division without drawing the consequence; the principle of species–function pairs requires it. That 2b lies in stratum 3 despite its permissive role illustrates that stratum and role are two distinct pieces of information.</span>
+          </p>
+          <p class="fiche">
+            <span class="role r-constitutif">2a · <span class="fr">CONSTITUTIF</span><span class="en">CONSTITUTIVE</span></span>
+            <span><b>d</b> 1</span><span><b>τ</b> 10⁻⁴ – 10⁻³ s</span><span><b><span class="fr">Strate</span><span class="en">Stratum</span></b> S2</span>
+            <span class="role r-permissif">2b · <span class="fr">PERMISSIF</span><span class="en">PERMISSIVE</span></span>
+            <span><b>d</b> 1</span><span><b>τ</b> 10⁰ – 10² s</span><span><b><span class="fr">Strate</span><span class="en">Stratum</span></b> S3</span>
+          </p>
+        </div>
+      </article>
+
+      <!-- ── 3 ── -->
+      <article class="rang" data-role="generateur">
+        <span class="chiffre">3</span>
+        <div>
+          <h3>
+            <span class="fr">Acides aminés transmetteurs<span class="espece">glutamate, GABA, glycine</span></span>
+            <span class="en">Transmitter amino acids<span class="espece">glutamate, GABA, glycine</span></span>
+          </h3>
+          <p>
+            <span class="fr">C'est la classe que la version 1.1 classait le plus mal. Elle écrivait que le champ mesuré est dominé par les courants synaptiques « non par les potentiels d'action », et en concluait que le glutamate et le GABA sont constitutifs, avec pour effet d'ablation la « suppression du champ mesuré ». Deux corrections s'imposent. D'abord, Buzsáki et collègues (2012) établissent que les courants synaptiques sont, dans la plupart des conditions physiologiques, une source majeure du champ extracellulaire, mais consacrent une part substantielle de leur revue aux contributions non synaptiques : pics calciques dendritiques, potentiels d'action et post-hyperpolarisations, courants intrinsèques et résonances. <span class="badge b-etabli">ÉTABLI</span> Ensuite, la préparation de référence du programme (Chiang et al., 2019) est précisément une ablation de la fonction de cette classe dans laquelle la propagation par le champ persiste. Le glutamate et le GABA ne sont donc pas requis par le porteur ; ils commandent sa composante dominante en conditions physiologiques. Leur rôle est celui de <em>générateur</em>, non de constituant : générateur principal du signal mesuré, non constituant du porteur. <span class="badge b-normatif">NORMATIF</span></span>
+            <span class="en">This is the class version 1.1 placed worst. It wrote that the measured field is dominated by synaptic currents "not by action potentials", and concluded that glutamate and GABA are constitutive, with "abolition of the measured field" as their ablation effect. Two corrections are needed. First, Buzsáki and colleagues (2012) establish that synaptic currents are, under most physiological conditions, a major source of the extracellular field, but devote a substantial part of their review to non-synaptic contributions: dendritic calcium spikes, action potentials and afterhyperpolarisations, intrinsic currents and resonances. <span class="badge b-etabli">ESTABLISHED</span> Second, the programme's reference preparation (Chiang et al., 2019) is precisely an ablation of this class's function in which field-mediated propagation persists. Glutamate and GABA are therefore not required by the carrier; they command its dominant component under physiological conditions. Their role is that of <em>generator</em>, not constituent: principal generator of the measured signal, not constituent of the carrier. <span class="badge b-normatif">NORMATIVE</span></span>
+          </p>
+          <p>
+            <span class="fr">Le budget énergétique confirme la place de générateur, à condition d'en retenir la version révisée. L'estimation initiale d'Attwell et Laughlin (2001) attribuait aux potentiels d'action la plus grande part de l'énergie de signalisation dans la matière grise de rongeur ; la révision de Howarth, Gleeson et Attwell (2012) inverse cet ordre pour le néocortex : environ la moitié de l'énergie de signalisation va aux récepteurs postsynaptiques du glutamate, contre environ un cinquième aux potentiels d'action. La potentialisation des récepteurs GABA-A, phasiques et toniques (Farrant &amp; Nusser, 2005), est l'une des cibles principales des anesthésiques généraux intraveineux (Franks, 2008) ; la kétamine et le xénon agissent surtout sur les récepteurs NMDA, et les agents volatils ont plusieurs cibles. Elle établit une voie courte de la classe 3 à l'abolition de la conscience d'accès. Il s'ensuit, pour le protocole prioritaire, qu'un blocage synaptique global est, pour les signatures de niveau IV, une ablation quasi permissive : la préparation de Chiang et collègues teste le porteur, non les signatures (document principal, section 4.3). <span class="badge b-etabli">ÉTABLI</span></span>
+            <span class="en">The energy budget confirms the generator placement, provided its revised version is used. Attwell and Laughlin's initial estimate (2001) attributed the largest share of signalling energy in rodent grey matter to action potentials; the revision by Howarth, Gleeson and Attwell (2012) reverses that order for the neocortex: about half of signalling energy goes to postsynaptic glutamate receptors, against about a fifth to action potentials. Potentiation of GABA-A receptors, phasic and tonic (Farrant &amp; Nusser, 2005), is one of the main targets of intravenous general anaesthetics (Franks, 2008); ketamine and xenon act chiefly on NMDA receptors, and volatile agents have several targets. It establishes a short route from class 3 to the abolition of access consciousness. It follows, for the priority protocol, that global synaptic blockade is, for level-IV signatures, a quasi-permissive ablation: the preparation of Chiang and colleagues tests the carrier, not the signatures (main document, section 4.3). <span class="badge b-etabli">ESTABLISHED</span></span>
+          </p>
+          <p class="fiche">
+            <span class="role r-generateur"><span class="fr">GÉNÉRATEUR</span><span class="en">GENERATOR</span></span>
+            <span><b>d</b> 2</span>
+            <span><b>τ</b> 10⁻³ – 10⁻¹ s</span>
+            <span><b><span class="fr">Ablation</span><span class="en">Ablation</span></b> <span class="fr">suppression des signatures de niveau IV ; porteur conservé sous forme réduite</span><span class="en">level-IV signatures abolished; carrier kept in reduced form</span></span>
+            <span><b><span class="fr">Strate</span><span class="en">Stratum</span></b> S3</span>
+          </p>
+        </div>
+      </article>
+
+      <!-- ── 4 ── -->
+      <article class="rang" data-role="parametrique">
+        <span class="chiffre">4</span>
+        <div>
+          <h3>
+            <span class="fr">Le milieu extracellulaire<span class="espece">eau, osmolarité, fraction volumique, tortuosité, résistivité</span></span>
+            <span class="en">The extracellular medium<span class="espece">water, osmolarity, volume fraction, tortuosity, resistivity</span></span>
+          </h3>
+          <p>
+            <span class="fr">Cette classe est absente des inventaires neurochimiques usuels. Un courant transmembranaire donné n'engendre pas un potentiel extracellulaire fixe : l'amplitude dépend de la résistivité du milieu, laquelle dépend de la fraction volumique de l'espace extracellulaire et de sa tortuosité (Syková &amp; Nicholson, 2008). Le couplage éphaptique, qui est la voie par laquelle le champ rétroagit sur les neurones (Anastassiou et al., 2011 ; Anastassiou &amp; Koch, 2015), a donc un gain fixé par une variable ni ionique ni protéique, mais géométrique et hydrique. Ce gain est un coefficient de l'équation du champ : la classe est à distance 1, et son rôle est paramétrique. Son action sur le champ est instantanée, sa variation physiologique lente ; au sens homogène de la section 1, τ est celle de sa variation. <span class="badge b-etabli">ÉTABLI</span></span>
+            <span class="en">This class is absent from the usual neurochemical inventories. A given transmembrane current does not generate a fixed extracellular potential: the amplitude depends on the resistivity of the medium, which depends on the volume fraction of the extracellular space and its tortuosity (Syková &amp; Nicholson, 2008). Ephaptic coupling, the route by which the field acts back on neurons (Anastassiou et al., 2011; Anastassiou &amp; Koch, 2015), therefore has a gain set by a variable that is neither ionic nor protein-based, but geometric and hydric. That gain is a coefficient of the field equation: the class is at distance 1, and its role is parametric. Its action on the field is instantaneous, its physiological variation slow; in the homogeneous sense of section 1, τ is that of its variation. <span class="badge b-etabli">ESTABLISHED</span></span>
+          </p>
+          <p>
+            <span class="fr">Le rôle de cette classe est conditionnel à l'hypothèse du champ : si celle-ci était réfutée, le milieu extracellulaire ne fixerait plus que la forme du signal mesuré, non celle du porteur. Xie et collègues (2013) ont rapporté une augmentation substantielle de la fraction volumique de l'espace interstitiel au cours du sommeil ; nous nous abstenons d'en citer l'amplitude, faute de l'avoir vérifiée dans le texte source. Ce résultat est contesté : Miao et collègues (2024) trouvent un transport de molécules traceuses indépendant de l'état de vigilance et une clairance réduite, non accrue, pendant le sommeil et l'anesthésie. Si l'expansion volumique se confirme, elle modulerait le gain de couplage lui-même, de façon concomitante au basculement d'état. C'est le point de départ du volet de pont (section 4), dont le désaccord empirique actuel accroît la valeur d'information plutôt qu'il ne la réduit. <span class="badge b-modelise">MODÉLISÉ</span> <span class="badge b-conteste">CONTESTÉ (prémisse)</span></span>
+            <span class="en">This class's role is conditional on the field hypothesis: were it refuted, the extracellular medium would set only the form of the measured signal, not that of the carrier. Xie and colleagues (2013) reported a substantial increase in the volume fraction of the interstitial space during sleep; we refrain from quoting the magnitude, not having verified it in the source text. The result is contested: Miao and colleagues (2024) find tracer transport independent of vigilance state and clearance reduced, not increased, during sleep and anaesthesia. If the volume expansion is confirmed, it would modulate the coupling gain itself, concurrently with the switch of state. This is the starting point of the bridge strand (section 4), whose information value the current empirical disagreement raises rather than lowers. <span class="badge b-modelise">MODELLED</span> <span class="badge b-conteste">CONTESTED (premise)</span></span>
+          </p>
+          <p class="fiche">
+            <span class="role r-parametrique"><span class="fr">PARAMÉTRIQUE (gain de couplage)</span><span class="en">PARAMETRIC (coupling gain)</span></span>
+            <span><b>d</b> 1</span>
+            <span><b>τ</b> 10¹ – 10⁴ s</span>
+            <span><b><span class="fr">Ablation</span><span class="en">Ablation</span></b> <span class="fr">déformation : modification du gain de couplage</span><span class="en">deformation: coupling gain changed</span></span>
+            <span><b><span class="fr">Strate</span><span class="en">Stratum</span></b> S3</span>
+          </p>
+        </div>
+      </article>
+
+      <!-- ── 5 ── -->
+      <article class="rang" data-role="parametrique">
+        <span class="chiffre">5</span>
+        <div>
+          <h3>
+            <span class="fr">Sels minéraux et homéostasie électrolytique<span class="espece">natrémie, kaliémie, calcémie, magnésémie, phosphates</span></span>
+            <span class="en">Mineral salts and electrolyte homeostasis<span class="espece">sodium, potassium, calcium, magnesium, phosphate levels</span></span>
+          </h3>
+          <p>
+            <span class="fr">La classe 1 traite de l'ion comme charge mobile ; celle-ci traite du réservoir de concentration qui fixe les forces électromotrices. Les potentiels d'équilibre de Nernst, donc les forces motrices de chaque courant, sont déterminés par les concentrations de part et d'autre de la membrane ; le magnésium extracellulaire commande la dépendance au voltage des récepteurs NMDA ; le calcium extracellulaire règle l'excitabilité et la probabilité de libération. Les forces électromotrices sont des coefficients des équations du porteur : le rôle est paramétrique, à distance 1, sur des constantes de temps longues. C'est le même ensemble d'espèces dont Ding et collègues (2016) ont montré qu'il contribue à régler le cycle veille-sommeil. <span class="badge b-etabli">ÉTABLI</span></span>
+            <span class="en">Class 1 deals with the ion as mobile charge; this one deals with the concentration pool that sets the electromotive forces. Nernst equilibrium potentials, hence the driving forces of each current, are determined by concentrations on either side of the membrane; extracellular magnesium commands the voltage dependence of NMDA receptors; extracellular calcium sets excitability and release probability. Electromotive forces are coefficients of the carrier's equations: the role is parametric, at distance 1, over long time constants. It is the same set of species that Ding and colleagues (2016) showed to contribute to regulating the sleep–wake cycle. <span class="badge b-etabli">ESTABLISHED</span></span>
+          </p>
+          <p>
+            <span class="fr">C'est aussi la classe où la cinquième interdiction doit être appliquée avec le plus de vigilance. Les troubles électrolytiques produisent des altérations quantitatives de la conscience, et cette observation clinique est parfois offerte comme preuve que la conscience est « ionique ». Elle ne l'établit pas : elle établit que les concentrations électrolytiques sont une condition de fonctionnement, ce que toute théorie concurrente prédit également. Seule la manipulation sélective de Ding et collègues, qui modifie la composition sans abolir les conditions générales, possède une valeur discriminante.</span>
+            <span class="en">It is also the class where the fifth prohibition must be applied with most vigilance. Electrolyte disorders produce quantitative alterations of consciousness, and this clinical observation is sometimes offered as proof that consciousness is "ionic". It establishes no such thing: it establishes that electrolyte concentrations are a condition of operation, which every competing theory equally predicts. Only the selective manipulation of Ding and colleagues, which changes composition without abolishing general conditions, carries discriminating value.</span>
+          </p>
+          <p class="fiche">
+            <span class="role r-parametrique"><span class="fr">PARAMÉTRIQUE (forces électromotrices)</span><span class="en">PARAMETRIC (electromotive forces)</span></span>
+            <span><b>d</b> 1</span>
+            <span><b>τ</b> 10² – 10⁵ s</span>
+            <span><b><span class="fr">Ablation</span><span class="en">Ablation</span></b> <span class="fr">dérive, puis défaillance</span><span class="en">drift, then failure</span></span>
+            <span><b><span class="fr">Strate</span><span class="en">Stratum</span></b> S4</span>
+          </p>
+        </div>
+      </article>
+
+      <!-- ── 6 ── -->
+      <article class="rang" data-role="modulateur">
+        <span class="chiffre">6</span>
+        <div>
+          <h3>
+            <span class="fr">Neuromodulateurs<span class="espece">acétylcholine, noradrénaline, dopamine, sérotonine, histamine, orexine</span></span>
+            <span class="en">Neuromodulators<span class="espece">acetylcholine, noradrenaline, dopamine, serotonin, histamine, orexin</span></span>
+          </h3>
+          <p>
+            <span class="fr">Les neuromodulateurs ne portent pas le courant et ne génèrent pas le champ ; ils règlent le gain du réseau, par récepteurs métabotropes et seconds messagers pour l'essentiel, d'où une distance de trois étapes. Marder (2012) a établi le point décisif pour le présent cadre : un même circuit, sous des états modulateurs différents, produit des sorties fonctionnellement distinctes. Le profil fonctionnel est donc fixé par la connectivité <em>et</em> par l'état modulateur. <span class="badge b-etabli">ÉTABLI</span></span>
+            <span class="en">Neuromodulators do not carry the current and do not generate the field; they set network gain, chiefly through metabotropic receptors and second messengers, hence a distance of three steps. Marder (2012) established the point that is decisive for the present framework: one and the same circuit, under different modulatory states, produces functionally distinct outputs. The functional profile is therefore set by connectivity <em>and</em> modulatory state. <span class="badge b-etabli">ESTABLISHED</span></span>
+          </p>
+          <p>
+            <span class="fr">Au niveau III, le gain neuromodulateur est le candidat le plus sérieux à l'implémentation du terme de précision du codage prédictif — identification cohérente mais non établie, qui hérite des contestations pesant sur le principe d'énergie libre (Friston, 2010). <span class="badge b-modelise">MODÉLISÉ</span> <span class="badge b-conteste">CONTESTÉ</span> Au niveau IV, l'organisation en bascule des noyaux de l'éveil et du sommeil (Saper et al., 2010) fait du tonus modulateur une variable qui autorise ou interdit l'ignition. <span class="badge b-etabli">ÉTABLI</span> Cette même classe est, pour le volet de pont, la cause commune possible des variations de fraction volumique, de couplage et de signatures au cours du cycle veille-sommeil (section 4).</span>
+            <span class="en">At level III, neuromodulatory gain is the most serious candidate for implementing the precision term of predictive coding — a coherent but not established identification, which inherits the objections bearing on the free-energy principle (Friston, 2010). <span class="badge b-modelise">MODELLED</span> <span class="badge b-conteste">CONTESTED</span> At level IV, the flip-flop organisation of the wake and sleep nuclei (Saper et al., 2010) makes modulatory tone a variable that permits or forbids ignition. <span class="badge b-etabli">ESTABLISHED</span> This same class is, for the bridge strand, the possible common cause of the variations of volume fraction, coupling and signatures across the sleep–wake cycle (section 4).</span>
+          </p>
+          <p class="fiche">
+            <span class="role r-modulateur"><span class="fr">MODULATEUR (gain de réseau)</span><span class="en">MODULATORY (network gain)</span></span>
+            <span><b>d</b> 3</span>
+            <span><b>τ</b> 10⁻¹ – 10² s</span>
+            <span><b><span class="fr">Ablation</span><span class="en">Ablation</span></b> <span class="fr">suppression de l'ignition, porteur conservé</span><span class="en">ignition abolished, carrier preserved</span></span>
+            <span><b><span class="fr">Strate</span><span class="en">Stratum</span></b> S4</span>
+          </p>
+        </div>
+      </article>
+
+      <!-- ── 7 ── -->
+      <article class="rang" data-role="permissif">
+        <span class="chiffre">7</span>
+        <div>
+          <h3>
+            <span class="fr">Métabolites énergétiques<span class="espece">glucose, lactate, oxygène, ATP, phosphocréatine</span></span>
+            <span class="en">Energy metabolites<span class="espece">glucose, lactate, oxygen, ATP, phosphocreatine</span></span>
+          </h3>
+          <p>
+            <span class="fr">Cette classe est le cas paradigmatique du facteur permissif. Le coût énergétique de la signalisation est presque entièrement celui du rétablissement des gradients ioniques après leur dissipation (Attwell &amp; Laughlin, 2001) : les métabolites financent le porteur sans en faire partie, par l'intermédiaire de la pompe (2b). Le couplage entre activité neuronale et métabolisme astrocytaire (Magistretti &amp; Allaman, 2015) précise la voie d'approvisionnement sans changer ce statut. L'ablation complète ne discrimine rien ; l'ordre de défaillance des signatures sous privation graduée pourrait discriminer, et c'est la seule forme sous laquelle cette classe entre dans un protocole. <span class="badge b-etabli">ÉTABLI</span> <span class="badge b-conteste">CONTESTÉ (navette du lactate)</span></span>
+            <span class="en">This class is the paradigm case of a permissive factor. The energetic cost of signalling is almost entirely that of restoring ionic gradients after their dissipation (Attwell &amp; Laughlin, 2001): metabolites finance the carrier without being part of it, through the pump (2b). The coupling between neuronal activity and astrocytic metabolism (Magistretti &amp; Allaman, 2015) specifies the supply route without changing that status. Complete ablation discriminates nothing; the order of failure of signatures under graded deprivation might, and this is the only form in which this class enters a protocol. <span class="badge b-etabli">ESTABLISHED</span> <span class="badge b-conteste">CONTESTED (lactate shuttle)</span></span>
+          </p>
+          <p>
+            <span class="fr">L'imagerie fonctionnelle mesure des corrélats métaboliques et hémodynamiques, c'est-à-dire des observables de la classe 7. Entre ces observables et le porteur, il y a plusieurs changements de registre et un lissage temporel de plusieurs ordres de grandeur. Cela interdit de traiter un contraste hémodynamique comme une mesure du porteur : c'en est une mesure de la dépense qu'il occasionne. <span class="badge b-normatif">NORMATIF</span></span>
+            <span class="en">Functional imaging measures metabolic and haemodynamic correlates, that is, class-7 observables. Between those observables and the carrier there are several changes of register and a temporal smoothing of several orders of magnitude. This forbids treating a haemodynamic contrast as a measure of the carrier: it is a measure of the expenditure the carrier occasions. <span class="badge b-normatif">NORMATIVE</span></span>
+          </p>
+          <p class="fiche">
+            <span class="role r-permissif"><span class="fr">PERMISSIF</span><span class="en">PERMISSIVE</span></span>
+            <span><b>d</b> 3</span>
+            <span><b>τ</b> 10⁰ – 10² s</span>
+            <span><b><span class="fr">Ablation</span><span class="en">Ablation</span></b> <span class="fr">défaillance non sélective ; information faible pour l'abolition, non pour l'ordre de défaillance</span><span class="en">non-selective failure; low information for abolition, not for order of failure</span></span>
+            <span><b><span class="fr">Strate</span><span class="en">Stratum</span></b> S6</span>
+          </p>
+        </div>
+      </article>
+
+      <!-- ── 8 ── -->
+      <article class="rang" data-role="modulateur" id="rang-8">
+        <span class="chiffre">8</span>
+        <div>
+          <h3>
+            <span class="fr">Acides nucléiques<span class="espece">ADN nucléaire, ARN messagers, épissage alternatif, édition de l'ARN, traduction locale</span></span>
+            <span class="en">Nucleic acids<span class="espece">nuclear DNA, messenger RNAs, alternative splicing, RNA editing, local translation</span></span>
+          </h3>
+          <p>
+            <span class="fr">L'ADN et l'ARN ne portent pas le courant et n'engendrent pas le champ. Ils spécifient le <em>répertoire</em> des protéines de la classe 2 : quels canaux, quelles sous-unités, quelles isoformes, à quelle densité. La chaîne causale — gène, transcrit, protéine-conductance, courant — place l'ADN à trois étapes du porteur, la protéine étant elle-même à distance 1 ; la version 1.1 parlait de « trois étapes » tout en énumérant quatre maillons, et plaçait la classe sur sa figure entre deux et trois. Leur constante de temps est celle de l'expression génique, puis celle du renouvellement des protéines cérébrales, dont la plupart ont chez la souris une durée de vie comprise entre trois et treize jours (Fornasiero et al., 2018). Le blocage de l'expression n'a aucun effet dans la fenêtre d'un épisode : l'inhibition de la synthèse protéique empêche la consolidation de la mémoire à long terme sans abolir l'apprentissage ni la mémoire à court terme (Davis &amp; Squire, 1984). <span class="badge b-etabli">ÉTABLI</span> <span class="badge b-normatif">NORMATIF (distance)</span></span>
+            <span class="en">DNA and RNA do not carry the current and do not generate the field. They specify the <em>repertoire</em> of class-2 proteins: which channels, which subunits, which isoforms, at what density. The causal chain — gene, transcript, protein-conductance, current — places DNA three steps from the carrier, the protein itself being at distance 1; version 1.1 spoke of "three steps" while listing four links, and placed the class on its figure between two and three. Their time constant is that of gene expression, then that of brain protein turnover, most proteins having in mice a lifetime between three and thirteen days (Fornasiero et al., 2018). Blocking expression has no effect within the window of an episode: inhibiting protein synthesis prevents consolidation of long-term memory without abolishing learning or short-term memory (Davis &amp; Squire, 1984). <span class="badge b-etabli">ESTABLISHED</span> <span class="badge b-normatif">NORMATIVE (distance)</span></span>
+          </p>
+          <p>
+            <span class="fr">L'ARN est le point où cette classe touche à la forme du porteur. L'édition du transcrit de la sous-unité GluA2 au site Q/R décide si le récepteur AMPA laisse passer le calcium (Sommer et al., 1991) : une modification post-transcriptionnelle fixe un paramètre de conductance, sans être rapide pour autant. La traduction locale dans les dendrites raccourcit la boucle à l'échelle de la minute (Holt &amp; Schuman, 2013), ce qui reste de plusieurs ordres de grandeur au-delà de la fenêtre d'un épisode. <span class="badge b-etabli">ÉTABLI</span></span>
+            <span class="en">RNA is the point where this class touches the carrier's form. Editing of the GluA2 transcript at the Q/R site determines whether the AMPA receptor passes calcium (Sommer et al., 1991): a post-transcriptional modification fixes a conductance parameter, without thereby being fast. Local translation in dendrites shortens the loop to the scale of minutes (Holt &amp; Schuman, 2013), which still lies several orders of magnitude beyond the window of an episode. <span class="badge b-etabli">ESTABLISHED</span></span>
+          </p>
+          <p>
+            <span class="fr">Deux leçons épistémologiques en découlent. La première tient à la dégénérescence : des combinaisons très différentes de densités de conductance, donc de profils d'expression, produisent une activité de réseau semblable (Marder &amp; Goaillard, 2006). La relation entre génome et forme du porteur est de plusieurs à un. La version 1.1 y voyait « exactement la clause de remplacement » de la section 1 ; c'était une confusion, puisque cette clause appartient à la définition du rôle constitutif, et que la classe 8 est modulatrice. La dégénérescence est l'analogue, au niveau du répertoire, de ce que la clause de remplacement énonce pour les constituants : le porteur peut être conservé sous des répertoires différents. La seconde leçon tient à la sélection causale : l'ADN est la cause « qui fait la différence » pour la variation des séquences de transcrits (Waters, 2007), relativement à cette question et non à celle que pose l'hypothèse du champ. Un variant génétique qui altère la conscience doit donc être interprété à travers la protéine qu'il modifie. <span class="badge b-normatif">NORMATIF</span></span>
+            <span class="en">Two epistemological lessons follow. The first concerns degeneracy: very different combinations of conductance densities, hence of expression profiles, produce similar network activity (Marder &amp; Goaillard, 2006). The relation between genome and carrier form is many-to-one. Version 1.1 saw in this "exactly the replacement clause" of section 1; this was a confusion, since that clause belongs to the definition of the constitutive role, and class 8 is modulatory. Degeneracy is the analogue, at the level of the repertoire, of what the replacement clause states for constituents: the carrier can be preserved under different repertoires. The second lesson concerns causal selection: DNA is the cause that "makes the difference" for variation in transcript sequences (Waters, 2007), relative to that question and not to the one posed by the field hypothesis. A genetic variant that alters consciousness must therefore be interpreted through the protein it modifies. <span class="badge b-normatif">NORMATIVE</span></span>
+          </p>
+          <p class="fiche">
+            <span class="role r-modulateur"><span class="fr">MODULATEUR (répertoire)</span><span class="en">MODULATORY (repertoire)</span></span>
+            <span><b>d</b> 3</span>
+            <span><b>τ</b> 10² – 10⁶ s</span>
+            <span><b><span class="fr">Ablation</span><span class="en">Ablation</span></b> <span class="fr">aucun effet dans la fenêtre ; dérive lente</span><span class="en">no effect within the window; slow drift</span></span>
+            <span><b><span class="fr">Strate</span><span class="en">Stratum</span></b> S6</span>
+          </p>
+        </div>
+      </article>
+
+      <!-- ── 9 ── -->
+      <article class="rang" data-role="modulateur">
+        <span class="chiffre">9</span>
+        <div>
+          <h3>
+            <span class="fr">Hormones et neurostéroïdes<span class="espece">9a cortisol, hormones thyroïdiennes, stéroïdes sexuels, insuline — voie génomique · 9b alloprégnanolone, THDOC — voie non génomique</span></span>
+            <span class="en">Hormones and neurosteroids<span class="espece">9a cortisol, thyroid hormones, sex steroids, insulin — genomic route · 9b allopregnanolone, THDOC — non-genomic route</span></span>
+          </h3>
+          <p>
+            <span class="fr">C'est ici que l'écart entre l'ordre clinique et l'ordre par proximité causale est le plus net. Les hormones sont au premier plan de l'intervention clinique, alors que leur voie génomique canonique — liaison au récepteur nucléaire, transcription, traduction — passe par la classe 8, et donc une étape plus loin qu'elle : distance 4, sur des dizaines de minutes à des heures (9a). Une fonction dont la constante de temps excède de plusieurs ordres de grandeur la durée d'un épisode ne peut pas individuer cet épisode ; elle en règle la ligne de base. Joëls et Baram (2009) décrivent cette architecture en deux temps pour le stress : une phase rapide non génomique, puis une phase lente génomique qui remodèle l'excitabilité. <span class="badge b-etabli">ÉTABLI</span></span>
+            <span class="en">This is where the gap between the clinical order and the order by causal proximity is sharpest. Hormones are at the forefront of clinical intervention, whereas their canonical genomic route — nuclear receptor binding, transcription, translation — runs through class 8, hence one step further: distance 4, over tens of minutes to hours (9a). A function whose time constant exceeds the duration of an episode by several orders of magnitude cannot individuate that episode; it sets its baseline. Joëls and Baram (2009) describe this two-phase architecture for stress: a fast non-genomic phase, then a slow genomic phase that remodels excitability. <span class="badge b-etabli">ESTABLISHED</span></span>
+          </p>
+          <p>
+            <span class="fr">Les neurostéroïdes — alloprégnanolone et tétrahydrodésoxycorticostérone — agissent par voie non génomique, en quelques secondes, comme modulateurs allostériques positifs des récepteurs GABA-A, avec une sensibilité particulière des isoformes extrasynaptiques contenant la sous-unité δ (Belelli &amp; Lambert, 2005), qui portent l'inhibition tonique (Farrant &amp; Nusser, 2005). La version 1.1 en faisait l'« exception » que le critère prédit. Au principe des couples espèce–fonction, ce n'est pas une exception : c'est une autre fonction, à distance 2, qui reçoit sa propre place (9b). La phase non génomique des corticostéroïdes, décrite par Joëls et Baram, relève du même couple. <span class="badge b-etabli">ÉTABLI</span> <span class="badge b-modelise">MODÉLISÉ (portée sur la conscience)</span></span>
+            <span class="en">Neurosteroids — allopregnanolone and tetrahydrodeoxycorticosterone — act non-genomically, within seconds, as positive allosteric modulators of GABA-A receptors, with a particular sensitivity of extrasynaptic δ-containing isoforms (Belelli &amp; Lambert, 2005), which carry tonic inhibition (Farrant &amp; Nusser, 2005). Version 1.1 made them the "exception" the criterion predicts. Under the principle of species–function pairs, this is not an exception: it is another function, at distance 2, which receives its own place (9b). The non-genomic phase of corticosteroids, described by Joëls and Baram, belongs to the same pair. <span class="badge b-etabli">ESTABLISHED</span> <span class="badge b-modelise">MODELLED (bearing on consciousness)</span></span>
+          </p>
+          <p class="fiche">
+            <span class="role r-modulateur">9a · <span class="fr">MODULATEUR (ligne de base)</span><span class="en">MODULATORY (baseline)</span></span>
+            <span><b>d</b> 4</span><span><b>τ</b> 10³ – 10⁴ s</span><span><b><span class="fr">Strate</span><span class="en">Stratum</span></b> S7</span>
+            <span class="role r-modulateur">9b · <span class="fr">MODULATEUR RAPIDE</span><span class="en">FAST MODULATORY</span></span>
+            <span><b>d</b> 2</span><span><b>τ</b> 10⁰ – 10¹ s</span><span><b><span class="fr">Strate</span><span class="en">Stratum</span></b> S5</span>
+          </p>
+        </div>
+      </article>
+
+      <!-- ── 10 ── -->
+      <article class="rang" data-role="modulateur">
+        <span class="chiffre">10</span>
+        <div>
+          <h3>
+            <span class="fr">Gaz dissous et protons<span class="espece">10a pH extracellulaire · 10b monoxyde d'azote</span></span>
+            <span class="en">Dissolved gases and protons<span class="espece">10a extracellular pH · 10b nitric oxide</span></span>
+          </h3>
+          <p>
+            <span class="fr">Le pH extracellulaire présente une structure formellement analogue à celle du couplage éphaptique. L'activité neuronale engendre des transitoires de pH rapides ; le pH modifie en retour la conductance des jonctions gap et la fonction des récepteurs NMDA (Chesler, 2003). Les protons agissent directement sur les canaux : distance 2 (10a). On a donc une seconde boucle causale locale — activité → variable de milieu → activité — qui double la boucle ionique du niveau I sans se confondre avec elle. <span class="badge b-etabli">ÉTABLI</span></span>
+            <span class="en">Extracellular pH exhibits a structure formally analogous to ephaptic coupling. Neuronal activity generates fast pH transients; pH in turn alters gap junction conductance and NMDA receptor function (Chesler, 2003). Protons act directly on channels: distance 2 (10a). There is thus a second local causal loop — activity → medium variable → activity — doubling the level-I ionic loop without being identical to it. <span class="badge b-etabli">ESTABLISHED</span></span>
+          </p>
+          <p>
+            <span class="fr">Le monoxyde d'azote est un messager à transmission volumique, dont l'influence se répand de façon spatialement continue (Garthwaite, 2008). Sa voie canonique passe par la guanylate cyclase soluble, le GMP cyclique et les kinases qui en dépendent : distance 4 (10b). Il démontre que le cerveau met effectivement en œuvre une signalisation non synaptique et spatialement continue, ce qui soutient la plausibilité générale de l'hypothèse du champ, mais il constitue du même coup une explication rivale pour tout effet non synaptique lent, et la section 4 en tire un contrôle. <span class="badge b-etabli">ÉTABLI</span></span>
+            <span class="en">Nitric oxide is a volume-transmission messenger whose influence spreads in a spatially continuous fashion (Garthwaite, 2008). Its canonical route runs through soluble guanylate cyclase, cyclic GMP and the kinases that depend on it: distance 4 (10b). It demonstrates that the brain does implement non-synaptic, spatially continuous signalling, which supports the general plausibility of the field hypothesis, but by the same token it constitutes a rival explanation for any slow non-synaptic effect, and section 4 draws a control from it. <span class="badge b-etabli">ESTABLISHED</span></span>
+          </p>
+          <p class="fiche">
+            <span class="role r-modulateur">10a · <span class="fr">MODULATEUR (local)</span><span class="en">MODULATORY (local)</span></span>
+            <span><b>d</b> 2</span><span><b>τ</b> 10⁻¹ – 10⁰ s</span><span><b><span class="fr">Strate</span><span class="en">Stratum</span></b> S4</span>
+            <span class="role r-modulateur">10b · <span class="fr">MODULATEUR (diffus) ; confondant</span><span class="en">MODULATORY (diffuse); confound</span></span>
+            <span><b>d</b> 4</span><span><b>τ</b> 10⁻¹ – 10¹ s</span><span><b><span class="fr">Strate</span><span class="en">Stratum</span></b> S5</span>
+          </p>
+        </div>
+      </article>
+
+      <!-- ── 11 ── -->
+      <article class="rang" data-role="parametrique">
+        <span class="chiffre">11</span>
+        <div>
+          <h3>
+            <span class="fr">Lipides membranaires et myéline<span class="espece">cholestérol, phospholipides, gaine de myéline</span></span>
+            <span class="en">Membrane lipids and myelin<span class="espece">cholesterol, phospholipids, myelin sheath</span></span>
+          </h3>
+          <p>
+            <span class="fr">La composition lipidique fixe la capacité membranaire, donc la constante de temps de la membrane ; la myélinisation fixe la vitesse de conduction, donc les relations de phase entre populations distantes. Pajevic, Basser et Fields (2014) ont proposé que la plasticité de la myéline serve précisément à régler la synchronie et les oscillations. <span class="badge b-modelise">MODÉLISÉ</span></span>
+            <span class="en">Lipid composition sets membrane capacitance, hence the membrane time constant; myelination sets conduction velocity, hence the phase relations between distant populations. Pajevic, Basser and Fields (2014) proposed that myelin plasticity serves precisely to regulate synchrony and oscillations. <span class="badge b-modelise">MODELLED</span></span>
+          </p>
+          <p>
+            <span class="fr">Cette classe est celle que la règle déclarée déplace le plus. La capacité membranaire est un coefficient des équations du porteur : distance 1, rôle paramétrique, au même titre que les classes 4 et 5. Sa variation se déploie sur des jours : au sens homogène de τ, la classe est lente, là où la version 1.1 lui attribuait à la fois « 10⁻³ s (effet) » et « 10⁵ s (plasticité) ». Son effet d'ablation est une déformation sans suppression. La version 1.1 la reléguait au onzième rang en laissant le troisième sous-critère « trancher » seul ; sous la dominance, elle ne le cède ni au milieu extracellulaire ni aux sels minéraux, et elle rejoint la strate 3. C'est le principal artefact de l'ancien ordre total. <span class="badge b-normatif">NORMATIF</span></span>
+            <span class="en">This is the class the declared rule moves most. Membrane capacitance is a coefficient of the carrier's equations: distance 1, parametric role, on a par with classes 4 and 5. Its variation unfolds over days: in the homogeneous sense of τ, the class is slow, whereas version 1.1 assigned it both "10⁻³ s (effect)" and "10⁵ s (plasticity)". Its ablation effect is deformation without abolition. Version 1.1 relegated it to eleventh rank by letting the third sub-criterion "decide" alone; under dominance, it yields neither to the extracellular medium nor to mineral salts, and joins stratum 3. This is the main artefact of the former total order. <span class="badge b-normatif">NORMATIVE</span></span>
+          </p>
+          <p class="fiche">
+            <span class="role r-parametrique"><span class="fr">PARAMÉTRIQUE (capacité, phase)</span><span class="en">PARAMETRIC (capacitance, phase)</span></span>
+            <span><b>d</b> 1</span>
+            <span><b>τ</b> 10⁵ – 10⁶ s</span>
+            <span><b><span class="fr">Ablation</span><span class="en">Ablation</span></b> <span class="fr">déformation, sans suppression</span><span class="en">deformation, without abolition</span></span>
+            <span><b><span class="fr">Strate</span><span class="en">Stratum</span></b> S3</span>
+          </p>
+        </div>
+      </article>
+
+      <!-- ── 12 ── -->
+      <article class="rang" data-role="modulateur">
+        <span class="chiffre">12</span>
+        <div>
+          <h3>
+            <span class="fr">Oligo-éléments<span class="espece">12a zinc synaptique · 12b fer, cuivre, sélénium, manganèse comme cofacteurs</span></span>
+            <span class="en">Trace elements<span class="espece">12a synaptic zinc · 12b iron, copper, selenium, manganese as cofactors</span></span>
+          </h3>
+          <p>
+            <span class="fr">Le zinc est un véritable modulateur synaptique et non un simple cofacteur : il est co-libéré avec le glutamate à certaines synapses et inhibe les récepteurs NMDA avec une haute affinité sur les sous-unités appropriées (Paoletti et al., 2009). Cette fonction est à distance 2, dans la fenêtre d'un épisode (12a). Le fer et le cuivre, cofacteurs de la synthèse des monoamines et de la chaîne respiratoire, et avec eux le sélénium et le manganèse, remplissent une autre fonction, permissive et lointaine (12b). La version 1.1 plaçait le zinc « au rang 3 par son mode, au rang 12 par sa concentration » ; la concentration n'étant pas un sous-critère, la phrase est retirée. <span class="badge b-etabli">ÉTABLI</span></span>
+            <span class="en">Zinc is a genuine synaptic modulator and not a mere cofactor: it is co-released with glutamate at certain synapses and inhibits NMDA receptors with high affinity at the appropriate subunits (Paoletti et al., 2009). This function is at distance 2, within the window of an episode (12a). Iron and copper, cofactors of monoamine synthesis and of the respiratory chain, and with them selenium and manganese, fulfil another function, permissive and distant (12b). Version 1.1 placed zinc "at rank 3 by its mode, at rank 12 by its concentration"; concentration not being a sub-criterion, the sentence is withdrawn. <span class="badge b-etabli">ESTABLISHED</span></span>
+          </p>
+          <p class="fiche">
+            <span class="role r-modulateur">12a · <span class="fr">MODULATEUR RAPIDE</span><span class="en">FAST MODULATORY</span></span>
+            <span><b>d</b> 2</span><span><b>τ</b> 10⁻² – 10⁰ s</span><span><b><span class="fr">Strate</span><span class="en">Stratum</span></b> S4</span>
+            <span class="role r-permissif">12b · <span class="fr">PERMISSIF</span><span class="en">PERMISSIVE</span></span>
+            <span><b>d</b> 4</span><span><b>τ</b> 10³ – 10⁶ s</span><span><b><span class="fr">Strate</span><span class="en">Stratum</span></b> S8</span>
+          </p>
+        </div>
+      </article>
+
+      <!-- ── 13 ── -->
+      <article class="rang" data-role="permissif">
+        <span class="chiffre">13</span>
+        <div>
+          <h3>
+            <span class="fr">Cofacteurs enzymatiques, vitamines, acides aminés de synthèse<span class="espece">phosphate de pyridoxal, thiamine, cobalamine, folates ; acides aminés comme substrat</span></span>
+            <span class="en">Enzymatic cofactors, vitamins, amino acids as substrate<span class="espece">pyridoxal phosphate, thiamine, cobalamin, folate; amino acids as substrate</span></span>
+          </h3>
+          <p>
+            <span class="fr">Le phosphate de pyridoxal est le cofacteur de la décarboxylase de l'acide glutamique, donc de la synthèse du GABA ; la thiamine conditionne le métabolisme oxydatif ; leurs carences produisent des encéphalopathies. La saillance clinique est élevée, et le pouvoir discriminant théorique faible : ces classes sont permissives, à plusieurs étapes du porteur, et leur défaillance altère globalement le fonctionnement cérébral sans départager aucune théorie, sauf, comme pour la classe 7, par l'ordre de défaillance sous carence graduée. Les acides aminés figurent ici dans leur second rôle, celui de substrat de la synthèse protéique. <span class="badge b-normatif">NORMATIF</span></span>
+            <span class="en">Pyridoxal phosphate is the cofactor of glutamic acid decarboxylase, hence of GABA synthesis; thiamine conditions oxidative metabolism; their deficiencies produce encephalopathies. Clinical salience is high and theoretical discriminating power low: these classes are permissive, several steps from the carrier, and their failure impairs brain function globally without separating any theory, except, as for class 7, through the order of failure under graded deficiency. Amino acids appear here in their second role, that of substrate for protein synthesis. <span class="badge b-normatif">NORMATIVE</span></span>
+          </p>
+          <p class="fiche">
+            <span class="role r-permissif"><span class="fr">PERMISSIF (lointain)</span><span class="en">PERMISSIVE (distant)</span></span>
+            <span><b>d</b> 4</span>
+            <span><b>τ</b> 10³ – 10⁶ s</span>
+            <span><b><span class="fr">Ablation</span><span class="en">Ablation</span></b> <span class="fr">défaillance non sélective</span><span class="en">non-selective failure</span></span>
+            <span><b><span class="fr">Strate</span><span class="en">Stratum</span></b> S8</span>
+          </p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ═══════════ 3. tableau et strates ═══════════ -->
+  <section id="tableau">
+    <p class="surtitre"><span class="fr">3 · récapitulation</span><span class="en">3 · recapitulation</span></p>
+    <h2 class="intitule"><span class="fr">Dix-sept couples, huit strates</span><span class="en">Seventeen pairs, eight strata</span></h2>
+    <p class="amorce">
+      <span class="fr">Aucune valeur numérique n'est avancée ici hors des ordres de grandeur, explicitement qualifiés comme tels. Les colonnes d, τ et « ablation » donnent les trois sous-critères ; la colonne « strate » en découle par la règle de dominance de la section 1, et peut être recalculée par quiconque conteste une valeur.</span>
+      <span class="en">No numerical value is advanced here beyond orders of magnitude, explicitly qualified as such. The d, τ and "ablation" columns give the three sub-criteria; the "stratum" column follows from them by the dominance rule of section 1, and can be recomputed by anyone who contests a value.</span>
+    </p>
+    <table class="tableau">
+      <thead><tr>
+        <th><span class="fr">Couple (classe)</span><span class="en">Pair (class)</span></th>
+        <th><span class="fr">Rôle</span><span class="en">Role</span></th>
+        <th>d</th><th><span class="fr">τ (s)</span><span class="en">τ (s)</span></th>
+        <th><span class="fr">Effet d'ablation</span><span class="en">Ablation effect</span></th>
+        <th><span class="fr">Strate</span><span class="en">Stratum</span></th>
+        <th><span class="fr">Statut</span><span class="en">Status</span></th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td>1 · <span class="fr">Ions</span><span class="en">Ions</span></td>
+          <td class="cell-role c-constitutif"><span class="fr">constitutif</span><span class="en">constitutive</span></td>
+          <td>0</td><td>10⁻⁴–10⁻²</td>
+          <td><span class="fr">suppression du porteur</span><span class="en">carrier abolished</span></td>
+          <td><b>S1</b></td>
+          <td><span class="fr">Établi</span><span class="en">Established</span></td>
+        </tr>
+        <tr>
+          <td>2a · <span class="fr">Canaux, récepteurs ionotropes, connexines</span><span class="en">Channels, ionotropic receptors, connexins</span></td>
+          <td class="cell-role c-constitutif"><span class="fr">constitutif</span><span class="en">constitutive</span></td>
+          <td>1</td><td>10⁻⁴–10⁻³</td>
+          <td><span class="fr">suppression ou déformation profonde</span><span class="en">abolition or deep deformation</span></td>
+          <td><b>S2</b></td>
+          <td><span class="fr">Établi</span><span class="en">Established</span></td>
+        </tr>
+        <tr>
+          <td>2b · <span class="fr">Na⁺/K⁺-ATPase</span><span class="en">Na⁺/K⁺-ATPase</span></td>
+          <td class="cell-role c-permissif"><span class="fr">permissif</span><span class="en">permissive</span></td>
+          <td>1</td><td>10⁰–10²</td>
+          <td><span class="fr">défaillance non sélective</span><span class="en">non-selective failure</span></td>
+          <td><b>S3</b></td>
+          <td><span class="fr">Établi</span><span class="en">Established</span></td>
+        </tr>
+        <tr>
+          <td>3 · <span class="fr">Acides aminés transmetteurs</span><span class="en">Transmitter amino acids</span></td>
+          <td class="cell-role c-generateur"><span class="fr">générateur</span><span class="en">generator</span></td>
+          <td>2</td><td>10⁻³–10⁻¹</td>
+          <td><span class="fr">signatures IV supprimées, porteur réduit</span><span class="en">IV signatures abolished, carrier reduced</span></td>
+          <td><b>S3</b></td>
+          <td><span class="fr">Établi / Normatif (rôle)</span><span class="en">Established / Normative (role)</span></td>
+        </tr>
+        <tr>
+          <td>4 · <span class="fr">Milieu extracellulaire</span><span class="en">Extracellular medium</span></td>
+          <td class="cell-role c-parametrique"><span class="fr">paramétrique (gain)</span><span class="en">parametric (gain)</span></td>
+          <td>1</td><td>10¹–10⁴</td>
+          <td><span class="fr">déformation (gain de couplage)</span><span class="en">deformation (coupling gain)</span></td>
+          <td><b>S3</b></td>
+          <td><span class="fr">Établi / Modélisé / Contesté</span><span class="en">Established / Modelled / Contested</span></td>
+        </tr>
+        <tr>
+          <td>11 · <span class="fr">Lipides et myéline</span><span class="en">Lipids and myelin</span></td>
+          <td class="cell-role c-parametrique"><span class="fr">paramétrique (capacité)</span><span class="en">parametric (capacitance)</span></td>
+          <td>1</td><td>10⁵–10⁶</td>
+          <td><span class="fr">déformation sans suppression</span><span class="en">deformation without abolition</span></td>
+          <td><b>S3</b></td>
+          <td><span class="fr">Modélisé / Normatif (rôle)</span><span class="en">Modelled / Normative (role)</span></td>
+        </tr>
+        <tr>
+          <td>5 · <span class="fr">Sels minéraux</span><span class="en">Mineral salts</span></td>
+          <td class="cell-role c-parametrique"><span class="fr">paramétrique (forces)</span><span class="en">parametric (forces)</span></td>
+          <td>1</td><td>10²–10⁵</td>
+          <td><span class="fr">dérive, puis défaillance</span><span class="en">drift, then failure</span></td>
+          <td><b>S4</b></td>
+          <td><span class="fr">Établi</span><span class="en">Established</span></td>
+        </tr>
+        <tr>
+          <td>6 · <span class="fr">Neuromodulateurs</span><span class="en">Neuromodulators</span></td>
+          <td class="cell-role c-modulateur"><span class="fr">modulateur (réseau)</span><span class="en">modulatory (network)</span></td>
+          <td>3</td><td>10⁻¹–10²</td>
+          <td><span class="fr">ignition supprimée, porteur conservé</span><span class="en">ignition abolished, carrier kept</span></td>
+          <td><b>S4</b></td>
+          <td><span class="fr">Établi / Contesté</span><span class="en">Established / Contested</span></td>
+        </tr>
+        <tr>
+          <td>10a · <span class="fr">Protons (pH)</span><span class="en">Protons (pH)</span></td>
+          <td class="cell-role c-modulateur"><span class="fr">modulateur (local)</span><span class="en">modulatory (local)</span></td>
+          <td>2</td><td>10⁻¹–10⁰</td>
+          <td><span class="fr">déformation locale</span><span class="en">local deformation</span></td>
+          <td><b>S4</b></td>
+          <td><span class="fr">Établi</span><span class="en">Established</span></td>
+        </tr>
+        <tr>
+          <td>12a · <span class="fr">Zinc synaptique</span><span class="en">Synaptic zinc</span></td>
+          <td class="cell-role c-modulateur"><span class="fr">modulateur rapide</span><span class="en">fast modulatory</span></td>
+          <td>2</td><td>10⁻²–10⁰</td>
+          <td><span class="fr">déformation locale</span><span class="en">local deformation</span></td>
+          <td><b>S4</b></td>
+          <td><span class="fr">Établi</span><span class="en">Established</span></td>
+        </tr>
+        <tr>
+          <td>9b · <span class="fr">Neurostéroïdes (non génomique)</span><span class="en">Neurosteroids (non-genomic)</span></td>
+          <td class="cell-role c-modulateur"><span class="fr">modulateur rapide</span><span class="en">fast modulatory</span></td>
+          <td>2</td><td>10⁰–10¹</td>
+          <td><span class="fr">déformation</span><span class="en">deformation</span></td>
+          <td><b>S5</b></td>
+          <td><span class="fr">Établi / Modélisé</span><span class="en">Established / Modelled</span></td>
+        </tr>
+        <tr>
+          <td>10b · <span class="fr">Monoxyde d'azote</span><span class="en">Nitric oxide</span></td>
+          <td class="cell-role c-modulateur"><span class="fr">modulateur (diffus)</span><span class="en">modulatory (diffuse)</span></td>
+          <td>4</td><td>10⁻¹–10¹</td>
+          <td><span class="fr">déformation ; confondant</span><span class="en">deformation; confound</span></td>
+          <td><b>S5</b></td>
+          <td><span class="fr">Établi</span><span class="en">Established</span></td>
+        </tr>
+        <tr>
+          <td>7 · <span class="fr">Métabolites énergétiques</span><span class="en">Energy metabolites</span></td>
+          <td class="cell-role c-permissif"><span class="fr">permissif</span><span class="en">permissive</span></td>
+          <td>3</td><td>10⁰–10²</td>
+          <td><span class="fr">défaillance non sélective</span><span class="en">non-selective failure</span></td>
+          <td><b>S6</b></td>
+          <td><span class="fr">Établi</span><span class="en">Established</span></td>
+        </tr>
+        <tr>
+          <td>8 · <span class="fr">Acides nucléiques (ADN, ARN)</span><span class="en">Nucleic acids (DNA, RNA)</span></td>
+          <td class="cell-role c-modulateur"><span class="fr">modulateur (répertoire)</span><span class="en">modulatory (repertoire)</span></td>
+          <td>3</td><td>10²–10⁶</td>
+          <td><span class="fr">aucun effet dans la fenêtre ; dérive lente</span><span class="en">no effect within window; slow drift</span></td>
+          <td><b>S6</b></td>
+          <td><span class="fr">Établi / Normatif</span><span class="en">Established / Normative</span></td>
+        </tr>
+        <tr>
+          <td>9a · <span class="fr">Hormones (génomique)</span><span class="en">Hormones (genomic)</span></td>
+          <td class="cell-role c-modulateur"><span class="fr">modulateur (ligne de base)</span><span class="en">modulatory (baseline)</span></td>
+          <td>4</td><td>10³–10⁴</td>
+          <td><span class="fr">dérive de la ligne de base</span><span class="en">baseline drift</span></td>
+          <td><b>S7</b></td>
+          <td><span class="fr">Établi</span><span class="en">Established</span></td>
+        </tr>
+        <tr>
+          <td>12b · <span class="fr">Fe, Cu, Se, Mn (cofacteurs)</span><span class="en">Fe, Cu, Se, Mn (cofactors)</span></td>
+          <td class="cell-role c-permissif"><span class="fr">permissif</span><span class="en">permissive</span></td>
+          <td>4</td><td>10³–10⁶</td>
+          <td><span class="fr">défaillance non sélective</span><span class="en">non-selective failure</span></td>
+          <td><b>S8</b></td>
+          <td><span class="fr">Établi</span><span class="en">Established</span></td>
+        </tr>
+        <tr>
+          <td>13 · <span class="fr">Cofacteurs et vitamines</span><span class="en">Cofactors and vitamins</span></td>
+          <td class="cell-role c-permissif"><span class="fr">permissif (lointain)</span><span class="en">permissive (distant)</span></td>
+          <td>4</td><td>10³–10⁶</td>
+          <td><span class="fr">défaillance non sélective</span><span class="en">non-selective failure</span></td>
+          <td><b>S8</b></td>
+          <td><span class="fr">Établi</span><span class="en">Established</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="corps">
+      <p>
+        <span class="fr">Les huit strates se lisent ainsi. <b>S1</b> : la charge mobile (1). <b>S2</b> : les vannes qui en fixent la dynamique dans la fenêtre (2a). <b>S3</b> : ce qui commande la composante dominante du porteur (3), ce qui en fixe les coefficients lentement (4, 11), et la pompe qui l'entretient (2b) ; ces quatre couples sont deux à deux incomparables ou équivalents. <b>S4</b> : les forces électromotrices (5) et les modulateurs rapides ou de réseau (6, 10a, 12a). <b>S5</b> : les modulateurs à voie courte mais non instantanée (9b) ou à voie longue mais rapide (10b). <b>S6</b> : l'énergie (7) et le répertoire (8). <b>S7</b> : la voie génomique des hormones (9a). <b>S8</b> : les cofacteurs lointains (12b, 13). L'ancien ordre total est globalement conservé ; il est corrigé en trois points : la classe 11 remonte en S3, la classe 3 rejoint les classes 4 et 11 au lieu de les précéder, et les couples 9b, 10a et 12a, que la version 1.1 laissait dans des rangs lointains ou traitait en exceptions, prennent la place que leur fonction leur assigne.</span>
+        <span class="en">The eight strata read as follows. <b>S1</b>: the mobile charge (1). <b>S2</b>: the valves that set its dynamics within the window (2a). <b>S3</b>: what commands the carrier's dominant component (3), what slowly sets its coefficients (4, 11), and the pump that maintains it (2b); these four pairs are pairwise incomparable or equivalent. <b>S4</b>: electromotive forces (5) and fast or network modulators (6, 10a, 12a). <b>S5</b>: modulators with a short but non-instantaneous route (9b) or a long but fast one (10b). <b>S6</b>: energy (7) and repertoire (8). <b>S7</b>: the genomic route of hormones (9a). <b>S8</b>: distant cofactors (12b, 13). The former total order is broadly preserved; it is corrected on three points: class 11 rises to S3, class 3 joins classes 4 and 11 instead of preceding them, and pairs 9b, 10a and 12a, which version 1.1 left in distant ranks or treated as exceptions, take the place their function assigns them.</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 4. axe expérimental ═══════════ -->
+  <section id="axe">
+    <p class="surtitre"><span class="fr">4 · conséquences expérimentales</span><span class="en">4 · experimental consequences</span></p>
+    <h2 class="intitule"><span class="fr">Le premier axe : deux volets de niveau I et un volet de pont</span><span class="en">The first axis: two level-I strands and a bridge strand</span></h2>
+    <p class="amorce">
+      <span class="fr">Le document principal (v1.5, section 4.3 et tableau 1) organise le premier axe expérimental en deux volets dissociants de niveau I, qui mettent à l'épreuve l'hypothèse du champ, et un volet de pont, qui met à l'épreuve sa pertinence pour les signatures de niveau IV. Le présent document porte le texte de référence du second volet de niveau I et la forme testable du volet de pont.</span>
+      <span class="en">The main document (v1.5, section 4.3 and table 1) organises the first experimental axis into two dissociating level-I strands, which test the field hypothesis, and a bridge strand, which tests its relevance to level-IV signatures. The present document carries the reference text of the second level-I strand and the testable form of the bridge strand.</span>
+    </p>
+
+    <div class="figure">
+      <div class="figure-cadre">
+<svg viewBox="0 0 900 360" width="900" height="360" role="img" aria-labelledby="t-fig2 d-fig2">
+          <title id="t-fig2">Les quatre voies entre deux populations</title>
+          <desc id="d-fig2">Quatre voies relient une population émettrice à une population réceptrice : transmission synaptique, couplage éphaptique, jonctions gap, transmission volumique. Bloquer la seule transmission synaptique laisse trois voies ouvertes, dont deux sont des confondants du couplage éphaptique.</desc>
+
+          <!-- populations -->
+          <g fill="var(--panneau-haut)" stroke="var(--filet-fort)" stroke-width="1">
+            <rect x="48" y="128" width="118" height="104" rx="2"/>
+            <rect x="734" y="128" width="118" height="104" rx="2"/>
+          </g>
+          <g font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--texte-attenue)" text-anchor="middle">
+            <text x="107" y="174"><tspan class="fr">population</tspan><tspan class="en">source</tspan></text>
+            <text x="107" y="190"><tspan class="fr">émettrice</tspan><tspan class="en">population</tspan></text>
+            <text x="793" y="174"><tspan class="fr">population</tspan><tspan class="en">target</tspan></text>
+            <text x="793" y="190"><tspan class="fr">réceptrice</tspan><tspan class="en">population</tspan></text>
+          </g>
+
+          <!-- voie 1 : synaptique, bloquée -->
+          <g fill="none" stroke="var(--permissif)" stroke-width="1.6">
+            <path d="M166 152 C 330 112, 570 112, 734 152"/>
+          </g>
+          <g stroke="var(--alerte)" stroke-width="2.4">
+            <path d="M438 112 L462 136"/><path d="M462 112 L438 136"/>
+          </g>
+          <text x="450" y="98" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--permissif)" text-anchor="middle">
+            <tspan class="fr">1 · transmission synaptique (classe 3) — bloquée au premier volet</tspan><tspan class="en">1 · synaptic transmission (class 3) — blocked in the first strand</tspan>
+          </text>
+
+          <!-- voie 2 : éphaptique, variable d'intérêt -->
+          <g fill="none" stroke="var(--champ)" stroke-width="2">
+            <path d="M166 176 C 330 160, 570 160, 734 176"/>
+          </g>
+          <text x="450" y="155" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--champ)" text-anchor="middle">
+            <tspan class="fr">2 · couplage éphaptique (classes 1 et 4) — variable d'intérêt</tspan><tspan class="en">2 · ephaptic coupling (classes 1 and 4) — variable of interest</tspan>
+          </text>
+
+          <!-- voie 3 : jonctions gap, confondant -->
+          <g fill="none" stroke="var(--courant)" stroke-width="1.6" stroke-dasharray="6 4">
+            <path d="M166 200 C 330 224, 570 224, 734 200"/>
+          </g>
+          <text x="450" y="245" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--courant)" text-anchor="middle">
+            <tspan class="fr">3 · jonctions gap (classe 2a) — confondant non synaptique</tspan><tspan class="en">3 · gap junctions (class 2a) — non-synaptic confound</tspan>
+          </text>
+
+          <!-- voie 4 : transmission volumique, confondant -->
+          <g fill="none" stroke="var(--clotur)" stroke-width="1.6" stroke-dasharray="2 5">
+            <path d="M166 216 C 330 296, 570 296, 734 216"/>
+          </g>
+          <text x="450" y="290" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--clotur)" text-anchor="middle">
+            <tspan class="fr">4 · transmission volumique, NO (classe 10b) — confondant non synaptique</tspan><tspan class="en">4 · volume transmission, NO (class 10b) — non-synaptic confound</tspan>
+          </text>
+
+          <!-- contrôles requis -->
+          <g font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--texte-faible)">
+            <text x="450" y="322" text-anchor="middle">
+              <tspan class="fr">contrôles à reconduire hors hippocampe : blocage des connexines (voie 3) · inhibition de la NO-synthase (voie 4)</tspan>
+              <tspan class="en">controls to carry over beyond hippocampus: connexin blockade (route 3) · NO synthase inhibition (route 4)</tspan>
+            </text>
+            <text x="450" y="340" text-anchor="middle">
+              <tspan class="fr">second volet, gain (classe 4) : manipulation osmotique de la fraction volumique extracellulaire</tspan>
+              <tspan class="en">second strand, gain (class 4): osmotic manipulation of extracellular volume fraction</tspan>
+            </text>
+          </g>
+
+          
+        </svg>
+      </div>
+      <p class="legende">
+        <span class="fr"><b>Figure 2.</b> Les quatre voies entre deux populations et leur classe neurochimique. Le premier volet de niveau I bloque la voie 1 ; il supprime la voie rivale sans rompre la dépendance générative, car le champ reste engendré par des courants non synaptiques. Le second volet fait varier le gain de la voie 2 par la fraction volumique (classe 4). Les voies 3 et 4 sont non synaptiques l'une comme l'autre : dans la préparation de référence, la voie 3 a été écartée par les auteurs et la voie 4 l'est par la cinétique ; toute généralisation à un autre tissu devra reconduire ces deux contrôles.</span>
+        <span class="en"><b>Figure 2.</b> The four routes between two populations and their neurochemical class. The first level-I strand blocks route 1; it removes the rival route without breaking the generative dependence, since the field is still generated by non-synaptic currents. The second strand varies the gain of route 2 through volume fraction (class 4). Routes 3 and 4 are both non-synaptic: in the reference preparation, route 3 was ruled out by the authors and route 4 is ruled out by kinetics; any generalisation to another tissue must carry both controls over.</span>
+      </p>
+    </div>
+
+    <div class="corps">
+      <h3><span class="fr">Premier volet : blocage synaptique, et ce qu'il dissocie</span><span class="en">First strand: synaptic blockade, and what it dissociates</span></h3>
+      <p>
+        <span class="fr">Le dispositif de référence est la préparation de Chiang et collègues (2019), où une activité périodique lente se propage à une vitesse de l'ordre de 0,1 m/s, indépendamment de la transmission synaptique chimique et des jonctions gap, et est bloquée par l'annulation locale du champ extracellulaire. La voie nitrergique (10b) est exclue par la cinétique : une diffusion gazeuse sur plusieurs centaines de micromètres demande un temps de plusieurs ordres de grandeur supérieur à celui qu'implique la vitesse observée. Toute réplication dans un autre tissu, en particulier le néocortex, devra reconduire le blocage des connexines (2a) et contrôler la voie nitrergique. <span class="badge b-etabli">ÉTABLI (résultat)</span> <span class="badge b-modelise">MODÉLISÉ (argument cinétique)</span> <span class="badge b-normatif">NORMATIF</span></span>
+        <span class="en">The reference device is the preparation of Chiang and colleagues (2019), where slow periodic activity propagates at a speed of the order of 0.1 m/s, independently of chemical synaptic transmission and of gap junctions, and is blocked by local cancellation of the extracellular field. The nitrergic route (10b) is excluded by kinetics: gaseous diffusion over several hundred micrometres takes a time several orders of magnitude longer than the observed speed implies. Any replication in another tissue, the neocortex in particular, must carry over connexin blockade (2a) and control the nitrergic route. <span class="badge b-etabli">ESTABLISHED (result)</span> <span class="badge b-modelise">MODELLED (kinetic argument)</span> <span class="badge b-normatif">NORMATIVE</span></span>
+      </p>
+      <p>
+        <span class="fr">L'inventaire neurochimique précise ce que ce volet établit. Sous blocage synaptique, la classe 3 est retirée, mais le champ reste engendré par les classes 1 et 2a à travers des courants non synaptiques. Le volet établit donc l'autonomie causale du champ comme voie de propagation, propriété de niveau I ; il n'établit pas l'indépendance des observables de champ et de décharge, et il ne comporte aucune signature de niveau IV, pour lesquelles le blocage synaptique global est une ablation quasi permissive. <span class="badge b-normatif">NORMATIF</span></span>
+        <span class="en">The neurochemical inventory specifies what this strand establishes. Under synaptic blockade, class 3 is removed, but the field is still generated by classes 1 and 2a through non-synaptic currents. The strand therefore establishes the causal autonomy of the field as a propagation route, a level-I property; it does not establish the independence of field and firing observables, and it involves no level-IV signature, for which global synaptic blockade is a quasi-permissive ablation. <span class="badge b-normatif">NORMATIVE</span></span>
+      </p>
+
+      <h3><span class="fr">Second volet : manipulation osmotique de la fraction volumique — texte de référence</span><span class="en">Second strand: osmotic manipulation of volume fraction — reference text</span></h3>
+      <p>
+        <span class="fr">La classe 4 fournit un levier que le premier volet n'a pas : faire varier le rapport entre courant et champ. Si le gain du couplage éphaptique dépend de la fraction volumique extracellulaire, un même courant transmembranaire engendre un champ différent selon la valeur qu'elle prend. Là où le blocage synaptique supprime la voie rivale, ce dispositif fait varier la voie d'intérêt, c'est-à-dire la dépendance générative que la section 4.3 du document principal désigne comme l'obstacle. Conduit sous blocage synaptique sur la préparation de Chiang et collègues, il prédit que l'efficacité de la propagation varie avec la fraction volumique dans le sens fixé par la résistivité, sa réduction la facilitant et son expansion l'entravant. La présente section est le texte de référence du dispositif ; la section 4.3 du document principal n'en retient que la fonction logique. La version 1.1 écrivait que la section 4.3 « mentionne sans la développer » la voie géométrique ; c'était devenu inexact avec la version 1.4 du document principal, qui la développait presque mot pour mot, et la duplication est désormais résolue au profit du présent texte. <span class="badge b-modelise">MODÉLISÉ</span></span>
+        <span class="en">Class 4 provides a lever the first strand lacks: varying the ratio of current to field. If the gain of ephaptic coupling depends on extracellular volume fraction, one and the same transmembrane current generates a different field depending on the value it takes. Where synaptic blockade removes the rival route, this device varies the route of interest, that is, the generative dependence that section 4.3 of the main document identifies as the obstacle. Conducted under synaptic blockade on the preparation of Chiang and colleagues, it predicts that propagation efficacy varies with volume fraction in the direction set by resistivity, its reduction facilitating and its expansion hindering propagation. This section is the device's reference text; section 4.3 of the main document keeps only its logical function. Version 1.1 wrote that section 4.3 "mentions without developing" the geometric route; that had become inaccurate with version 1.4 of the main document, which developed it almost word for word, and the duplication is now resolved in favour of the present text. <span class="badge b-modelise">MODELLED</span></span>
+      </p>
+      <p>
+        <span class="fr">Le levier n'est pas neuf, et il faut le créditer. Traynelis et Dingledine (1989) ont montré que l'expansion hyperosmotique de l'espace interstitiel supprime les crises électrographiques induites par le potassium dans la tranche d'hippocampe, à condition que le soluté ne traverse pas les membranes. Dudek et collègues (1990) ont obtenu, sous blocage de la transmission chimique, le résultat symétrique : la réduction du volume extracellulaire déclenche ou renforce les bouffées épileptiformes, son expansion les supprime ou les atténue. L'apport propre du programme se limite à appliquer ce levier à la propagation décrite par Chiang et collègues. <span class="badge b-etabli">ÉTABLI (antériorité)</span></span>
+        <span class="en">The lever is not new, and it must be credited. Traynelis and Dingledine (1989) showed that hyperosmotic expansion of the interstitial space suppresses potassium-induced electrographic seizures in the hippocampal slice, provided the solute does not cross membranes. Dudek and colleagues (1990) obtained, under blockade of chemical transmission, the symmetrical result: reducing extracellular volume triggers or enhances epileptiform bursts, and expanding it suppresses or attenuates them. The programme's own contribution is limited to applying this lever to the propagation described by Chiang and colleagues. <span class="badge b-etabli">ESTABLISHED (priority)</span></span>
+      </p>
+      <p>
+        <span class="fr">Trois confondants sont à considérer. Le premier est la libération vésiculaire : une solution fortement hypertonique déclenche à elle seule la libération du stock de vésicules immédiatement disponibles (Rosenmund &amp; Stevens, 1996). Le deuxième tient aux concentrations extracellulaires : faire varier le volume de l'espace extracellulaire modifie la concentration et la diffusion des ions et des transmetteurs qui s'y accumulent, au premier rang desquels le potassium ; la classe 4 est alors confondue avec les classes 1, 3 et 5. Le troisième est le volume cellulaire : le gonflement ou la rétraction des neurones et des astrocytes engage des mécanismes de régulation volumique qui ont leurs propres effets sur l'excitabilité (Syková &amp; Nicholson, 2008). <span class="badge b-etabli">ÉTABLI</span> Le premier disparaît par construction sous blocage synaptique. Les deux autres sont mesurables — électrodes ionosensibles pour le potassium, iontophorèse en temps réel du tétraméthylammonium pour la fraction volumique — mais non supprimables. Le dispositif n'est donc dissociant que sous réserve de ces contrôles, et il ne s'applique qu'en préparation <i>in vitro</i> et chez l'animal. <span class="badge b-normatif">NORMATIF</span></span>
+        <span class="en">Three confounds must be considered. The first is vesicular release: a strongly hypertonic solution by itself triggers release of the readily releasable pool of vesicles (Rosenmund &amp; Stevens, 1996). The second concerns extracellular concentrations: varying the volume of the extracellular space changes the concentration and diffusion of the ions and transmitters that accumulate in it, potassium foremost; class 4 is then confounded with classes 1, 3 and 5. The third is cell volume: swelling or shrinkage of neurons and astrocytes engages volume-regulatory mechanisms with effects of their own on excitability (Syková &amp; Nicholson, 2008). <span class="badge b-etabli">ESTABLISHED</span> The first disappears by construction under synaptic blockade. The other two are measurable — ion-selective electrodes for potassium, real-time tetramethylammonium iontophoresis for volume fraction — but not removable. The device is therefore dissociating only subject to these controls, and it applies only in <i>in vitro</i> preparations and in animals. <span class="badge b-normatif">NORMATIVE</span></span>
+      </p>
+
+      <h3><span class="fr">Le volet de pont : forme testable de l'auxiliaire de pont</span><span class="en">The bridge strand: testable form of the bridge auxiliary</span></h3>
+      <p>
+        <span class="fr">Les deux volets de niveau I établissent au mieux une propriété du porteur ; la prédiction centrale du programme porte sur les signatures de niveau IV. La version 1.1 présentait sous le nom de « prédiction dérivée » ce qui en est le seul lien disponible ; le document principal (v1.5, section 4.3) le déclare désormais comme auxiliaire de pont, et le présent document en donne la forme testable.</span>
+        <span class="en">The two level-I strands establish at best a property of the carrier; the programme's central prediction concerns level-IV signatures. Version 1.1 presented, under the name "derived prediction", what is the only available link between them; the main document (v1.5, section 4.3) now declares it as a bridge auxiliary, and the present document gives its testable form.</span>
+      </p>
+      <div class="encadre">
+        <p>
+          <span class="fr"><b>Auxiliaire de pont.</b> Si le couplage par le champ est causalement autonome au niveau I, alors, chez l'animal non anesthésié, (i) le coefficient de couplage éphaptique doit covarier avec la fraction volumique extracellulaire au cours du cycle veille-sommeil, et les signatures de niveau IV avec les deux ; (ii) une intervention locale sur la fraction volumique, à composition ionique mesurée, doit déplacer les marqueurs locaux de ces signatures dans le sens prédit par le gain.</span>
+          <span class="en"><b>Bridge auxiliary.</b> If field coupling is causally autonomous at level I, then, in the non-anaesthetised animal, (i) the ephaptic coupling coefficient must covary with extracellular volume fraction across the sleep–wake cycle, and level-IV signatures with both; (ii) a local intervention on volume fraction, with ionic composition measured, must shift the local markers of those signatures in the direction predicted by the gain.</span>
+        </p>
+      </div>
+      <p>
+        <span class="fr">La clause (i) a deux confondants, que la version 1.1 ne nommait pas. La composition ionique interstitielle varie elle-même avec l'état de vigilance et suffit localement à en déplacer le profil électroencéphalographique (Ding et al., 2016) : une covariation du couplage avec l'état peut passer par les classes 1 et 5 plutôt que par la classe 4. Et la précédence temporelle que la version 1.1 exigeait — la covariation doit précéder le basculement des signatures — est compatible avec une cause commune neuromodulatrice (classe 6) agissant en amont des deux variables, par l'organisation en bascule des noyaux de l'éveil (Saper et al., 2010). La clause (i) ne discrimine donc pas à elle seule ; elle est un préalable. La clause (ii) rompt la cause commune, puisque l'intervention locale ne touche pas au tonus modulateur, et elle contrôle la composition ionique par la mesure. C'est elle qui porte la valeur d'information du volet. <span class="badge b-modelise">MODÉLISÉ</span> <span class="badge b-normatif">NORMATIF</span></span>
+        <span class="en">Clause (i) has two confounds, which version 1.1 did not name. Interstitial ionic composition itself varies with vigilance state and locally suffices to shift its electroencephalographic profile (Ding et al., 2016): a covariation of coupling with state may run through classes 1 and 5 rather than class 4. And the temporal precedence version 1.1 required — the covariation must precede the switch of signatures — is compatible with a neuromodulatory common cause (class 6) acting upstream of both variables, through the flip-flop organisation of the arousal nuclei (Saper et al., 2010). Clause (i) therefore does not discriminate on its own; it is a prerequisite. Clause (ii) breaks the common cause, since the local intervention leaves modulatory tone untouched, and it controls ionic composition by measurement. It carries the strand's information value. <span class="badge b-modelise">MODELLED</span> <span class="badge b-normatif">NORMATIVE</span></span>
+      </p>
+      <p>
+        <span class="fr">Les méthodes sont validées et de coût polynomial : fraction volumique par iontophorèse en temps réel du tétraméthylammonium (Syková &amp; Nicholson, 2008), couplage par enregistrements appariés, composition ionique par électrodes ionosensibles. La mesure des signatures chez l'animal est le maillon le plus faible : l'indice de complexité perturbationnelle a été validé chez l'humain (Casali et al., 2013), et son adaptation à l'animal est elle-même un auxiliaire à déclarer ; à défaut, les marqueurs locaux d'état (activité lente contre activité désynchronisée) servent de substitut, au prix d'une portée moindre. Une issue négative est imputée d'abord à l'auxiliaire de pont, selon l'ordre de révision déclaré ; si elle résiste aux contrôles, l'hypothèse du champ est restreinte au niveau I, et sa pertinence pour les signatures de la conscience cesse d'être soutenue. Elle ne touche pas le noyau. <span class="badge b-normatif">NORMATIF</span></span>
+        <span class="en">The methods are validated and of polynomial cost: volume fraction by real-time tetramethylammonium iontophoresis (Syková &amp; Nicholson, 2008), coupling by paired recordings, ionic composition by ion-selective electrodes. Measuring signatures in animals is the weakest link: the perturbational complexity index was validated in humans (Casali et al., 2013), and its adaptation to animals is itself an auxiliary to declare; failing it, local state markers (slow versus desynchronised activity) serve as a substitute, at the cost of reduced scope. A negative outcome is imputed first to the bridge auxiliary, following the declared revision order; if it survives the controls, the field hypothesis is restricted to level I, and its relevance to the signatures of consciousness ceases to be supported. It does not touch the core. <span class="badge b-normatif">NORMATIVE</span></span>
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 5. partition ═══════════ -->
+  <section id="partition">
+    <p class="surtitre"><span class="fr">5 · insertion dans le programme</span><span class="en">5 · insertion into the programme</span></p>
+    <h2 class="intitule"><span class="fr">Où loge ce document, et ce qu'il ne revendique pas</span><span class="en">Where this document sits, and what it does not claim</span></h2>
+    <div class="corps">
+      <p>
+        <span class="fr">Le présent inventaire appartient à la <b>ceinture protectrice</b>, non au noyau. L'attribution des rôles et la stratification relèvent des paradigmes et auxiliaires de mesure du tableau 3 du document principal ; le rôle paramétrique de la classe 4 et la place de la classe 3 dépendent en outre de l'hypothèse du champ, que le document principal range en dernier dans l'ordre de révision. Aucune affirmation du présent document ne passe au noyau, même corroborée. L'ordre de révision déclaré, commun aux documents I, II et IV, est : la procédure d'inférence et, au même rang, les paradigmes et auxiliaires de mesure, dont relèvent les attributions ci-dessus ; puis l'auxiliaire de pont ; puis l'hypothèse de grain (M2) ; puis le critère d'individuation (M3) ; puis la thèse kinesthésique ; en dernier l'hypothèse du champ. La contrainte de substrat n'y figure pas : elle appartient au noyau. La version 1.1 reprenait l'ordre de la version 1.4 du document principal, qui plaçait « en dernier la contrainte de substrat » ; la correction est commune à la série. <span class="badge b-normatif">NORMATIF</span></span>
+        <span class="en">The present inventory belongs to the <b>protective belt</b>, not to the core. Role assignment and stratification belong to the paradigms and measurement auxiliaries of table 3 of the main document; the parametric role of class 4 and the placement of class 3 depend in addition on the field hypothesis, which the main document places last in the revision order. No claim of the present document passes into the core, even when corroborated. The declared revision order, common to documents I, II and IV, is: the inference procedure and, at the same rank, paradigms and measurement auxiliaries, to which the above assignments belong; then the bridge auxiliary; then the grain hypothesis (M2); then the individuation criterion (M3); then the kinaesthetic thesis; last the field hypothesis. The substrate constraint does not appear in it: it belongs to the core. Version 1.1 followed the order of version 1.4 of the main document, which placed "the substrate constraint last"; the correction is common to the series. <span class="badge b-normatif">NORMATIVE</span></span>
+      </p>
+
+      <h3><span class="fr">Ce que ce document ne revendique pas</span><span class="en">What this document does not claim</span></h3>
+      <ul class="interdits">
+        <li><span class="fr">Qu'aucune classe moléculaire soit <b>suffisante</b>. La classe 1 est constitutive du porteur ; elle n'est pas suffisante à la conscience, qui requiert les niveaux II à IV.</span><span class="en">That any molecular class is <b>sufficient</b>. Class 1 is constitutive of the carrier; it is not sufficient for consciousness, which requires levels II–IV.</span></li>
+        <li><span class="fr">Que les strates soient un <b>degré de conscience</b>. Elles ordonnent des proximités causales, non des quantités de phénoménalité.</span><span class="en">That the strata are a <b>degree of consciousness</b>. They order causal proximities, not quantities of phenomenality.</span></li>
+        <li><span class="fr">Qu'une concentration mesurable soit une <b>mesure de l'expérience</b>.</span><span class="en">That any measurable concentration is a <b>measure of experience</b>.</span></li>
+        <li><span class="fr">Que l'ordre proposé soit <b>total</b> ou <b>définitif</b>. Il est partiel par construction ; il dépend du critère et des valeurs déclarés, et un autre critère, explicitement formulé, en produirait un autre.</span><span class="en">That the proposed order is <b>total</b> or <b>final</b>. It is partial by construction; it depends on the declared criterion and values, and another criterion, explicitly stated, would produce another.</span></li>
+        <li><span class="fr">Que le problème difficile soit entamé.</span><span class="en">That the hard problem is touched.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ═══════════ révision ═══════════ -->
+  <section id="revision">
+    <p class="surtitre"><span class="fr">6 · journal de révision</span><span class="en">6 · revision log</span></p>
+    <h2 class="intitule"><span class="fr">De la version 1.1 à la version 1.2</span><span class="en">From version 1.1 to version 1.2</span></h2>
+    <ul class="revision">
+      <li><span class="fr"><b>Porteur et hypothèse du champ.</b> Le document est aligné sur la distinction du document principal (v1.5) entre contrainte de substrat (noyau) et hypothèse du champ (ceinture).</span><span class="en"><b>Carrier and field hypothesis.</b> The document is aligned with the main document's (v1.5) distinction between substrate constraint (core) and field hypothesis (belt).</span></li>
+      <li><span class="fr"><b>Classe 3.</b> Requalifiée de constitutive en génératrice : le porteur persiste sans elle dans la préparation de référence ; l'affirmation d'un champ dominé par les courants synaptiques « non par les potentiels d'action » est corrigée d'après Buzsáki et al. (2012).</span><span class="en"><b>Class 3.</b> Requalified from constitutive to generator: the carrier persists without it in the reference preparation; the claim of a field dominated by synaptic currents "not by action potentials" is corrected after Buzsáki et al. (2012).</span></li>
+      <li><span class="fr"><b>Rôles.</b> Cinq rôles au lieu de trois ; le rôle paramétrique remplace la mention « constitutif (gain / forces) » des classes 4 et 5, et reçoit la classe 11 ; l'ambiguïté du mot « gain » est levée.</span><span class="en"><b>Roles.</b> Five roles instead of three; the parametric role replaces the "constitutive (gain / forces)" label of classes 4 and 5, and receives class 11; the ambiguity of the word "gain" is removed.</span></li>
+      <li><span class="fr"><b>τ.</b> Définition homogène : la plus longue de la durée d'action et de la durée de variation ; classe 11 corrigée.</span><span class="en"><b>τ.</b> Homogeneous definition: the longer of action duration and variation duration; class 11 corrected.</span></li>
+      <li><span class="fr"><b>Agrégation.</b> L'ordre total implicite est remplacé par un ordre partiel par dominance de Pareto, en huit strates ; les numéros deviennent des identifiants.</span><span class="en"><b>Aggregation.</b> The implicit total order is replaced by a partial order by Pareto dominance, in eight strata; the numbers become identifiers.</span></li>
+      <li><span class="fr"><b>Couples espèce–fonction.</b> Les classes 2, 9, 10 et 12 sont scindées selon la fonction ; la phrase sur le zinc « par sa concentration » et le statut d'exception des neurostéroïdes sont retirés.</span><span class="en"><b>Species–function pairs.</b> Classes 2, 9, 10 and 12 are split by function; the sentence on zinc "by its concentration" and the exception status of neurosteroids are withdrawn.</span></li>
+      <li><span class="fr"><b>Classe 8.</b> Chaîne causale recomptée ; la dégénérescence n'est plus présentée comme la clause de remplacement du rôle constitutif.</span><span class="en"><b>Class 8.</b> Causal chain recounted; degeneracy is no longer presented as the replacement clause of the constitutive role.</span></li>
+      <li><span class="fr"><b>Permissif.</b> « Valeur d'information nulle » remplacé par « faible pour l'issue d'abolition » ; l'ordre de défaillance sous privation graduée est reconnu discriminant.</span><span class="en"><b>Permissive.</b> "Null information value" replaced by "low for the abolition outcome"; the order of failure under graded deprivation is recognised as discriminating.</span></li>
+      <li><span class="fr"><b>Figure 1.</b> Redessinée : ordonnée discrète et ordinale, segments de plage au lieu de points, strates indiquées.</span><span class="en"><b>Figure 1.</b> Redrawn: discrete ordinal ordinate, range segments instead of points, strata indicated.</span></li>
+      <li><span class="fr"><b>Heuristique négative.</b> La « quatrième » interdiction devient la cinquième d'une liste unique de la série.</span><span class="en"><b>Negative heuristic.</b> The "fourth" prohibition becomes the fifth of a single list for the series.</span></li>
+      <li><span class="fr"><b>Section 4.</b> Le dispositif osmotique a ici son texte de référence ; la phrase selon laquelle le document principal « mentionne sans développer » la voie géométrique est retirée ; la « prédiction dérivée » devient le volet de pont, avec ses deux confondants (composition ionique ; cause commune neuromodulatrice) et une clause interventionnelle.</span><span class="en"><b>Section 4.</b> The osmotic device has its reference text here; the sentence saying the main document "mentions without developing" the geometric route is withdrawn; the "derived prediction" becomes the bridge strand, with its two confounds (ionic composition; neuromodulatory common cause) and an interventional clause.</span></li>
+      <li><span class="fr"><b>Section 5.</b> Ordre de révision aligné sur la série ; la contrainte de substrat en est retirée.</span><span class="en"><b>Section 5.</b> Revision order aligned with the series; the substrate constraint is removed from it.</span></li>
+      <li><span class="fr"><b>Références.</b> Le marqueur « (I, v1.3) », qui déclarait vérifiées dans le document principal des entrées que celui-ci ne marquait pas, est supprimé ; ces entrées ont été résolues directement.</span><span class="en"><b>References.</b> The "(I, v1.3)" marker, which declared verified in the main document entries it did not mark, is removed; those entries have been resolved directly.</span></li>
+    </ul>
+    <p class="amorce" style="margin-top:1.4rem">
+      <span class="fr">Le journal de la version 1.0 à la version 1.1 est conservé dans la version 1.1 du document.</span>
+      <span class="en">The log from version 1.0 to 1.1 is kept in version 1.1 of the document.</span>
+    </p>
+  </section>
+
+  <!-- ═══════════ références ═══════════ -->
+  <section id="sources">
+    <p class="surtitre"><span class="fr">références</span><span class="en">references</span></p>
+    <h2 class="intitule"><span class="fr">Appuis de l'inventaire</span><span class="en">Supports of the inventory</span></h2>
+    <p class="amorce">
+      <span class="fr">Chaque entrée a été vérifiée contre sa fiche d'agence lors de la rédaction ; la mention <span class="resolu">(v)</span> le signale. La mention <span class="resolu">(v · v1.1)</span> signale une entrée ajoutée en version 1.1 et résolue contre sa fiche Crossref le 19 septembre 2026. La mention <span class="resolu">(v · v1.2)</span> renvoie à une entrée déjà vérifiée dans la bibliographie du document principal et reprise ici sans nouvelle résolution.</span>
+      <span class="en">Every entry was verified against its agency record at the time of writing; <span class="resolu">(v)</span> marks this. <span class="resolu">(v · v1.1)</span> marks an entry added in version 1.1 and resolved against its Crossref record on 19 September 2026. <span class="resolu">(v · v1.2)</span> refers to an entry already verified in the main document's bibliography and carried over here without fresh resolution.</span>
+    </p>
+    <ol class="references">
+      <li>Anastassiou, C. A., &amp; Koch, C. (2015). Ephaptic coupling to endogenous electric field activity: why bother? <i>Current Opinion in Neurobiology, 31</i>, 95–103. <a href="https://doi.org/10.1016/j.conb.2014.09.002">10.1016/j.conb.2014.09.002</a> <span class="resolu">(v)</span></li>
+      <li>Anastassiou, C. A., Perin, R., Markram, H., &amp; Koch, C. (2011). Ephaptic coupling of cortical neurons. <i>Nature Neuroscience, 14</i>(2), 217–223. <a href="https://doi.org/10.1038/nn.2727">10.1038/nn.2727</a> <span class="resolu">(v · v1.2)</span></li>
+      <li>Aru, J., Bachmann, T., Singer, W., &amp; Melloni, L. (2012). Distilling the neural correlates of consciousness. <i>Neuroscience &amp; Biobehavioral Reviews, 36</i>(2), 737–746. <a href="https://doi.org/10.1016/j.neubiorev.2011.12.003">10.1016/j.neubiorev.2011.12.003</a> <span class="resolu">(v · v1.1)</span></li>
+      <li>Attwell, D., &amp; Laughlin, S. B. (2001). An energy budget for signaling in the grey matter of the brain. <i>Journal of Cerebral Blood Flow &amp; Metabolism, 21</i>(10), 1133–1145. <a href="https://doi.org/10.1097/00004647-200110000-00001">10.1097/00004647-200110000-00001</a> <span class="resolu">(v)</span></li>
+      <li>Baumgartner, M., &amp; Gebharter, A. (2016). Constitutive relevance, mutual manipulability, and fat-handedness. <i>The British Journal for the Philosophy of Science, 67</i>(3), 731–756. <a href="https://doi.org/10.1093/bjps/axv003">10.1093/bjps/axv003</a> <span class="resolu">(v · v1.1)</span></li>
+      <li>Belelli, D., &amp; Lambert, J. J. (2005). Neurosteroids: endogenous regulators of the GABA<sub>A</sub> receptor. <i>Nature Reviews Neuroscience, 6</i>(7), 565–575. <a href="https://doi.org/10.1038/nrn1703">10.1038/nrn1703</a> <span class="resolu">(v)</span></li>
+      <li>Buzsáki, G., Anastassiou, C. A., &amp; Koch, C. (2012). The origin of extracellular fields and currents — EEG, ECoG, LFP and spikes. <i>Nature Reviews Neuroscience, 13</i>(6), 407–420. <a href="https://doi.org/10.1038/nrn3241">10.1038/nrn3241</a> <span class="resolu">(v · v1.2)</span></li>
+      <li>Casali, A. G., Gosseries, O., Rosanova, M., Boly, M., Sarasso, S., Casali, K. R., Casarotto, S., Bruno, M.-A., Laureys, S., Tononi, G., &amp; Massimini, M. (2013). A theoretically based index of consciousness independent of sensory processing and behavior. <i>Science Translational Medicine, 5</i>(198), 198ra105. <a href="https://doi.org/10.1126/scitranslmed.3006294">10.1126/scitranslmed.3006294</a> <span class="resolu">(v · v1.2)</span></li>
+      <li>Chesler, M. (2003). Regulation and modulation of pH in the brain. <i>Physiological Reviews, 83</i>(4), 1183–1221. <a href="https://doi.org/10.1152/physrev.00010.2003">10.1152/physrev.00010.2003</a> <span class="resolu">(v)</span></li>
+      <li>Chiang, C.-C., Shivacharan, R. S., Wei, X., Gonzalez-Reyes, L. E., &amp; Durand, D. M. (2019). Slow periodic activity in the longitudinal hippocampal slice can self-propagate non-synaptically by a mechanism consistent with ephaptic coupling. <i>The Journal of Physiology, 597</i>(1), 249–269 (publication en ligne / online 2018). <a href="https://doi.org/10.1113/JP276904">10.1113/JP276904</a> <span class="resolu">(v · v1.2)</span></li>
+      <li>Connors, B. W., &amp; Long, M. A. (2004). Electrical synapses in the mammalian brain. <i>Annual Review of Neuroscience, 27</i>(1), 393–418. <a href="https://doi.org/10.1146/annurev.neuro.26.041002.131128">10.1146/annurev.neuro.26.041002.131128</a> <span class="resolu">(v)</span></li>
+      <li>Craver, C. F. (2007). <i>Explaining the brain: Mechanisms and the mosaic unity of neuroscience</i>. Oxford University Press. <a href="https://doi.org/10.1093/acprof:oso/9780199299317.001.0001">10.1093/acprof:oso/9780199299317.001.0001</a> <span class="resolu">(v · v1.1)</span></li>
+      <li>Davis, H. P., &amp; Squire, L. R. (1984). Protein synthesis and memory: A review. <i>Psychological Bulletin, 96</i>(3), 518–559. <a href="https://doi.org/10.1037/0033-2909.96.3.518">10.1037/0033-2909.96.3.518</a> <span class="resolu">(v · v1.1)</span></li>
+      <li>Dehaene, S., &amp; Changeux, J.-P. (2011). Experimental and theoretical approaches to conscious processing. <i>Neuron, 70</i>(2), 200–227. <a href="https://doi.org/10.1016/j.neuron.2011.03.018">10.1016/j.neuron.2011.03.018</a> <span class="resolu">(v · v1.2)</span></li>
+      <li>de Graaf, T. A., Hsieh, P.-J., &amp; Sack, A. T. (2012). The “correlates” in neural correlates of consciousness. <i>Neuroscience &amp; Biobehavioral Reviews, 36</i>(1), 191–197. <a href="https://doi.org/10.1016/j.neubiorev.2011.05.012">10.1016/j.neubiorev.2011.05.012</a> <span class="resolu">(v · v1.1)</span></li>
+      <li>Ding, F., O'Donnell, J., Xu, Q., Kang, N., Goldman, N., &amp; Nedergaard, M. (2016). Changes in the composition of brain interstitial ions control the sleep-wake cycle. <i>Science, 352</i>(6285), 550–555. <a href="https://doi.org/10.1126/science.aad4821">10.1126/science.aad4821</a> <span class="resolu">(v)</span></li>
+      <li>Dudek, F. E., Obenaus, A., &amp; Tasker, J. G. (1990). Osmolality-induced changes in extracellular volume alter epileptiform bursts independent of chemical synapses in the rat: Importance of non-synaptic mechanisms in hippocampal epileptogenesis. <i>Neuroscience Letters, 120</i>(2), 267–270. <a href="https://doi.org/10.1016/0304-3940(90)90056-F">10.1016/0304-3940(90)90056-F</a> <span class="resolu">(v · v1.1)</span></li>
+      <li>Farrant, M., &amp; Nusser, Z. (2005). Variations on an inhibitory theme: phasic and tonic activation of GABA<sub>A</sub> receptors. <i>Nature Reviews Neuroscience, 6</i>(3), 215–229. <a href="https://doi.org/10.1038/nrn1625">10.1038/nrn1625</a> <span class="resolu">(v)</span></li>
+      <li>Fornasiero, E. F., Mandad, S., Wildhagen, H., Alevra, M., Rammner, B., Keihani, S., … Rizzoli, S. O. (2018). Precisely measured protein lifetimes in the mouse brain reveal differences across tissues and subcellular fractions. <i>Nature Communications, 9</i>, 4230. <a href="https://doi.org/10.1038/s41467-018-06519-0">10.1038/s41467-018-06519-0</a> <span class="resolu">(v · v1.1)</span></li>
+      <li>Franks, N. P. (2008). General anaesthesia: from molecular targets to neuronal pathways of sleep and arousal. <i>Nature Reviews Neuroscience, 9</i>(5), 370–386. <a href="https://doi.org/10.1038/nrn2372">10.1038/nrn2372</a> <span class="resolu">(v)</span></li>
+      <li>Friston, K. (2010). The free-energy principle: a unified brain theory? <i>Nature Reviews Neuroscience, 11</i>(2), 127–138. <a href="https://doi.org/10.1038/nrn2787">10.1038/nrn2787</a> <span class="resolu">(v · v1.2)</span></li>
+      <li>Garthwaite, J. (2008). Concepts of neural nitric oxide-mediated transmission. <i>European Journal of Neuroscience, 27</i>(11), 2783–2802. <a href="https://doi.org/10.1111/j.1460-9568.2008.06285.x">10.1111/j.1460-9568.2008.06285.x</a> <span class="resolu">(v)</span></li>
+      <li>Hodgkin, A. L., &amp; Huxley, A. F. (1952). A quantitative description of membrane current and its application to conduction and excitation in nerve. <i>The Journal of Physiology, 117</i>(4), 500–544. <a href="https://doi.org/10.1113/jphysiol.1952.sp004764">10.1113/jphysiol.1952.sp004764</a> <span class="resolu">(v · v1.2)</span></li>
+      <li>Holt, C. E., &amp; Schuman, E. M. (2013). The central dogma decentralized: New perspectives on RNA function and local translation in neurons. <i>Neuron, 80</i>(3), 648–657. <a href="https://doi.org/10.1016/j.neuron.2013.10.036">10.1016/j.neuron.2013.10.036</a> <span class="resolu">(v · v1.1)</span></li>
+      <li>Howarth, C., Gleeson, P., &amp; Attwell, D. (2012). Updated energy budgets for neural computation in the neocortex and cerebellum. <i>Journal of Cerebral Blood Flow &amp; Metabolism, 32</i>(7), 1222–1232. <a href="https://doi.org/10.1038/jcbfm.2012.35">10.1038/jcbfm.2012.35</a> <span class="resolu">(v · v1.1)</span></li>
+      <li>Joëls, M., &amp; Baram, T. Z. (2009). The neuro-symphony of stress. <i>Nature Reviews Neuroscience, 10</i>(6), 459–466. <a href="https://doi.org/10.1038/nrn2632">10.1038/nrn2632</a> <span class="resolu">(v)</span></li>
+      <li>Koch, C., Massimini, M., Boly, M., &amp; Tononi, G. (2016). Neural correlates of consciousness: progress and problems. <i>Nature Reviews Neuroscience, 17</i>(5), 307–321. <a href="https://doi.org/10.1038/nrn.2016.22">10.1038/nrn.2016.22</a> <span class="resolu">(v)</span></li>
+      <li>Lewontin, R. C. (1974/2006). The analysis of variance and the analysis of causes. Réimpression / reprint, <i>International Journal of Epidemiology, 35</i>(3), 520–525. <a href="https://doi.org/10.1093/ije/dyl062">10.1093/ije/dyl062</a> <span class="resolu">(v · v1.1)</span></li>
+      <li>Magistretti, P. J., &amp; Allaman, I. (2015). A cellular perspective on brain energy metabolism and functional imaging. <i>Neuron, 86</i>(4), 883–901. <a href="https://doi.org/10.1016/j.neuron.2015.03.035">10.1016/j.neuron.2015.03.035</a> <span class="resolu">(v)</span></li>
+      <li>Marder, E., &amp; Goaillard, J.-M. (2006). Variability, compensation and homeostasis in neuron and network function. <i>Nature Reviews Neuroscience, 7</i>(7), 563–574. <a href="https://doi.org/10.1038/nrn1949">10.1038/nrn1949</a> <span class="resolu">(v · v1.1)</span></li>
+      <li>Marder, E. (2012). Neuromodulation of neuronal circuits: back to the future. <i>Neuron, 76</i>(1), 1–11. <a href="https://doi.org/10.1016/j.neuron.2012.09.010">10.1016/j.neuron.2012.09.010</a> <span class="resolu">(v)</span></li>
+      <li>Miao, A., Luo, T., Hsieh, B., Edge, C. J., Gridley, M., Wong, R. T. C., Constandinou, T. G., Wisden, W., &amp; Franks, N. P. (2024). Brain clearance is reduced during sleep and anesthesia. <i>Nature Neuroscience, 27</i>(6), 1046–1050. <a href="https://doi.org/10.1038/s41593-024-01638-y">10.1038/s41593-024-01638-y</a> <span class="resolu">(v · v1.1)</span></li>
+      <li>Pajevic, S., Basser, P. J., &amp; Fields, R. D. (2014). Role of myelin plasticity in oscillations and synchrony of neuronal activity. <i>Neuroscience, 276</i>, 135–147. <a href="https://doi.org/10.1016/j.neuroscience.2013.11.007">10.1016/j.neuroscience.2013.11.007</a> <span class="resolu">(v)</span></li>
+      <li>Paoletti, P., Vergnano, A. M., Barbour, B., &amp; Casado, M. (2009). Zinc at glutamatergic synapses. <i>Neuroscience, 158</i>(1), 126–136. <a href="https://doi.org/10.1016/j.neuroscience.2008.01.061">10.1016/j.neuroscience.2008.01.061</a> <span class="resolu">(v)</span></li>
+      <li>Rosenmund, C., &amp; Stevens, C. F. (1996). Definition of the readily releasable pool of vesicles at hippocampal synapses. <i>Neuron, 16</i>(6), 1197–1207. <a href="https://doi.org/10.1016/S0896-6273(00)80146-4">10.1016/S0896-6273(00)80146-4</a> <span class="resolu">(v · v1.1)</span></li>
+      <li>Saper, C. B., Fuller, P. M., Pedersen, N. P., Lu, J., &amp; Scammell, T. E. (2010). Sleep state switching. <i>Neuron, 68</i>(6), 1023–1042. <a href="https://doi.org/10.1016/j.neuron.2010.11.032">10.1016/j.neuron.2010.11.032</a> <span class="resolu">(v)</span></li>
+      <li>Sommer, B., Köhler, M., Sprengel, R., &amp; Seeburg, P. H. (1991). RNA editing in brain controls a determinant of ion flow in glutamate-gated channels. <i>Cell, 67</i>(1), 11–19. <a href="https://doi.org/10.1016/0092-8674(91)90568-J">10.1016/0092-8674(91)90568-J</a> <span class="resolu">(v · v1.1)</span></li>
+      <li>Syková, E., &amp; Nicholson, C. (2008). Diffusion in brain extracellular space. <i>Physiological Reviews, 88</i>(4), 1277–1340. <a href="https://doi.org/10.1152/physrev.00027.2007">10.1152/physrev.00027.2007</a> <span class="resolu">(v)</span></li>
+      <li>Traynelis, S. F., &amp; Dingledine, R. (1989). Role of extracellular space in hyperosmotic suppression of potassium-induced electrographic seizures. <i>Journal of Neurophysiology, 61</i>(5), 927–938. <a href="https://doi.org/10.1152/jn.1989.61.5.927">10.1152/jn.1989.61.5.927</a> <span class="resolu">(v · v1.1)</span></li>
+      <li>Traynelis, S. F., Wollmuth, L. P., McBain, C. J., Menniti, F. S., Vance, K. M., Ogden, K. K., Hansen, K. B., Yuan, H., Myers, S. J., &amp; Dingledine, R. (2010). Glutamate receptor ion channels: structure, regulation, and function. <i>Pharmacological Reviews, 62</i>(3), 405–496. <a href="https://doi.org/10.1124/pr.109.002451">10.1124/pr.109.002451</a> <span class="resolu">(v)</span></li>
+      <li>Waters, C. K. (2007). Causes that make a difference. <i>The Journal of Philosophy, 104</i>(11), 551–579. <a href="https://doi.org/10.5840/jphil2007104111">10.5840/jphil2007104111</a> <span class="resolu">(v · v1.1)</span></li>
+      <li>Woodward, J. (2010). Causation in biology: Stability, specificity, and the choice of levels of explanation. <i>Biology &amp; Philosophy, 25</i>(3), 287–318. <a href="https://doi.org/10.1007/s10539-010-9200-z">10.1007/s10539-010-9200-z</a> <span class="resolu">(v · v1.1)</span></li>
+      <li>Xie, L., Kang, H., Xu, Q., Chen, M. J., Liao, Y., Thiyagarajan, M., O'Donnell, J., Christensen, D. J., Nicholson, C., Iliff, J. J., Takano, T., Deane, R., &amp; Nedergaard, M. (2013). Sleep drives metabolite clearance from the adult brain. <i>Science, 342</i>(6156), 373–377. <a href="https://doi.org/10.1126/science.1241224">10.1126/science.1241224</a> <span class="resolu">(v)</span></li>
+    </ol>
+  </section>
+
+  <footer>
+    <p>© Genève 2026 Christophe Jean Legros · Assistance Multi IA · Assistant-Multi-IA@proton.me</p>
+    <p class="fr">Document IV · v1.2 · 19 septembre 2026 (v1.1 : 19 septembre 2026 ; v1.0 : 17 septembre 2026) · ceinture protectrice du programme, détachable du noyau · compagnon des documents I (v1.5) et II (v1.4) et de la synthèse S-1.5.</p>
+    <p class="en">Document IV · v1.2 · 19 September 2026 (v1.1: 19 September 2026; v1.0: 17 September 2026) · protective belt of the programme, detachable from the core · companion to documents I (v1.5) and II (v1.4) and to synthesis S-1.5.</p>
+  </footer>
+
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ───── bascule linguistique ───── */
+  var CLE_LANGUE = 'fcs-langue';
+  var btnLangue  = document.getElementById('bascule');
+
+  function memoriserL(v){ try{ localStorage.setItem(CLE_LANGUE, v); }catch(e){} }
+  function memoriseL(){ try{ return localStorage.getItem(CLE_LANGUE); }catch(e){ return null; } }
+
+  function appliquerLangue(l, retenir){
+    var en = (l === 'en');
+    document.body.classList.toggle('lang-en', en);
+    document.documentElement.lang = en ? 'en' : 'fr';
+    btnLangue.textContent = en ? 'EN / FR' : 'FR / EN';
+    if(retenir) memoriserL(en ? 'en' : 'fr');
+  }
+
+  appliquerLangue(memoriseL() || 'fr', false);
+  btnLangue.addEventListener('click', function(){
+    appliquerLangue(document.body.classList.contains('lang-en') ? 'fr' : 'en', true);
+  });
+
+  /* ───── bascule chromatique : clair / sombre ───── */
+  var CLE_THEME = 'fcs-theme';
+  var btnTheme  = document.getElementById('bascule-theme');
+  var glypheTheme = btnTheme.querySelector('.glyphe');
+  var libelleFR   = btnTheme.querySelector('.fr');
+  var libelleEN   = btnTheme.querySelector('.en');
+  var themeCourant = 'sombre';
+
+  function memoriser(t){ try{ localStorage.setItem(CLE_THEME, t); }catch(e){} }
+  function memorise(){ try{ return localStorage.getItem(CLE_THEME); }catch(e){ return null; } }
+
+  function majBoutonTheme(){
+    var versClair = (themeCourant === 'sombre');   /* le bouton annonce l'action */
+    glypheTheme.textContent = versClair ? '☀' : '☾';
+    libelleFR.textContent   = versClair ? 'Clair' : 'Sombre';
+    libelleEN.textContent   = versClair ? 'Light' : 'Dark';
+    btnTheme.setAttribute('aria-pressed', themeCourant === 'clair' ? 'true' : 'false');
+    btnTheme.setAttribute('aria-label', versClair
+      ? 'Passer au thème clair / switch to light theme'
+      : 'Passer au thème sombre / switch to dark theme');
+  }
+
+  function appliquerTheme(t, retenir){
+    themeCourant = (t === 'clair') ? 'clair' : 'sombre';
+    document.body.classList.toggle('clair', themeCourant === 'clair');
+    document.documentElement.style.colorScheme = (themeCourant === 'clair') ? 'light' : 'dark';
+    majBoutonTheme();
+    if(retenir) memoriser(themeCourant);
+  }
+
+  var prefClair = window.matchMedia('(prefers-color-scheme: light)');
+  appliquerTheme(memorise() || (prefClair.matches ? 'clair' : 'sombre'), false);
+
+  btnTheme.addEventListener('click', function(){
+    appliquerTheme(themeCourant === 'sombre' ? 'clair' : 'sombre', true);
+  });
+
+  /* tant que rien n'a été choisi explicitement, on suit le système */
+  if(prefClair.addEventListener){
+    prefClair.addEventListener('change', function(e){
+      if(!memorise()) appliquerTheme(e.matches ? 'clair' : 'sombre', false);
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
