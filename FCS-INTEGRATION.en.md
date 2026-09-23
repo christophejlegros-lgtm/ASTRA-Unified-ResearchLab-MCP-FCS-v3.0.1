@@ -268,7 +268,7 @@ console), negative heuristic (live linter), sources.
 
 ```bash
 npm run test:fcs     # 69 FCS-layer tests
-npm test             # full suite — 310 tests
+npm test             # full suite — 323 tests
 ```
 
 The load-bearing test is `reproduces the eight published strata exactly`. It

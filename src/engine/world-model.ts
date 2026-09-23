@@ -29,6 +29,7 @@
  * Reference: Maes et al. (2026) "LeWorldModel: Stable End-to-End JEPA from Pixels"
  */
 
+import { random } from '../utils/rng.js';
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 /** Raw SNN observation: membrane potentials + firing rates + weight statistics */
@@ -227,8 +228,8 @@ class DenseMatrix {
 function gaussianRandom(): number {
   // Box-Muller transform
   let u = 0, v = 0;
-  while (u === 0) u = Math.random();
-  while (v === 0) v = Math.random();
+  while (u === 0) u = random();
+  while (v === 0) v = random();
   return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
 }
 

@@ -24,6 +24,7 @@ import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { createAstraServer } from './server.js';
 import { logger } from './utils/logger.js';
 import { ASTRA_VERSION } from './version.js';
+import { seedInfo } from './utils/rng.js';
 
 const PORT = Number.parseInt(process.env.ASTRA_HTTP_PORT || '9003', 10) || 9003;
 const HOST = process.env.ASTRA_HTTP_HOST || '127.0.0.1';
@@ -60,6 +61,7 @@ export function createHttpApp(): { app: express.Express; sessions: Map<string, H
       server: 'astra-mcp-server',
       version: ASTRA_VERSION,
       transport: 'streamable-http',
+      rng: seedInfo(),
       activeSessions: sessions.size,
       uptime: process.uptime(),
     });

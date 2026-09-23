@@ -4,8 +4,8 @@
  *
  * Registers 6 sensor tools + 1 resource + 1 prompt into the ASTRA MCP server.
  *
- *   sensor_visual   — V-JEPA 2 visual encoding (image/video)
- *   sensor_audio    — A-JEPA audio encoding (waveform → Mel → latent)
+ *   sensor_visual   — V-JEPA 2-inspired visual encoding (untrained MLP)
+ *   sensor_audio    — A-JEPA-inspired audio encoding (untrained MLP)
  *   sensor_olfactory — Koniku olfactory encoding (chemoreceptor → latent)
  *   sensor_fuse     — Cross-modal attention fusion
  *   sensor_process  — Full pipeline (all modalities → fused z)
@@ -27,6 +27,7 @@ import {
   type SensorConfig,
 } from './engine/multimodal-sensors.js';
 import { toolAnnotations } from './tool-annotations.js';
+import { random } from './utils/rng.js';
 
 // ─── Zod Schemas ────────────────────────────────────────────────────────────
 
@@ -70,7 +71,7 @@ function simulateImage(w: number, h: number, c: number): Float64Array {
       const dx = x / w - 0.5, dy = y / h - 0.5;
       const circle = Math.sqrt(dx * dx + dy * dy) < 0.2 ? 0.8 : 0;
       for (let ch = 0; ch < c; ch++) {
-        pixels[idx + ch] = Math.min(1, gradX * 0.3 + gradY * 0.2 + circle * (ch === 0 ? 1 : 0.3) + Math.random() * 0.05);
+        pixels[idx + ch] = Math.min(1, gradX * 0.3 + gradY * 0.2 + circle * (ch === 0 ? 1 : 0.3) + random() * 0.05);
       }
     }
   }
@@ -86,7 +87,7 @@ function simulateAudio(sampleRate: number, durationMs: number, frequency: number
     waveform[i] = 0.5 * Math.sin(2 * Math.PI * frequency * t)
       + 0.2 * Math.sin(2 * Math.PI * frequency * 2 * t)
       + 0.1 * Math.sin(2 * Math.PI * frequency * 3 * t)
-      + 0.05 * (Math.random() * 2 - 1);
+      + 0.05 * (random() * 2 - 1);
     // Envelope
     const env = Math.min(1, t * 20) * Math.min(1, (durationMs / 1000 - t) * 10);
     waveform[i] *= env;
@@ -139,7 +140,7 @@ export function registerSensorCapabilities(
 
   server.tool(
     'sensor_visual',
-    'V-JEPA 2 Visual Encoding (Image/Video)',
+    'V-JEPA 2-inspired visual encoding (untrained MLP; image/video)',
     {
       input: ImageFrameSchema.describe('Image parameters'),
       videoFrames: z.number().int().min(1).max(32).default(1).describe('Number of frames (>1 = video)'),
@@ -173,7 +174,7 @@ export function registerSensorCapabilities(
           type: 'text' as const,
           text: JSON.stringify({
             tool: 'sensor_visual',
-            title: 'V-JEPA 2 — Visual Encoding',
+            title: 'V-JEPA 2-inspired — Visual Encoding (untrained)',
             embedding: {
               z: Array.from(emb.z).slice(0, 8).map(v => Math.round(v * 1e4) / 1e4),
               dimensionality: emb.z.length,
@@ -181,7 +182,7 @@ export function registerSensorCapabilities(
               confidence: Math.round(emb.confidence * 1e4) / 1e4,
             },
             metadata: emb.metadata,
-            architecture: 'V-JEPA 2: ViT-H/16, 3D-RoPE, ' + (videoFrames > 1 ? 'temporal aggregation' : 'single frame') +
+            architecture: 'MLP inspired by V-JEPA 2 (reference: ViT-H/16, 3D-RoPE; not loaded), ' + (videoFrames > 1 ? 'temporal aggregation' : 'single frame') +
               ', masking=' + pipeline.config.visualMaskRatio,
           }, null, 2),
         }],
@@ -193,7 +194,7 @@ export function registerSensorCapabilities(
 
   server.tool(
     'sensor_audio',
-    'A-JEPA Audio Encoding (Waveform → Mel → Latent)',
+    'A-JEPA-inspired audio encoding (untrained MLP; waveform → Mel → latent)',
     {
       input: AudioSegmentSchema.describe('Audio parameters'),
     },
@@ -219,7 +220,7 @@ export function registerSensorCapabilities(
           type: 'text' as const,
           text: JSON.stringify({
             tool: 'sensor_audio',
-            title: 'A-JEPA — Audio Encoding',
+            title: 'A-JEPA-inspired — Audio Encoding (untrained)',
             embedding: {
               z: Array.from(emb.z).slice(0, 8).map(v => Math.round(v * 1e4) / 1e4),
               dimensionality: emb.z.length,
@@ -232,7 +233,7 @@ export function registerSensorCapabilities(
               fRange: [mel.fMin, mel.fMax],
             },
             metadata: emb.metadata,
-            architecture: 'A-JEPA: ViT-B/16, Mel' + pipeline.config.audioMelBins +
+            architecture: 'MLP inspired by A-JEPA (reference: ViT-B/16; not loaded), Mel' + pipeline.config.audioMelBins +
               ', EMA τ=' + pipeline.config.audioEMADecay + ', masking ρ∈U(0.4,0.6)',
           }, null, 2),
         }],
@@ -244,7 +245,7 @@ export function registerSensorCapabilities(
 
   server.tool(
     'sensor_olfactory',
-    'Koniku Kore Olfactory Encoding (Chemoreceptor → Latent)',
+    'Koniku Kore-inspired olfactory encoding (simulated chemoreceptors → latent; no hardware)',
     {
       input: OlfactorySchema.describe('Olfactory sensor parameters'),
     },
@@ -269,7 +270,7 @@ export function registerSensorCapabilities(
           type: 'text' as const,
           text: JSON.stringify({
             tool: 'sensor_olfactory',
-            title: 'Koniku Kore — Olfactory Encoding',
+            title: 'Koniku Kore-inspired — Olfactory Encoding (simulated)',
             embedding: {
               z: Array.from(emb.z).slice(0, 8).map(v => Math.round(v * 1e4) / 1e4),
               dimensionality: emb.z.length,
@@ -283,7 +284,7 @@ export function registerSensorCapabilities(
               viability: reading.neuronViability + '%',
             },
             metadata: emb.metadata,
-            architecture: 'Koniku Kore: ' + pipeline.config.olfactoryReceptors +
+            architecture: 'Simulated chemoreceptor array inspired by Koniku Kore: ' + pipeline.config.olfactoryReceptors +
               '-channel chemoreceptor, Hill kinetics, temporal integration ' +
               pipeline.config.olfactoryIntegrationMs + 'ms',
           }, null, 2),
@@ -432,23 +433,23 @@ export function registerSensorCapabilities(
             title: 'Multimodal Sensor Pipeline — Status',
             encoders: {
               visual: {
-                type: 'V-JEPA 2',
-                architecture: 'ViT-H/16, 3D-RoPE',
+                type: 'V-JEPA 2-inspired (untrained)',
+                architecture: 'MLP (reference ViT-H/16, 3D-RoPE — not loaded)',
                 patchSize: stats.config.visualPatchSize,
                 maskRatio: stats.config.visualMaskRatio,
                 maxPatches: 196,
                 processed: stats.modalities.visual,
               },
               audio: {
-                type: 'A-JEPA',
-                architecture: 'ViT-B/16, Mel spectrogram',
+                type: 'A-JEPA-inspired (untrained)',
+                architecture: 'MLP on Mel spectrogram (reference ViT-B/16 — not loaded)',
                 melBins: stats.config.audioMelBins,
                 maskRatio: stats.config.audioMaskRatio,
                 emaDecay: 0.996,
                 processed: stats.modalities.audio,
               },
               olfactory: {
-                type: 'Koniku Kore',
+                type: 'Koniku Kore-inspired (simulated)',
                 architecture: 'Chemoreceptor array + Hill kinetics',
                 receptors: stats.config.olfactoryReceptors,
                 integrationMs: 200,

@@ -14,9 +14,12 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { createAstraServer } from './server.js';
 import { logger } from './utils/logger.js';
+import { seedInfo } from './utils/rng.js';
 
 async function main(): Promise<void> {
   logger.info('ASTRA MCP Server starting (stdio transport)');
+  const rng = seedInfo();
+  logger.info(`ASTRA RNG seed ${rng.seed} (${rng.source}, ${rng.algorithm}) — set ASTRA_SEED to change it`);
 
   const server = createAstraServer();
   const transport = new StdioServerTransport();

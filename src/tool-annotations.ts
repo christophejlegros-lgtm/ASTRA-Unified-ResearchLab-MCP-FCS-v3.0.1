@@ -72,7 +72,7 @@ export const TOOL_ANNOTATIONS = {
   snn_step: evolve('Advance SNN Simulation'),
   snn_reset: overwrite('Reset SNN Engine'),
   inject_spikes: evolve('Spike Injection'),
-  get_acm_score: read('Consciousness Assessment (Proxy)'),
+  get_acm_score: read('Composite Consciousness-Theory Proxy (not a measurement)'),
   check_ethics: read('IRB Neural Welfare Check'),
   set_parameter: overwrite('Modify State Parameter'),
   get_platform_status: read('Bio-Computing Platforms'),
@@ -89,9 +89,9 @@ export const TOOL_ANNOTATIONS = {
   wm_status: read('World Model — Status & Metrics'),
 
   // ── Multimodal sensors (server-sensor-tools.ts) — pure encoders; fusion updates status counters only ──
-  sensor_visual: read('V-JEPA 2 Visual Encoding'),
-  sensor_audio: read('A-JEPA Audio Encoding'),
-  sensor_olfactory: read('Koniku Kore Olfactory Encoding'),
+  sensor_visual: read('V-JEPA 2-inspired Visual Encoding (untrained)'),
+  sensor_audio: read('A-JEPA-inspired Audio Encoding (untrained)'),
+  sensor_olfactory: read('Koniku Kore-inspired Olfactory Encoding (simulated)'),
   sensor_fuse: read('Cross-Modal Attention Fusion'),
   sensor_process: read('Full Multimodal Pipeline'),
   sensor_status: read('Multimodal Sensor Pipeline Status'),

@@ -41,6 +41,7 @@
  */
 
 import { type SubstrateKind, type TaggedScalar, tagged } from './phenomenal-guard.js';
+import { random } from '../../utils/rng.js';
 
 // ── 0. Physical constants (CODATA 2018) ───────────────────────────
 
@@ -298,7 +299,7 @@ export class OrchestratedGate {
   constructor(
     private cfg: OrchGateConfig = DEFAULT_ORCH_GATE,
     /** Injectable RNG so experiments are reproducible. */
-    private rng: () => number = Math.random,
+    private rng: () => number = random,
   ) {}
 
   setConfig(c: Partial<OrchGateConfig>): void { this.cfg = { ...this.cfg, ...c }; }

@@ -10,6 +10,7 @@ import { state } from './state.js';
 import { snnEngine } from './snn.js';
 import { acmModule } from './acm.js';
 import { ethicsMonitor } from './ethics.js';
+import { random } from '../utils/rng.js';
 
 export interface SimConfig {
   intervalMs: number;     // tick interval (default 250ms)
@@ -43,25 +44,25 @@ export function startSimulation(config?: Partial<SimConfig>): void {
 
     // Simulated bio-signal metrics
     if (_config.simulateBio) {
-      state.set('loihi.bio', +(30 + Math.sin(tick * 0.05) * 15 + Math.random() * 5).toFixed(1));
-      state.set('loihi.nrg', +(1.5 + Math.random() * 1.5).toFixed(2));
+      state.set('loihi.bio', +(30 + Math.sin(tick * 0.05) * 15 + random() * 5).toFixed(1));
+      state.set('loihi.nrg', +(1.5 + random() * 1.5).toFixed(2));
 
       // ROS2 topic rates (simulated)
-      state.set('ros.fs', +(95 + Math.random() * 10).toFixed(0));
-      state.set('ros.cl', +(92 + Math.random() * 10).toFixed(0));
-      state.set('ros.sp', +(98 + Math.random() * 5).toFixed(0));
-      state.set('ros.st', +(96 + Math.random() * 6).toFixed(0));
+      state.set('ros.fs', +(95 + random() * 10).toFixed(0));
+      state.set('ros.cl', +(92 + random() * 10).toFixed(0));
+      state.set('ros.sp', +(98 + random() * 5).toFixed(0));
+      state.set('ros.st', +(96 + random() * 6).toFixed(0));
 
       // V-JEPA / A-JEPA metrics (simulated)
-      state.set('vj.cos', +(0.80 + Math.random() * 0.15).toFixed(3));
-      state.set('vj.loss', +(0.05 + Math.random() * 0.1).toFixed(3));
-      state.set('vj.ar', +(72 + Math.random() * 12).toFixed(1));
-      state.set('aj.cos', +(0.82 + Math.random() * 0.12).toFixed(3));
-      state.set('aj.sp', +(76 + Math.random() * 10).toFixed(1));
+      state.set('vj.cos', +(0.80 + random() * 0.15).toFixed(3));
+      state.set('vj.loss', +(0.05 + random() * 0.1).toFixed(3));
+      state.set('vj.ar', +(72 + random() * 12).toFixed(1));
+      state.set('aj.cos', +(0.82 + random() * 0.12).toFixed(3));
+      state.set('aj.sp', +(76 + random() * 10).toFixed(1));
 
       // Fusion coherence
-      state.set('fu.va', +(0.6 + Math.random() * 0.25).toFixed(3));
-      state.set('fu.ci', +(0.5 + Math.random() * 0.3).toFixed(3));
+      state.set('fu.va', +(0.6 + random() * 0.25).toFixed(3));
+      state.set('fu.ci', +(0.5 + random() * 0.3).toFixed(3));
 
       // Ethics biomarker drift
       ethicsMonitor.simulateDrift();

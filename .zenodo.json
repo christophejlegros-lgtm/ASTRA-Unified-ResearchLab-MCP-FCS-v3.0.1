@@ -1,0 +1,22 @@
+{
+  "title": "ASTRA — Agent-orchestrated Simulation Testbed for Research on Awareness (MCP server, FCS layer)",
+  "upload_type": "software",
+  "version": "3.1.0",
+  "license": "MIT",
+  "creators": [
+    {
+      "name": "Legros, Christophe Jean",
+      "affiliation": "Assistance Multi IA, Geneva"
+    }
+  ],
+  "description": "Model Context Protocol server exposing 70 simulation and analysis tools to AI assistants: a LIF+STDP spiking network, a JEPA-style world model, computed proxies named after theories of consciousness, simulated bridges to biocomputing platforms, and an executable layer for the research programme of substrate-constrained functionalism (FCS). All biological and physiological data are simulated; the consciousness-related indices are proxies, not measurements. The vendored directory python/the_consciousness_ai/ and the ported files listed in THIRD_PARTY_NOTICES.md are not covered by the MIT licence.",
+  "keywords": [
+    "model context protocol",
+    "spiking neural network",
+    "active inference",
+    "consciousness science",
+    "biocomputing",
+    "epistemology"
+  ],
+  "notes": "Random streams are seeded (ASTRA_SEED, default 20260923; mulberry32). Cite the archived DOI of the release you used."
+}

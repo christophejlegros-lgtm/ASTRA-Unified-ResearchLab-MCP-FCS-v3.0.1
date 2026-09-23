@@ -17,6 +17,7 @@
  */
 
 import { state } from './state.js';
+import { random } from '../utils/rng.js';
 
 // ── Types ─────────────────────────────────────────────────────────
 
@@ -203,16 +204,16 @@ export class EthicsMonitor {
   simulateDrift(): void {
     const s = state.snapshot.eth;
 
-    const newViab = s.viab + (95 - s.viab) * 0.01 + (Math.random() - 0.5) * 0.3;
+    const newViab = s.viab + (95 - s.viab) * 0.01 + (random() - 0.5) * 0.3;
     state.set('eth.viab', Math.max(70, Math.min(100, newViab)));
 
-    const newFR = s.fr + (28 - s.fr) * 0.02 + (Math.random() - 0.5) * 1.5;
+    const newFR = s.fr + (28 - s.fr) * 0.02 + (random() - 0.5) * 1.5;
     state.set('eth.fr', Math.max(5, Math.min(60, newFR)));
 
-    const newATP = s.atp + (3.5 - s.atp) * 0.015 + (Math.random() - 0.5) * 0.1;
+    const newATP = s.atp + (3.5 - s.atp) * 0.015 + (random() - 0.5) * 0.1;
     state.set('eth.atp', Math.max(1.5, Math.min(5, newATP)));
 
-    const newCa = s.ca + (65 - s.ca) * 0.02 + (Math.random() - 0.5) * 3;
+    const newCa = s.ca + (65 - s.ca) * 0.02 + (random() - 0.5) * 3;
     state.set('eth.ca', Math.max(20, Math.min(300, newCa)));
   }
 

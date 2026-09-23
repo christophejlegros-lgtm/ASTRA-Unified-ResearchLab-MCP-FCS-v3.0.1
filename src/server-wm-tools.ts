@@ -22,6 +22,7 @@ import {
 
 } from './engine/world-model.js';
 import { toolAnnotations } from './tool-annotations.js';
+import { random } from './utils/rng.js';
 
 // ─── Zod Schemas for Tool Inputs ────────────────────────────────────────────
 
@@ -388,7 +389,7 @@ export function registerWorldModelCapabilities(
       const prevObs: SNNObservation = {
         ...currentObs,
         timestep: currentObs.timestep - 1,
-        firingRates: new Float64Array(currentObs.firingRates.map(r => r * (0.9 + Math.random() * 0.2))),
+        firingRates: new Float64Array(currentObs.firingRates.map(r => r * (0.9 + random() * 0.2))),
       };
 
       const spikeAction: SpikeAction = {

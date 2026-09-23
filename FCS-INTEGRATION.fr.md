@@ -271,7 +271,7 @@ de τ sur axe logarithmique, fenêtre de l'épisode marquée), conformité, retr
 
 ```bash
 npm run test:fcs     # 69 tests de la couche FCS
-npm test             # suite complète — 310 tests
+npm test             # suite complète — 323 tests
 ```
 
 Le test porteur est `reproduces the eight published strata exactly`. Il

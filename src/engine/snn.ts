@@ -5,6 +5,7 @@
  * © 2026 Christophe Jean Legros — Geneva
  */
 
+import { random } from '../utils/rng.js';
 export interface LayerConfig { name: string; size: number; }
 
 export interface SNNConfig { layers?: LayerConfig[]; }
@@ -97,8 +98,8 @@ export class SNNEngine {
       // Feed-forward
       for (let s = 0; s < srcSize; s++) {
         for (let d = 0; d < dstSize; d++) {
-          if (Math.random() < ffProb) {
-            const w = (Math.random() - 0.3) * 0.5;
+          if (random() < ffProb) {
+            const w = (random() - 0.3) * 0.5;
             this.setWeight(srcOff + s, dstOff + d, w);
           }
         }
@@ -110,8 +111,8 @@ export class SNNEngine {
       const size = this.layers[l].size;
       for (let i = 0; i < size; i++) {
         for (let j = 0; j < size; j++) {
-          if (i !== j && Math.random() < recProb) {
-            this.setWeight(off + i, off + j, (Math.random() - 0.5) * 0.2);
+          if (i !== j && random() < recProb) {
+            this.setWeight(off + i, off + j, (random() - 0.5) * 0.2);
           }
         }
       }
@@ -132,7 +133,7 @@ export class SNNEngine {
       if (this.refractory[i] > 0) { this.refractory[i] -= dt; continue; }
 
       // LIF dynamics: dv/dt = -(v - vRest) / tauM + noise
-      const noise = this.noiseMin + Math.random() * (this.noiseMax - this.noiseMin);
+      const noise = this.noiseMin + random() * (this.noiseMax - this.noiseMin);
       this.v[i] += (-(this.v[i] - this.vRest) / this.tauM + noise * 0.1) * dt;
 
       // Synaptic input
@@ -372,7 +373,7 @@ export class SNNEngine {
       // Pick random neurons in the layer
       const available = Array.from({ length: size }, (_, i) => off + i);
       for (let i = available.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random() * (i + 1));
         [available[i], available[j]] = [available[j], available[i]];
       }
       for (let i = 0; i < n; i++) {

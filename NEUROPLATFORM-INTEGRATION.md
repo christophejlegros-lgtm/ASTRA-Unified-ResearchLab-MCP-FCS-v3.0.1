@@ -3,10 +3,10 @@
 
 **ASTRA Unified ResearchLab MCP** now integrates the **[FinalSpark NeuroPlatform v2](https://finalspark-np.github.io/np-docs/np_core/doc_v2.html)** wetware control API — the closed-loop interface to living neural organoids cultured on a 128-electrode MEA — at two levels:
 
-1. **Native TypeScript port + biophysical simulator** running live inside the MCP server (`src/engine/neuroplatform.ts`), exposing the full NeuroPlatform v2 controller surface (Intan stimulation, trigger generator, spike database, MEA camera) backed by a seeded organoid model when no hardware is attached.
+1. **Native TypeScript port + integration-test surrogate** running live inside the MCP server (`src/engine/neuroplatform.ts`), exposing the full NeuroPlatform v2 controller surface (Intan stimulation, trigger generator, spike database, MEA camera) backed by a seeded organoid model when no hardware is attached.
 2. **Live Python bridge** (`python/neuroplatform/astra_np_bridge.py`) using the real `neuroplatformv2` SDK to run a homeostatic closed loop against the physical platform and stream couplings into the ASTRA MCP server over JSON-RPC.
 
-> ⚠ **Disclaimer.** With no hardware attached, ASTRA runs in **simulate mode**: spike trains, viability and evoked responses are produced by a deterministic biophysical model (`OrganoidMEA`), **not** by living tissue. The simulator is a research scaffold for developing and testing closed-loop logic; it is **not** a substitute for wetware measurements. The live Python bridge switches to the genuine FinalSpark SDK when `neuroplatformv2` and platform credentials are available.
+> ⚠ **Disclaimer.** With no hardware attached, ASTRA runs in **simulate mode**: spike trains, viability and evoked responses are produced by a deterministic surrogate (`OrganoidMEA`), **not** by living tissue. Its spontaneous activity — independent Poisson trains — was found **empirically inadequate** against real human brain organoids ([`empirical/RESULTS-E1.md`](empirical/RESULTS-E1.md)). The simulator is a research scaffold for developing and testing closed-loop logic; it is **not** a substitute for wetware measurements. The live Python bridge switches to the genuine FinalSpark SDK when `neuroplatformv2` and platform credentials are available.
 
 ---
 
@@ -23,7 +23,7 @@
 | platform orchestration | `NeuroPlatformBridge` | `closedLoopRead(windowMs)` → `BridgeCoupling` {fusionCoefficient, firingRateHz, viability, meanRateHz, spikeDrive[128]} · rate normalisation (rate / 40 Hz → [0,1]) · active-electrode count · status · reset |
 | organoid tissue | `OrganoidMEA` (simulator) | Poisson background (seeded `mulberry32`) · 1.5 ms refractory · sigmoidal evoked response on injected charge · viability degraded by residual charge · `advance(ms)` → `Int32Array` |
 
-**Substitutions (no wetware in the Node runtime):** living organoid → deterministic `OrganoidMEA` biophysical model; hardware Intan/MaxWell acquisition → seeded Poisson + evoked-response kernel. The genuine SDK path remains available through the Python bridge (`python/neuroplatform/requirements.txt`).
+**Substitutions (no wetware in the Node runtime):** living organoid → deterministic `OrganoidMEA` Poisson surrogate (not an organoid model, see E1); hardware Intan/MaxWell acquisition → seeded Poisson + evoked-response kernel. The genuine SDK path remains available through the Python bridge (`python/neuroplatform/requirements.txt`).
 
 ## 2. New MCP surface (v2.2.0 — 41 tools · 10 resources · 7 prompts)
 

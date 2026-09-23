@@ -22,6 +22,7 @@ import {
   type WorldModelConfig,
   type WorldModelMetrics,
 } from './world-model.js';
+import { random } from '../utils/rng.js';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -198,7 +199,7 @@ export class WMSimulationManager {
     // Sample random mini-batch from replay buffer
     const indices = new Set<number>();
     while (indices.size < batchSize) {
-      indices.add(Math.floor(Math.random() * this.replayBuffer.length));
+      indices.add(Math.floor(random() * this.replayBuffer.length));
     }
 
     for (const idx of indices) {

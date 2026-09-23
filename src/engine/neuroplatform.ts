@@ -4,8 +4,11 @@
  *
  * Faithful TypeScript port of the FinalSpark NeuroPlatform v2 control API
  * (https://finalspark-np.github.io/np-docs/np_core/doc_v2.html), backed by a
- * biophysically-plausible organoid simulator so the full closed-loop can run
- * without physical hardware. The class surface mirrors the official Python SDK:
+ * seeded spike generator so the full closed-loop can run without physical
+ * hardware. Its spontaneous activity (independent Poisson trains, no network
+ * coupling) was tested against real human brain organoids and found
+ * INADEQUATE — see empirical/RESULTS-E1.md. It is an integration-test surrogate,
+ * not a model of organoid activity. The class surface mirrors the official Python SDK:
  *
  *   StimParam · StimPolarity · StimShape · MEA            (utils.schemas / enumerations)
  *   IntanController   — _send_stimparam · _upload_stimparam · _count_spike · _close
@@ -234,7 +237,9 @@ const DEFAULT_CONFIG: NeuroPlatformConfig = {
 };
 
 /**
- * Biophysically-plausible 128-electrode organoid model.
+ * 128-electrode spike generator for integration testing (NOT an organoid model:
+ * spontaneous activity = independent Poisson trains; empirically inadequate
+ * against DANDI 001603 organoids, see empirical/RESULTS-E1.md).
  * Generates background + stimulation-evoked spiking, tracks per-electrode
  * viability, and logs spike/trigger events into an in-memory time-series DB.
  */

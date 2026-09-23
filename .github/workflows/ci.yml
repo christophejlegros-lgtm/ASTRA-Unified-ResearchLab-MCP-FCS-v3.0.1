@@ -45,8 +45,8 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install numpy
-        run: python3 -m pip install --upgrade pip numpy
+      - name: Install numpy + h5py
+        run: python3 -m pip install --upgrade pip numpy h5py
 
       - name: Install dependencies (clean)
         run: npm ci
@@ -64,6 +64,9 @@ jobs:
 
       - name: Test suite (incl. closed-loop active inference & HTTP/SSE transports)
         run: npm test
+
+      - name: Empirical bench self-test (E1, synthetic ground truth)
+        run: npm run test:empirical
 
       - name: Tool-count smoke test (stdio transport)
         # The stdio entrypoint logs the capability summary at startup.

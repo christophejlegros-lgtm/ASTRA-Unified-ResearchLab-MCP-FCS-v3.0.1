@@ -1,7 +1,7 @@
 {
   "name": "@astra/mcp-server",
   "version": "3.1.0",
-  "description": "ASTRA — Autonomous Sentient Thoughtful Reasoning Agent · Production MCP Server with layered SNN LIF+STDP Engine, JEPA World Model (LeWM), Multimodal Sensor Pipeline (V-JEPA 2 + A-JEPA + Koniku Kore), ACM Consciousness Proxies, Bio-Computing Platform Integration & IRB Ethics Gateway",
+  "description": "ASTRA — Agent-orchestrated Simulation Testbed for Research on Awareness · MCP research server (simulated data; proxies, not measurements) with layered SNN LIF+STDP Engine, JEPA World Model (LeWM), Multimodal Sensor Pipeline (untrained encoders inspired by V-JEPA 2, A-JEPA, Koniku Kore), ACM Consciousness Proxies, simulated Bio-Computing Platform bridges & IRB-style ethics monitor (synthetic biomarkers)",
   "author": "Christophe Jean Legros <Assistant-Multi-IA@proton.me>",
   "license": "MIT",
   "type": "module",
@@ -31,7 +31,7 @@
     "dev": "tsx src/index.ts",
     "dev:sse": "tsx src/sse-server.ts",
     "dev:http": "tsx src/http-server.ts",
-    "test": "cross-env ASTRA_LOG_LEVEL=silent TSX_TSCONFIG_PATH=tsconfig.test.json npx tsx --test tests/fcs.test.ts tests/astra.test.ts tests/world-model.test.ts tests/wm-simulation.test.ts tests/multimodal-sensors.test.ts tests/tcai.test.ts tests/neuroplatform.test.ts tests/second-order.test.ts tests/aif-equivalence.test.ts tests/integration.test.ts tests/transports.test.ts tests/annotations.test.ts",
+    "test": "cross-env ASTRA_LOG_LEVEL=silent TSX_TSCONFIG_PATH=tsconfig.test.json npx tsx --test tests/fcs.test.ts tests/astra.test.ts tests/world-model.test.ts tests/wm-simulation.test.ts tests/multimodal-sensors.test.ts tests/tcai.test.ts tests/neuroplatform.test.ts tests/second-order.test.ts tests/aif-equivalence.test.ts tests/integration.test.ts tests/transports.test.ts tests/annotations.test.ts tests/reproducibility.test.ts",
     "test:core": "cross-env TSX_TSCONFIG_PATH=tsconfig.test.json npx tsx --test tests/astra.test.ts",
     "test:wm": "cross-env TSX_TSCONFIG_PATH=tsconfig.test.json npx tsx --test tests/world-model.test.ts tests/wm-simulation.test.ts",
     "test:integration": "cross-env TSX_TSCONFIG_PATH=tsconfig.test.json npx tsx --test tests/integration.test.ts",
@@ -46,7 +46,9 @@
     "golden:check": "python3 python/second_order/gen_golden.py --check",
     "test:transports": "cross-env ASTRA_LOG_LEVEL=silent TSX_TSCONFIG_PATH=tsconfig.test.json npx tsx --test tests/transports.test.ts",
     "test:fcs": "cross-env TSX_TSCONFIG_PATH=tsconfig.test.json npx tsx --test tests/fcs.test.ts",
-    "test:annotations": "cross-env TSX_TSCONFIG_PATH=tsconfig.test.json npx tsx --test tests/annotations.test.ts"
+    "test:annotations": "cross-env TSX_TSCONFIG_PATH=tsconfig.test.json npx tsx --test tests/annotations.test.ts",
+    "test:repro": "cross-env TSX_TSCONFIG_PATH=tsconfig.test.json npx tsx --test tests/reproducibility.test.ts",
+    "test:empirical": "python3 empirical/test_confront.py"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",

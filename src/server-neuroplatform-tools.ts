@@ -32,7 +32,8 @@ import { toolAnnotations } from './tool-annotations.js';
 const json = (o: unknown) => ({ content: [{ type: 'text' as const, text: JSON.stringify(o, null, 2) }] });
 
 const NP_DISCLAIMER =
-  'NeuroPlatform telemetry in simulate mode is a biophysically-plausible surrogate, ' +
+  'NeuroPlatform telemetry in simulate mode comes from an integration-test surrogate ' +
+  '(independent Poisson trains; found empirically inadequate against real organoids, empirical/RESULTS-E1.md), ' +
   'NOT a recording from living neural tissue. Switch to live mode (Python bridge + ' +
   'FinalSpark credentials) for hardware acquisition.';
 

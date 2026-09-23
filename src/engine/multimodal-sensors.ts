@@ -2,7 +2,12 @@
  * ASTRA — Multimodal Sensor Pipeline
  * ════════════════════════════════════
  *
- * JEPA-based encoders for three sensory modalities + cross-modal fusion:
+ * JEPA-inspired encoders for three sensory modalities + cross-modal fusion.
+ *
+ * ⚠ PROVENANCE — these are small MLP re-implementations with randomly
+ *   initialised (Xavier) weights. No pretrained V-JEPA 2 / A-JEPA weights are
+ *   loaded and no Koniku hardware is involved: the names below designate the
+ *   reference architectures that inspired the design, not the models.
  *
  *   V-JEPA 2 (Vision)  : Image/Video → Patch Embedding → ViT Encoder → z_visual
  *   A-JEPA   (Audio)   : Waveform → Mel Spectrogram → Patch Embedding → z_audio
@@ -21,12 +26,13 @@
  * Assistance Multi IA · Assistant-Multi-IA@proton.me
  */
 
+import { random } from '../utils/rng.js';
 // ─── Linear Algebra Helpers (shared) ────────────────────────────────────────
 
 function gaussianRandom(): number {
   let u = 0, v = 0;
-  while (u === 0) u = Math.random();
-  while (v === 0) v = Math.random();
+  while (u === 0) u = random();
+  while (v === 0) v = random();
   return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
 }
 
@@ -389,7 +395,7 @@ export class VJEPAEncoder {
     const indices = Array.from({ length: patches.length }, (_, i) => i);
     // Fisher-Yates shuffle
     for (let i = indices.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(random() * (i + 1));
       [indices[i], indices[j]] = [indices[j], indices[i]];
     }
     const visibleIdx = indices.slice(0, nVisible).sort((a, b) => a - b);
@@ -455,7 +461,7 @@ export class VJEPAEncoder {
         width: frame.width,
         height: frame.height,
         source: frame.source,
-        encoder: 'V-JEPA 2 (ViT-H/16 adapted)',
+        encoder: 'V-JEPA 2-inspired MLP encoder (untrained, random init)',
       },
     };
   }
@@ -494,7 +500,7 @@ export class VJEPAEncoder {
         fps: clip.fps,
         duration: clip.duration,
         aggregation: 'exponential_decay',
-        encoder: 'V-JEPA 2 (temporal 3D-RoPE)',
+        encoder: 'V-JEPA 2-inspired MLP encoder, temporal aggregation (untrained, random init)',
       },
     };
   }
@@ -679,7 +685,7 @@ export class AJEPAEncoder {
     }
 
     // 4. Masking
-    const maskRatio = 0.4 + Math.random() * 0.2; // ρ ∈ U(0.4, 0.6)
+    const maskRatio = 0.4 + random() * 0.2; // ρ ∈ U(0.4, 0.6)
     const nVisible = Math.max(1, Math.floor(embeddings.length * (1 - maskRatio)));
     const visible = embeddings.slice(0, nVisible);
 
@@ -715,7 +721,7 @@ export class AJEPAEncoder {
         duration: audio.duration,
         emaStep: this.emaStep,
         source: audio.source,
-        encoder: 'A-JEPA (ViT-B/16, Mel128, EMA τ=0.996)',
+        encoder: 'A-JEPA-inspired MLP encoder on Mel128 (untrained, random init)',
       },
     };
   }
@@ -922,7 +928,7 @@ export class KonikuOlfactoryEncoder {
         topPrototype: matches[0]?.prototypeIdx ?? -1,
         topSimilarity: +(matches[0]?.similarity ?? 0).toFixed(4),
         integrationWindow: this.activationHistory.length,
-        encoder: 'Koniku Kore (64-channel chemoreceptor, Hill kinetics)',
+        encoder: 'Koniku Kore-inspired simulated chemoreceptor array, Hill kinetics (no Koniku hardware)',
       },
     };
   }

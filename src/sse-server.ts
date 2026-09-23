@@ -23,6 +23,7 @@ import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import { createAstraServer } from './server.js';
 import { logger } from './utils/logger.js';
 import { ASTRA_VERSION } from './version.js';
+import { seedInfo } from './utils/rng.js';
 
 const PORT = Number.parseInt(process.env.ASTRA_SSE_PORT || '9002', 10) || 9002;
 const HOST = process.env.ASTRA_SSE_HOST || '127.0.0.1';
@@ -57,6 +58,7 @@ export function createSseApp(): { app: express.Express; transports: Map<string, 
       server: 'astra-mcp-server',
       version: ASTRA_VERSION,
       transport: 'sse',
+      rng: seedInfo(),
       activeSessions: transports.size,
       uptime: process.uptime(),
     });

@@ -1,6 +1,22 @@
 # ASTRA — Unified Research Lab + MCP Server
 
-**Autonomous Sentient Thoughtful Reasoning Agent**
+**Agent-orchestrated Simulation Testbed for Research on Awareness**
+
+> **Data provenance.** All biological and physiological data produced by this server
+> are **simulated**. No living tissue, organoid, human subject or Koniku hardware is
+> connected: the NeuroPlatform bridge is instantiated in simulate mode, the OVOMIND live
+> adapter is an unimplemented stub, and the sensory encoders are untrained
+> re-implementations inspired by V-JEPA 2 / A-JEPA. The consciousness-related indices
+> are **computed proxies, not measurements**, and ASTRA makes **no claim of sentience**
+> (the acronym's former expansion, *Autonomous Sentient Thoughtful Reasoning Agent*, is
+> withdrawn — see `src/engine/tcai/phenomenal-guard.ts`).
+
+> **First empirical test (E1).** The organoid surrogate's spontaneous activity was
+> confronted with three real human brain organoids (DANDI 001603) under a preregistration
+> made public *before* the data were received. Verdict: **INADEQUATE** — the real
+> organoids burst and synchronise, the surrogate emits independent Poisson trains; the
+> failure is structural, not parametric. Protocol, results and replay:
+> [`empirical/`](empirical/RESULTS-E1.md).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-cyan.svg)](LICENSE)
 [![CI](https://github.com/christophejlegros-lgtm/ASTRA-Unified-ResearchLab-MCP-FCS-v3.1.0/actions/workflows/ci.yml/badge.svg)](https://github.com/christophejlegros-lgtm/ASTRA-Unified-ResearchLab-MCP-FCS-v3.1.0/actions)
@@ -42,6 +58,14 @@ synthesis S-1.5) inside ASTRA as `fcs_*` tools — **not** as a scoring module.
   Test suite 241 → **317 tests** (69 in `tests/fcs.test.ts`, 7 in `tests/annotations.test.ts`).
 - **MCP tool annotations** on all 70 tools (title + read-only / destructive / idempotent /
   open-world hints), classified from each handler's code — see [MCP Tools](#mcp-tools-70).
+- **Corrections before dissemination.** Acronym re-expanded without "Sentient"; data
+  provenance stated up front; encoder labels now read "…-inspired (untrained)";
+  `get_acm_score` retitled as a composite proxy; every stochastic component draws from one
+  **seeded** generator (`ASTRA_SEED`, reported by `get_system_status`, `export_snapshot`
+  and `/health`); third-party article copies replaced by a DOI bibliography;
+  [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md), [`CITATION.cff`](CITATION.cff),
+  [`PREREGISTRATION.md`](PREREGISTRATION.md) and [`REVIEW.md`](REVIEW.md) added.
+  Test suite **323 tests** (6 in `tests/reproducibility.test.ts`).
 - **New console:** `dashboard/ASTRA-FCS-Dashboard.html` — self-contained,
   bilingual FR/EN, recomputing the partial order in the browser and reporting
   whether it reproduces the published strata.
@@ -123,7 +147,7 @@ ASTRA v2.9 makes the continuous controller **non-degenerate**: instead of rampin
 ASTRA v2.2 integrates **[tlcdv/the_consciousness_ai](https://github.com/tlcdv/the_consciousness_ai)** — the Artificial Consciousness Module research codebase — at two levels:
 
 - **Native TypeScript port** (`src/engine/tcai/`): Global Neuronal Workspace with sigmoid ignition & reverberation, Kuramoto/AKOrN oscillatory binding, PAD emotional processing & reward shaping, attention-gated emotional memory, self-representation core + attention schema, and a metrics suite (GNW · Effective Information · Φ̃-RIIU) — all fed live from the SNN/world-model state and exposed as **8 new MCP tools** (`tcai_cycle`, `tcai_workspace_state`, `tcai_emotion_appraise`, `tcai_memory_store`, `tcai_memory_retrieve`, `tcai_self_model`, `tcai_metrics`, `tcai_reset`).
-- **Full vendored Python codebase** (`python/the_consciousness_ai/`, 396 files — distributed under its own **non-commercial** licence, see [License](#license)): the complete upstream ACM project for reference and PyTorch-based reproduction.
+- **Full vendored Python codebase** (`python/the_consciousness_ai/`, 291 files — distributed under its own **non-commercial** licence, see [License](#license) and [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)): the complete upstream ACM project for reference and PyTorch-based reproduction.
 
 See **[TCAI-INTEGRATION.md](TCAI-INTEGRATION.md)** for the complete Python → TypeScript mapping and architecture coupling. All consciousness-related metrics remain **computational proxies**, not measurements.
 
@@ -131,11 +155,11 @@ See **[TCAI-INTEGRATION.md](TCAI-INTEGRATION.md)** for the complete Python → T
 
 ASTRA v2.2 also integrates the **[FinalSpark NeuroPlatform v2](https://finalspark-np.github.io/np-docs/np_core/doc_v2.html)** wetware control API — the closed-loop interface to living neural organoids on a 128-electrode MEA — at two levels:
 
-- **Native TypeScript port + biophysical simulator** (`src/engine/neuroplatform.ts`): faithful port of the NeuroPlatform controller surface (`StimParam` with charge-balance checking, `IntanController`, `TriggerController`, `DatabaseController`, `CameraController`) backed by a seeded `OrganoidMEA` model — exposed as **9 new MCP tools** (`np_status`, `np_configure_stim`, `np_send_trigger`, `np_count_spikes`, `np_query_spike_count`, `np_query_spike_events`, `np_query_triggers`, `np_camera_capture`, `np_closed_loop`). The MEA's 128 electrodes couple one-to-one with the ASTRA SNN's 128 neurons.
+- **Native TypeScript port + integration-test surrogate** (`src/engine/neuroplatform.ts`): faithful port of the NeuroPlatform controller surface (`StimParam` with charge-balance checking, `IntanController`, `TriggerController`, `DatabaseController`, `CameraController`) backed by a seeded `OrganoidMEA` model — exposed as **9 new MCP tools** (`np_status`, `np_configure_stim`, `np_send_trigger`, `np_count_spikes`, `np_query_spike_count`, `np_query_spike_events`, `np_query_triggers`, `np_camera_capture`, `np_closed_loop`). The MEA's 128 electrodes couple one-to-one with the ASTRA SNN's 128 neurons.
 - **Live Python bridge** (`python/neuroplatform/astra_np_bridge.py`): runs a homeostatic closed loop against the physical platform via the genuine `neuroplatformv2` SDK, streaming couplings to ASTRA over JSON-RPC.
 - **Standalone dashboard** (`dashboard/ASTRA-NeuroPlatform-Dashboard.html`): live MEA raster, spike scope, `StimParam` editor with charge-balance readout, trigger generator and closed-loop telemetry.
 
-See **[NEUROPLATFORM-INTEGRATION.md](NEUROPLATFORM-INTEGRATION.md)** for the complete API → TypeScript mapping. With no hardware attached the server runs in **simulate mode** (deterministic biophysical model), **not** living-tissue measurements.
+See **[NEUROPLATFORM-INTEGRATION.md](NEUROPLATFORM-INTEGRATION.md)** for the complete API → TypeScript mapping. With no hardware attached the server runs in **simulate mode** (deterministic Poisson surrogate), **not** living-tissue measurements. The surrogate's spontaneous activity was confronted with real human brain organoids (DANDI 001603) under a public preregistration and found **inadequate** (no network bursts, no synchrony) — see [`empirical/RESULTS-E1.md`](empirical/RESULTS-E1.md).
 
 ```
 FinalSpark (800K neurons) ──┐
@@ -279,7 +303,7 @@ live API when configured). `tests/annotations.test.ts` asserts that the table an
 | `snn_step` | Advance SNN Simulation | ✏️ additive |
 | `snn_reset` | Reset SNN Engine | ⚠️ destructive · idempotent |
 | `inject_spikes` | Spike Injection | ✏️ additive |
-| `get_acm_score` | Consciousness Assessment (Proxy) | 📖 read-only |
+| `get_acm_score` | Composite Consciousness-Theory Proxy (not a measurement) | 📖 read-only |
 | `check_ethics` | IRB Neural Welfare Check | 📖 read-only |
 | `set_parameter` | Modify State Parameter | ⚠️ destructive · idempotent · bounds-checked |
 | `get_platform_status` | Bio-Computing Platforms | 📖 read-only |
@@ -291,7 +315,7 @@ live API when configured). `tests/annotations.test.ts` asserts that the table an
 | Family | Count | Scope | Guide |
 |---|---|---|---|
 | `wm_*` | 6 | JEPA World Model: encode, predict, plan (CEM), train, surprise | [WORLD-MODEL.md](WORLD-MODEL.md) |
-| `sensor_*` | 6 | V-JEPA 2 · A-JEPA · Koniku Kore · cross-modal fusion | — |
+| `sensor_*` | 6 | Untrained encoders inspired by V-JEPA 2 · A-JEPA · Koniku Kore (simulated) · cross-modal fusion | — |
 | `tcai_*` | 17 | ACM cycle, workspace, emotion, memory, self-model, metrics, second-order loop | [TCAI-INTEGRATION.md](TCAI-INTEGRATION.md) · [SECOND-ORDER-LOOP-INTEGRATION.md](SECOND-ORDER-LOOP-INTEGRATION.md) |
 | `np_*` | 9 | NeuroPlatform v2: status, stim config, triggers, spike queries, camera, closed loop | [NEUROPLATFORM-INTEGRATION.md](NEUROPLATFORM-INTEGRATION.md) |
 | `ovo_*` | 6 | OVOMIND affective exteroception bridge (sim by default; live adapter is a stub) | [OVOMIND-INTEGRATION.md](OVOMIND-INTEGRATION.md) |
@@ -365,7 +389,7 @@ src/
 │   ├── ethics.ts         # IRB ethics monitor (mode-aware, biomarker thresholds)
 │   ├── world-model.ts    # JEPA World Model engine (LeWM adapted)
 │   ├── wm-simulation.ts  # WM simulation manager (replay buffer, auto-train)
-│   ├── multimodal-sensors.ts # V-JEPA 2 + A-JEPA + Koniku + fusion
+│   ├── multimodal-sensors.ts # V-JEPA 2- / A-JEPA- / Koniku-inspired encoders (untrained) + fusion
 │   ├── neuroplatform.ts  # FinalSpark NeuroPlatform v2 port + OrganoidMEA simulator
 │   ├── ovomind.ts        # OVOMIND adapter (sim default; live adapter is a declared stub)
 │   ├── simulation.ts     # Background tick loop
@@ -375,9 +399,10 @@ src/
 │                         #   emotional-memory, self-model, second-order, active-inference,
 │                         #   metrics, acm-bridge, orch-or, phenomenal-guard, types
 └── utils/
-    └── logger.ts         # Structured logging (pino → stderr)
+    ├── logger.ts         # Structured logging (pino → stderr)
+    └── rng.ts            # Global seeded PRNG (mulberry32, ASTRA_SEED)
 
-tests/                    # 317 tests · 61 suites
+tests/                    # 323 tests · 62 suites
 ├── astra.test.ts             # Unit: state, bounds, SNN, ACM, ethics, security
 ├── world-model.test.ts       # World Model: encoder, predictor, SIGReg, CEM, surprise
 ├── wm-simulation.test.ts     # WM simulation: buffer, training, planning, lifecycle
@@ -389,7 +414,8 @@ tests/                    # 317 tests · 61 suites
 ├── integration.test.ts       # Client SDK: tools, resources, prompts, workflow
 ├── transports.test.ts        # HTTP/SSE transport layer: session lifecycle, guards, regressions
 ├── fcs.test.ts               # FCS: published strata reproduced, no-aggregation guard, linters
-└── annotations.test.ts       # MCP annotations: table ≡ tools/list, classification invariants
+├── annotations.test.ts       # MCP annotations: table ≡ tools/list, classification invariants
+└── reproducibility.test.ts   # Seeded streams: same seed ⇒ same SNN and encoder outputs
 
 configs/                  # Ready-to-use client configurations
 ```
@@ -458,6 +484,7 @@ npm run test:sensors       # multimodal sensors
 npm run test:transports    # HTTP + SSE transport layer
 npm run test:fcs           # FCS layer
 npm run test:annotations   # MCP tool annotations
+npm run test:repro         # seeded reproducibility
 
 # Static gates
 npm run build              # tsc strict (Node16 ESM)
@@ -468,7 +495,7 @@ npm run golden:check       # TS↔NumPy active-inference golden (requires python
 npm run inspect
 ```
 
-> **Full suite: 317/317 passing** (229 engine/integration + 12 transport-layer + 69 FCS + 7 annotations), 0 TypeScript errors
+> **Full suite: 323/323 passing** (229 engine/integration + 12 transport-layer + 69 FCS + 7 annotations + 6 reproducibility), 0 TypeScript errors
 > (strict, Node16 ESM), 0 ESLint errors. Verified on Node 20 and Node 22 in CI.
 
 ## Development
@@ -490,6 +517,7 @@ npm run watch      # TypeScript watch mode
 | `ASTRA_HTTP_PORT` | `9003` | Streamable HTTP port |
 | `ASTRA_HTTP_HOST` | `127.0.0.1` | Streamable HTTP bind address |
 | `ASTRA_CORS_ORIGIN` | `*` | CORS allowed origin |
+| `ASTRA_SEED` | `20260923` | Seed of the global PRNG (unsigned 32-bit). Same seed ⇒ same random streams; wall-clock-driven ticks still interleave differently — for bit-level replay keep the simulation loop stopped and drive it with `snn_step`. |
 
 > **Bind address defaults to loopback.** Both HTTP transports bind `127.0.0.1` so a
 > local server is not exposed to the network by default (the permissive CORS default
@@ -523,8 +551,15 @@ MIT — © 2026 Christophe Jean Legros, Geneva — applies to everything in this
 > under its own **Non-Commercial Open Source License** (see
 > [`python/the_consciousness_ai/LICENSE.md`](python/the_consciousness_ai/LICENSE.md)):
 > non-commercial use only, attribution to tlcdv required, no sublicensing. The MIT licence
-> above does **not** extend to it. The TypeScript port in `src/engine/tcai/` is based on
-> that project — original author: tlcdv (https://github.com/tlcdv/the_consciousness_ai).
+> above does **not** extend to it. Nine files of `src/engine/tcai/` port parts of that
+> project to TypeScript; pending a legal assessment they are treated **conservatively** as
+> subject to its non-commercial terms. Details, file list and status:
+> [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+
+**Citing and reviewing.** Cite via [`CITATION.cff`](CITATION.cff) (an archived DOI will be
+added with the first Zenodo release). External review is invited through
+[`REVIEW.md`](REVIEW.md); substrate-level predictions are drafted for preregistration in
+[`PREREGISTRATION.md`](PREREGISTRATION.md).
 
 **Assistance Multi IA** · [Assistant-Multi-IA@proton.me](mailto:Assistant-Multi-IA@proton.me)
 

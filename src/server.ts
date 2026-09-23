@@ -29,6 +29,7 @@ import { registerOvomindTools } from './server-ovomind-tools.js';
 import { registerOrchTools } from './server-orch-tools.js';
 import { registerFcsCapabilities } from './server-fcs-tools.js';
 import { logger } from './utils/logger.js';
+import { seedInfo } from './utils/rng.js';
 import type { AstraBridgeState, SpikeAction } from './bridge-state.js';
 import { toolAnnotations } from './tool-annotations.js';
 
@@ -75,7 +76,7 @@ export function createAstraServer(): McpServer {
     const wm = wmManager.getStatus(); const snap = state.snapshot;
     const { neurons, synapses, ...snnMetrics } = snn.getMetrics();
     return { content: [{ type: 'text' as const, text: JSON.stringify({
-      system: `ASTRA v${ASTRA_VERSION}`, mode: snap.mode, uptime: process.uptime(), tick: snap.tick,
+      system: `ASTRA v${ASTRA_VERSION}`, mode: snap.mode, dataProvenance: 'simulated', rng: seedInfo(), uptime: process.uptime(), tick: snap.tick,
       snn: { neurons, synapses, layers: snn.getLayerSizes(), ...snnMetrics },
       acm: acmAdapter.getState(), ethics: ethicsAdapter.getReport(),
       worldModel: { status: wm.health.latentCollapse ? 'COLLAPSED' : 'ACTIVE', trainingSteps: wm.worldModel.trainingSteps,
@@ -123,7 +124,7 @@ export function createAstraServer(): McpServer {
       return { content: [{ type: 'text' as const, text: JSON.stringify({ injected: neuronIds.length, strength, result }, null, 2) }] };
     });
 
-  server.tool('get_acm_score', 'Consciousness Assessment (Proxy)', {}, toolAnnotations('get_acm_score'), async () => {
+  server.tool('get_acm_score', 'Composite proxy score inspired by IIT/GWT/PAD — a computed index, not a measurement of consciousness', {}, toolAnnotations('get_acm_score'), async () => {
     const wmM = wmManager.wm.getMetrics();
     return { content: [{ type: 'text' as const, text: JSON.stringify({
       ...acmAdapter.getState(),
@@ -157,7 +158,7 @@ export function createAstraServer(): McpServer {
     content: [{ type: 'text' as const, text: JSON.stringify({
       snn: snn.getState(), acm: acmAdapter.getState(), ethics: ethicsAdapter.getReport(),
       worldModel: wmManager.wm.getSnapshot(), wmSimulation: wmManager.getStatus(),
-      state: state.snapshot, timestamp: new Date().toISOString(),
+      state: state.snapshot, rng: seedInfo(), dataProvenance: 'simulated', timestamp: new Date().toISOString(),
     }, null, 2) }] }));
 
   server.tool('simulation_control', 'Simulation Control',
