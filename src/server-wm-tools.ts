@@ -13,6 +13,7 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
+import type { AstraBridgeState, GetBridgeState, PlatformName } from './bridge-state.js';
 import {
   WorldModelEngine,
   type SNNObservation,
@@ -41,7 +42,7 @@ const GoalStateSchema = z.object({
  * Bridge between ASTRA's reactive state store and the World Model observation format.
  * Call this to extract an SNNObservation from the current ASTRA state.
  */
-export function extractObservation(state: any): SNNObservation {
+export function extractObservation(state: AstraBridgeState): SNNObservation {
   const snn = state.snn ?? {};
   const platforms = state.platforms ?? {};
   const neuronCount = snn.neuronCount ?? 128;
@@ -78,7 +79,7 @@ export function extractObservation(state: any): SNNObservation {
 
   // Bio-coupling factors
   const bioCoupling = new Float64Array(4);
-  const platformNames = ['finalspark', 'corticalLabs', 'koniku', 'loihi2'];
+  const platformNames: readonly PlatformName[] = ['finalspark', 'corticalLabs', 'koniku', 'loihi2'];
   platformNames.forEach((name, i) => {
     bioCoupling[i] = platforms[name]?.coupling ?? 0;
   });
@@ -137,7 +138,7 @@ function buildGoalObservation(
  */
 export function registerWorldModelCapabilities(
   server: McpServer,
-  getState: () => any,
+  getState: GetBridgeState,
   wmConfig: Partial<WorldModelConfig> = {},
 ): WorldModelEngine {
 
@@ -263,9 +264,9 @@ export function registerWorldModelCapabilities(
 
       // Temporarily adjust planning horizon
       const originalHorizon = wm.config.planningHorizon;
-      (wm.config as any).planningHorizon = horizon;
+      wm.config.planningHorizon = horizon;
       const result = wm.planToGoal(currentObs, goalObs);
-      (wm.config as any).planningHorizon = originalHorizon;
+      wm.config.planningHorizon = originalHorizon;
 
       return {
         content: [{

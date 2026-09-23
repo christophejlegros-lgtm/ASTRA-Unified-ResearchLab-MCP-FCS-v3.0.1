@@ -21,6 +21,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { state } from './engine/state.js';
+import type { GetBridgeState } from './bridge-state.js';
 import {
   NeuroPlatformBridge, StimParam, StimPolarity, StimShape, MEA,
   TriggersQuery, SpikeCountQuery, SpikeEventQuery,
@@ -41,7 +42,7 @@ export interface NeuroPlatformDeps {
 
 export function registerNeuroPlatformCapabilities(
   server: McpServer,
-  getState: () => any,
+  getState: GetBridgeState,
   deps: NeuroPlatformDeps = {},
 ): NeuroPlatformBridge {
   const bridge = new NeuroPlatformBridge({ mode: 'simulate' });
@@ -69,7 +70,7 @@ export function registerNeuroPlatformCapabilities(
       enable: z.boolean().default(true),
       enforce_charge_balance: z.boolean().default(true).describe('Reject upload if phases are not charge-balanced'),
     },
-    async (a: any) => {
+    async (a) => {
       const sp = new StimParam({
         index: a.index, trigger_key: a.trigger_key,
         polarity: a.polarity === 'PositiveFirst' ? StimPolarity.PositiveFirst : StimPolarity.NegativeFirst,
@@ -221,7 +222,7 @@ export function registerNeuroPlatformCapabilities(
       drive_strength: z.number().min(-100).max(100).default(15).describe('Spike injection strength (mV) when drive_snn=true'),
       couple_ethics: z.boolean().default(true).describe('Mirror organoid viability into the IRB ethics gateway (eth.viab)'),
     },
-    async (a: any) => {
+    async (a) => {
       const coupling = await bridge.closedLoopRead(a.window_ms);
       state.set('fu.fs', coupling.fusionCoefficient);
       state.set('ros.fs', coupling.firingRateHz);

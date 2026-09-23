@@ -236,7 +236,7 @@ const _acmAdapter = {
   _lastResult: null as ACMResult | null,
 
   /** server.ts calls acm.update(snn) */
-  update(_snn?: any): ACMResult {
+  update(_snn?: unknown): ACMResult {
     _acmAdapter._lastResult = acmModule.assess();
     return _acmAdapter._lastResult;
   },

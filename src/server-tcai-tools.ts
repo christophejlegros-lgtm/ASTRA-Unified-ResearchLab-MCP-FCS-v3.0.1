@@ -32,6 +32,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { tcaiSystem, type CycleInput } from './engine/tcai/acm-bridge.js';
 import { PROXY_DISCLAIMER } from './engine/tcai/types.js';
+import type { GetBridgeState } from './bridge-state.js';
 
 const MODULES = ['vision', 'audio', 'memory', 'body', 'semantic'] as const;
 
@@ -42,7 +43,7 @@ const emotionSchema = {
 };
 
 /** Derive per-specialist signal vectors from live ASTRA SNN layer metrics. */
-function deriveSignals(getState: () => any, dim: number): CycleInput['signals'] {
+function deriveSignals(getState: GetBridgeState, dim: number): CycleInput['signals'] {
   const st = getState();
   const layerMetrics: Array<{ firingRate: number }> = st?.snn?.layerMetrics ?? [];
   const tick: number = st?.snn?.timestep ?? 0;
@@ -61,7 +62,7 @@ function deriveSignals(getState: () => any, dim: number): CycleInput['signals'] 
 
 const json = (o: unknown) => ({ content: [{ type: 'text' as const, text: JSON.stringify(o, null, 2) }] });
 
-export function registerTCAICapabilities(server: McpServer, getState: () => any): void {
+export function registerTCAICapabilities(server: McpServer, getState: GetBridgeState): void {
 
   // ── Tool 1: full consciousness cycle ─────────────────────────────
   server.tool('tcai_cycle',

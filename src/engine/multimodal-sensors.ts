@@ -213,6 +213,20 @@ export interface FusedEmbedding {
 }
 
 /** Sensor pipeline configuration */
+/** Processing statistics returned by MultimodalSensorPipeline.getStats(). */
+export interface PipelineStats {
+  processed: number;
+  modalities: { visual: number; audio: number; olfactory: number };
+  lastFusion: {
+    weights: FusedEmbedding['modalityWeights'];
+    coherence: number;
+    modalitiesActive: number;
+  } | null;
+  config: Pick<SensorConfig,
+    'visualPatchSize' | 'visualMaskRatio' | 'audioMelBins' | 'audioMaskRatio' |
+    'olfactoryReceptors' | 'latentDim' | 'fusionHeads'>;
+}
+
 export interface SensorConfig {
   /** V-JEPA patch size (default: 16) */
   visualPatchSize: number;
@@ -1119,7 +1133,7 @@ export class MultimodalSensorPipeline {
   }
 
   /** Get processing statistics */
-  getStats(): Record<string, any> {
+  getStats(): PipelineStats {
     return {
       processed: this.processedCount,
       modalities: { ...this.modalityCounts },

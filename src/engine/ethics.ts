@@ -235,7 +235,7 @@ export const ethicsMonitor = new EthicsMonitor();
 
 const _ethicsAdapter = {
   /** server.ts calls ethics.update(snn, mode) */
-  update(_snn?: any, _mode?: string): WelfareReport {
+  update(_snn?: unknown, _mode?: string): WelfareReport {
     ethicsMonitor.simulateDrift();
     return ethicsMonitor.assess();
   },

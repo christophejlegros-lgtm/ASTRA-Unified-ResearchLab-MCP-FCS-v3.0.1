@@ -29,6 +29,7 @@ import { registerOvomindTools } from './server-ovomind-tools.js';
 import { registerOrchTools } from './server-orch-tools.js';
 import { registerFcsCapabilities } from './server-fcs-tools.js';
 import { logger } from './utils/logger.js';
+import type { AstraBridgeState, SpikeAction } from './bridge-state.js';
 
 // ── Shared SNN + WM (singleton, survives across sessions) ──
 
@@ -46,10 +47,10 @@ wmManager.onSurpriseAlert = (alert) => {
   logger.warn({ msg: 'WM surprise alert', level: alert.level, surprise: alert.surprise, timestep: alert.timestep });
 };
 
-let _lastSpikeAction: { targetNeurons: number[]; strengths: number[]; duration: number } | null = null;
+let _lastSpikeAction: SpikeAction | null = null;
 
 /** Bridge: build WM-compatible state from singletons */
-function getStateForWM(): any {
+function getStateForWM(): AstraBridgeState {
   const snap = state.snapshot;
   return {
     mode: snap.mode,
@@ -71,9 +72,10 @@ export function createAstraServer(): McpServer {
 
   server.tool('get_system_status', 'ASTRA System Status', {}, async () => {
     const wm = wmManager.getStatus(); const snap = state.snapshot;
+    const { neurons, synapses, ...snnMetrics } = snn.getMetrics();
     return { content: [{ type: 'text' as const, text: JSON.stringify({
       system: `ASTRA v${ASTRA_VERSION}`, mode: snap.mode, uptime: process.uptime(), tick: snap.tick,
-      snn: { neurons: snn.getNeuronCount(), synapses: snn.getSynapseCount(), layers: snn.getLayerSizes(), ...snn.getMetrics() },
+      snn: { neurons, synapses, layers: snn.getLayerSizes(), ...snnMetrics },
       acm: acmAdapter.getState(), ethics: ethicsAdapter.getReport(),
       worldModel: { status: wm.health.latentCollapse ? 'COLLAPSED' : 'ACTIVE', trainingSteps: wm.worldModel.trainingSteps,
         avgPredLoss: Math.round(wm.worldModel.avgPredictionLoss * 1e6) / 1e6, latentVariance: Math.round(wm.worldModel.latentVariance * 1e4) / 1e4,

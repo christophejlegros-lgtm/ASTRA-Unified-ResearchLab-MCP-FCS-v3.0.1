@@ -5,7 +5,33 @@
  * © 2026 Christophe Jean Legros — Geneva
  */
 
-interface LayerConfig { name: string; size: number; }
+export interface LayerConfig { name: string; size: number; }
+
+export interface SNNConfig { layers?: LayerConfig[]; }
+
+export interface SNNMetrics {
+  timestep: number;
+  neurons: number;
+  synapses: number;
+  stdpUpdates: number;
+  meanFiringRate: number;
+  activeNeurons: number;
+  recentSpikes: number;
+}
+
+export interface SNNState extends SNNMetrics {
+  layers: LayerConfig[];
+  params: { tauM: number; vTh: number; vReset: number; refractMs: number };
+  stdp: { aPlus: number; aMinus: number; tauPlus: number; tauMinus: number };
+}
+
+export interface SNNTopology {
+  layers: LayerConfig[];
+  totalNeurons: number;
+  totalSynapses: number;
+  connectivity: { feedForward: number; recurrent: number };
+  weightStorage: string;
+}
 
 
 export class SNNEngine {
@@ -39,7 +65,7 @@ export class SNNEngine {
   private readonly noiseMin = 10;
   private readonly noiseMax = 22;
 
-  constructor(config?: any) {
+  constructor(config?: SNNConfig) {
     this.layers = config?.layers ?? [
       { name: 'input', size: 32 },
       { name: 'hidden_1', size: 64 },
@@ -182,7 +208,7 @@ export class SNNEngine {
     return count;
   }
 
-  getMetrics(): Record<string, any> {
+  getMetrics(): SNNMetrics {
     const meanFR = this.firingRates.reduce((a, b) => a + b, 0) / this._N;
     const active = Array.from(this.firingRates).filter(r => r > 0.1).length;
     return {
@@ -196,7 +222,7 @@ export class SNNEngine {
     };
   }
 
-  getState(): Record<string, any> {
+  getState(): SNNState {
     return {
       ...this.getMetrics(),
       layers: this.layers,
@@ -205,7 +231,7 @@ export class SNNEngine {
     };
   }
 
-  getTopology(): Record<string, any> {
+  getTopology(): SNNTopology {
     return {
       layers: this.layers,
       totalNeurons: this.N,

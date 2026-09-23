@@ -16,6 +16,7 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
+import type { GetBridgeState } from './bridge-state.js';
 import {
   MultimodalSensorPipeline,
   type ImageFrame,
@@ -128,7 +129,7 @@ function simulateOlfactory(nR: number, compounds: string[], concentrations: numb
 
 export function registerSensorCapabilities(
   server: McpServer,
-  getState: () => any,
+  getState: GetBridgeState,
   sensorConfig: Partial<SensorConfig> = {},
 ): MultimodalSensorPipeline {
   const pipeline = new MultimodalSensorPipeline(sensorConfig);
